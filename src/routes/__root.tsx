@@ -74,17 +74,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "المستشار الأكاديمي · GPA Advisor" },
+      { title: "GPA Advisor" },
       {
         name: "description",
         content:
           "خطط، تتبع وتفوق في معدلك التراكمي. حاسبة GPA متقدمة لطلاب جامعة بنها والجامعات المصرية.",
       },
       { name: "author", content: "GPA Advisor" },
-      { property: "og:title", content: "GPA Advisor — المستشار الأكاديمي" },
-      { property: "og:description", content: "حاسبة وتخطيط معدل تراكمي بدعم لائحة جامعة بنها 2021." },
+      { property: "og:title", content: "GPA Advisor" },
+      { property: "og:description", content: "Insight Navigator visualizes and analyzes data to guide future actions and feature development." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "GPA Advisor" },
+      { name: "description", content: "Insight Navigator visualizes and analyzes data to guide future actions and feature development." },
+      { name: "twitter:description", content: "Insight Navigator visualizes and analyzes data to guide future actions and feature development." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1c30b567-9b99-4cc2-949d-44d2efea1093/id-preview-57d5afe3--8a945c9f-a8e0-4a32-a0a3-94734c432577.lovable.app-1778951891492.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1c30b567-9b99-4cc2-949d-44d2efea1093/id-preview-57d5afe3--8a945c9f-a8e0-4a32-a0a3-94734c432577.lovable.app-1778951891492.png" },
     ],
     links: [
       {
