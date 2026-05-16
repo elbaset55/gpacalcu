@@ -14,7 +14,140 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      academic_profiles: {
+        Row: {
+          created_at: string
+          grad_target: number
+          has_failed: boolean
+          is_benha: boolean
+          lang: string
+          major: string | null
+          min_prev_sem_gpa: number
+          prev_cr: number
+          prev_gpa: number
+          scale_id: string
+          semester: string
+          total_req: number
+          uni_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          grad_target?: number
+          has_failed?: boolean
+          is_benha?: boolean
+          lang?: string
+          major?: string | null
+          min_prev_sem_gpa?: number
+          prev_cr?: number
+          prev_gpa?: number
+          scale_id?: string
+          semester?: string
+          total_req?: number
+          uni_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          grad_target?: number
+          has_failed?: boolean
+          is_benha?: boolean
+          lang?: string
+          major?: string | null
+          min_prev_sem_gpa?: number
+          prev_cr?: number
+          prev_gpa?: number
+          scale_id?: string
+          semester?: string
+          total_req?: number
+          uni_name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      courses: {
+        Row: {
+          code: string | null
+          created_at: string
+          credits: number
+          grade_letter: string | null
+          grade_pts: number | null
+          id: string
+          is_failed: boolean
+          name: string
+          percentage: number | null
+          semester_id: string
+          user_id: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          credits?: number
+          grade_letter?: string | null
+          grade_pts?: number | null
+          id?: string
+          is_failed?: boolean
+          name: string
+          percentage?: number | null
+          semester_id: string
+          user_id: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          credits?: number
+          grade_letter?: string | null
+          grade_pts?: number | null
+          id?: string
+          is_failed?: boolean
+          name?: string
+          percentage?: number | null
+          semester_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courses_semester_id_fkey"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "semesters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      semesters: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          sem_type: string
+          sort_order: number
+          user_id: string
+          year: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          sem_type?: string
+          sort_order?: number
+          user_id: string
+          year?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          sem_type?: string
+          sort_order?: number
+          user_id?: string
+          year?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
