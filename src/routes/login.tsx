@@ -17,11 +17,15 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
+import { useGpaTheme } from "@/components/gpa/use-theme";
+import { ThemeSwitcher } from "@/components/gpa/ThemeSwitcher";
+
 const FONT = "'Cairo','Noto Sans Arabic',sans-serif";
 
 function LoginPage() {
   const navigate = useNavigate();
   const { redirect: redirectTo } = Route.useSearch();
+  const { theme, setTheme } = useGpaTheme();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -70,10 +74,10 @@ function LoginPage() {
   };
 
   const inp: React.CSSProperties = {
-    background: "#0d0d1a",
-    border: "1px solid #1e1e3f",
+    background: "var(--gpa-card)",
+    border: "1px solid var(--gpa-border)",
     borderRadius: 10,
-    color: "#e0e0ff",
+    color: "var(--gpa-text-strong)",
     padding: "12px 14px",
     fontSize: 14,
     fontFamily: FONT,
@@ -87,25 +91,28 @@ function LoginPage() {
       dir="rtl"
       style={{
         fontFamily: FONT,
-        background: "#070712",
+        background: "var(--gpa-bg)",
         minHeight: "100vh",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: 16,
         backgroundImage:
-          "radial-gradient(ellipse at 20% 20%,#00ff8810,transparent 50%),radial-gradient(ellipse at 80% 80%,#6366f110,transparent 50%)",
+          "radial-gradient(ellipse at 20% 20%,var(--gpa-accent-10),transparent 50%),radial-gradient(ellipse at 80% 80%,var(--gpa-accent2-18),transparent 50%)",
       }}
     >
       <div style={{ width: "100%", maxWidth: 420 }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+          <ThemeSwitcher theme={theme} onChange={setTheme} />
+        </div>
         <div style={{ textAlign: "center", marginBottom: 28 }}>
           <div
             style={{
               width: 64,
               height: 64,
               borderRadius: 16,
-              background: "linear-gradient(135deg,#00ff8822,#6366f122)",
-              border: "1px solid #00ff8833",
+              background: "linear-gradient(135deg,var(--gpa-accent-20),var(--gpa-accent2-20))",
+              border: "1px solid var(--gpa-accent-33)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -115,18 +122,18 @@ function LoginPage() {
           >
             🎓
           </div>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: "#fff" }}>
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: "var(--gpa-text)" }}>
             المستشار الأكاديمي
           </h1>
-          <p style={{ margin: "6px 0 0", fontSize: 12, color: "#555" }}>
+          <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--gpa-text-faint)" }}>
             خطط · تتبع · تفوق
           </p>
         </div>
 
         <div
           style={{
-            background: "#0d0d1a",
-            border: "1px solid #1e1e3f",
+            background: "var(--gpa-card)",
+            border: "1px solid var(--gpa-border)",
             borderRadius: 18,
             padding: 22,
           }}
@@ -143,10 +150,10 @@ function LoginPage() {
                 style={{
                   flex: 1,
                   padding: 11,
-                  background: mode === m ? "#00ff8812" : "transparent",
-                  border: mode === m ? "1px solid #00ff8844" : "1px solid #1e1e3f",
+                  background: mode === m ? "var(--gpa-accent-12)" : "transparent",
+                  border: mode === m ? "1px solid var(--gpa-accent-44)" : "1px solid var(--gpa-border)",
                   borderRadius: 10,
-                  color: mode === m ? "#00ff88" : "#666",
+                  color: mode === m ? "var(--gpa-accent)" : "var(--gpa-text-muted-2)",
                   fontSize: 13,
                   fontWeight: 700,
                   fontFamily: FONT,
@@ -179,12 +186,12 @@ function LoginPage() {
             {err && (
               <div
                 style={{
-                  background: "#ef535015",
-                  border: "1px solid #ef535033",
+                  background: "var(--gpa-danger-15)",
+                  border: "1px solid var(--gpa-danger-33)",
                   borderRadius: 8,
                   padding: "8px 12px",
                   fontSize: 12,
-                  color: "#ef5350",
+                  color: "var(--gpa-danger)",
                 }}
               >
                 ⚠️ {err}
@@ -195,15 +202,15 @@ function LoginPage() {
               disabled={loading}
               style={{
                 padding: 13,
-                background: "linear-gradient(135deg,#00ff8828,#6366f120)",
-                border: "1px solid #00ff8855",
+                background: "linear-gradient(135deg,var(--gpa-accent-25),var(--gpa-accent2-20))",
+                border: "1px solid var(--gpa-accent-55)",
                 borderRadius: 12,
-                color: "#00ff88",
+                color: "var(--gpa-accent)",
                 fontSize: 14,
                 fontWeight: 700,
                 fontFamily: FONT,
                 cursor: loading ? "wait" : "pointer",
-                boxShadow: "0 0 20px #00ff8820",
+                boxShadow: "0 0 20px var(--gpa-accent-20)",
                 opacity: loading ? 0.6 : 1,
               }}
             >
@@ -217,9 +224,9 @@ function LoginPage() {
 
           {/* Divider */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "18px 0" }}>
-            <div style={{ flex: 1, height: 1, background: "#1e1e3f" }} />
-            <span style={{ fontSize: 11, color: "#444" }}>أو</span>
-            <div style={{ flex: 1, height: 1, background: "#1e1e3f" }} />
+            <div style={{ flex: 1, height: 1, background: "var(--gpa-border)" }} />
+            <span style={{ fontSize: 11, color: "var(--gpa-text-faintest)" }}>أو</span>
+            <div style={{ flex: 1, height: 1, background: "var(--gpa-border)" }} />
           </div>
 
           {/* OAuth */}
@@ -228,10 +235,10 @@ function LoginPage() {
               onClick={() => handleOAuth("google")}
               style={{
                 padding: 12,
-                background: "#ffffff08",
-                border: "1px solid #1e1e3f",
+                background: "var(--gpa-surface-alpha-08)",
+                border: "1px solid var(--gpa-border)",
                 borderRadius: 10,
-                color: "#ddd",
+                color: "var(--gpa-text-soft)",
                 fontSize: 13,
                 fontWeight: 600,
                 fontFamily: FONT,
@@ -249,10 +256,10 @@ function LoginPage() {
               onClick={() => handleOAuth("apple")}
               style={{
                 padding: 12,
-                background: "#ffffff08",
-                border: "1px solid #1e1e3f",
+                background: "var(--gpa-surface-alpha-08)",
+                border: "1px solid var(--gpa-border)",
                 borderRadius: 10,
-                color: "#ddd",
+                color: "var(--gpa-text-soft)",
                 fontSize: 13,
                 fontWeight: 600,
                 fontFamily: FONT,
@@ -269,7 +276,7 @@ function LoginPage() {
           </div>
         </div>
 
-        <p style={{ textAlign: "center", fontSize: 11, color: "#333", marginTop: 14 }}>
+        <p style={{ textAlign: "center", fontSize: 11, color: "var(--gpa-text-ghost)", marginTop: 14 }}>
           بياناتك الأكاديمية تُحفظ بأمان ومرتبطة بحسابك فقط
         </p>
       </div>
