@@ -1822,7 +1822,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
 
 const iconBtn: React.CSSProperties = {
   background: "var(--gpa-surface-alpha-08)",
-  border: "1px solid #1e1e3f",
+  border: "1px solid var(--gpa-border)",
   borderRadius: 8,
   color: "var(--gpa-text-muted-2)",
   padding: "6px 9px",
