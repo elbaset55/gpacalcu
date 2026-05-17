@@ -1131,20 +1131,28 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
               {major && <div style={{ fontSize: 10, color: "var(--gpa-text-faint)" }}>{major}</div>}
             </div>
           </div>
-          <div style={{ display: "flex", gap: 5 }}>
-            <button onClick={() => setModal("history")} title={ar ? "السجل" : "History"} style={iconBtn}>
+          <div className="gpa-no-print" style={{ display: "flex", gap: 5, alignItems: "center", flexWrap: "wrap" }}>
+            <ThemeSwitcher theme={theme} onChange={setTheme} />
+            <button onClick={() => setModal("history")} title={ar ? "السجل" : "History"} aria-label={ar ? "السجل" : "History"} style={iconBtn}>
               📅
             </button>
-            <button onClick={() => setModal("pct")} title={ar ? "محوّل النسبة" : "%"} style={iconBtn}>
+            <button onClick={() => setModal("pct")} title={ar ? "محوّل النسبة" : "%"} aria-label={ar ? "محوّل النسبة" : "Percent converter"} style={iconBtn}>
               🔢
             </button>
-            <button onClick={exportData} title={ar ? "تصدير" : "Export"} style={iconBtn}>
-              📋
+            <button onClick={exportData} title={ar ? "تنزيل JSON" : "Export JSON"} aria-label={ar ? "تنزيل JSON" : "Export JSON"} style={iconBtn}>
+              💾
             </button>
-            <button onClick={onReset} title={ar ? "إعادة" : "Reset"} style={{ ...iconBtn, background: "var(--gpa-danger-15)", color: "var(--gpa-danger)", border: "1px solid var(--gpa-danger-33)" }}>
+            <button onClick={triggerImport} title={ar ? "استيراد" : "Import"} aria-label={ar ? "استيراد" : "Import"} style={iconBtn}>
+              📂
+            </button>
+            <input ref={fileRef} type="file" accept="application/json,.json" onChange={handleImportFile} style={{ display: "none" }} />
+            <button onClick={printPdf} title={ar ? "طباعة / PDF" : "Print / PDF"} aria-label={ar ? "طباعة" : "Print"} style={iconBtn}>
+              🖨️
+            </button>
+            <button onClick={onReset} title={ar ? "إعادة" : "Reset"} aria-label={ar ? "إعادة" : "Reset"} style={{ ...iconBtn, background: "var(--gpa-danger-15)", color: "var(--gpa-danger)", border: "1px solid var(--gpa-danger-33)" }}>
               ↩
             </button>
-            <button onClick={handleLogout} title={ar ? "خروج" : "Logout"} style={iconBtn}>
+            <button onClick={handleLogout} title={ar ? "خروج" : "Logout"} aria-label={ar ? "خروج" : "Logout"} style={iconBtn}>
               🚪
             </button>
           </div>
