@@ -29,6 +29,8 @@ import {
   saveProfile,
   saveSemester,
 } from "@/lib/profile.functions";
+import { useGpaTheme } from "./use-theme";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 
 /* ══════════════════════════════════════════════════════════
    GRADING SYSTEMS
