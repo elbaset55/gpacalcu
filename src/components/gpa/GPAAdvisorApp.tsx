@@ -1887,8 +1887,11 @@ export default function GPAAdvisorApp() {
   const getProfileFn = useServerFn(getProfile);
   const listSemestersFn = useServerFn(listSemesters);
   const saveProfileFn = useServerFn(saveProfile);
+  const saveSemesterFn = useServerFn(saveSemester);
   const deleteProfileFn = useServerFn(deleteProfile);
   const queryClient = useQueryClient();
+  // Initialise theme attribute on mount
+  useGpaTheme();
 
   const profileQ = useQuery({
     queryKey: ["profile"],
