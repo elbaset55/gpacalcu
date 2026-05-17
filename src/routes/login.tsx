@@ -70,10 +70,10 @@ function LoginPage() {
   };
 
   const inp: React.CSSProperties = {
-    background: "#0d0d1a",
+    background: "var(--gpa-card)",
     border: "1px solid #1e1e3f",
     borderRadius: 10,
-    color: "#e0e0ff",
+    color: "var(--gpa-text-strong)",
     padding: "12px 14px",
     fontSize: 14,
     fontFamily: FONT,
@@ -87,7 +87,7 @@ function LoginPage() {
       dir="rtl"
       style={{
         fontFamily: FONT,
-        background: "#070712",
+        background: "var(--gpa-bg)",
         minHeight: "100vh",
         display: "flex",
         alignItems: "center",
@@ -115,17 +115,17 @@ function LoginPage() {
           >
             🎓
           </div>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: "#fff" }}>
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: "var(--gpa-text)" }}>
             المستشار الأكاديمي
           </h1>
-          <p style={{ margin: "6px 0 0", fontSize: 12, color: "#555" }}>
+          <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--gpa-text-faint)" }}>
             خطط · تتبع · تفوق
           </p>
         </div>
 
         <div
           style={{
-            background: "#0d0d1a",
+            background: "var(--gpa-card)",
             border: "1px solid #1e1e3f",
             borderRadius: 18,
             padding: 22,
@@ -143,10 +143,10 @@ function LoginPage() {
                 style={{
                   flex: 1,
                   padding: 11,
-                  background: mode === m ? "#00ff8812" : "transparent",
+                  background: mode === m ? "var(--gpa-accent-12)" : "transparent",
                   border: mode === m ? "1px solid #00ff8844" : "1px solid #1e1e3f",
                   borderRadius: 10,
-                  color: mode === m ? "#00ff88" : "#666",
+                  color: mode === m ? "var(--gpa-accent)" : "var(--gpa-text-muted-2)",
                   fontSize: 13,
                   fontWeight: 700,
                   fontFamily: FONT,
@@ -179,12 +179,12 @@ function LoginPage() {
             {err && (
               <div
                 style={{
-                  background: "#ef535015",
+                  background: "var(--gpa-danger-15)",
                   border: "1px solid #ef535033",
                   borderRadius: 8,
                   padding: "8px 12px",
                   fontSize: 12,
-                  color: "#ef5350",
+                  color: "var(--gpa-danger)",
                 }}
               >
                 ⚠️ {err}
@@ -198,7 +198,7 @@ function LoginPage() {
                 background: "linear-gradient(135deg,#00ff8828,#6366f120)",
                 border: "1px solid #00ff8855",
                 borderRadius: 12,
-                color: "#00ff88",
+                color: "var(--gpa-accent)",
                 fontSize: 14,
                 fontWeight: 700,
                 fontFamily: FONT,
@@ -217,9 +217,9 @@ function LoginPage() {
 
           {/* Divider */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "18px 0" }}>
-            <div style={{ flex: 1, height: 1, background: "#1e1e3f" }} />
-            <span style={{ fontSize: 11, color: "#444" }}>أو</span>
-            <div style={{ flex: 1, height: 1, background: "#1e1e3f" }} />
+            <div style={{ flex: 1, height: 1, background: "var(--gpa-border)" }} />
+            <span style={{ fontSize: 11, color: "var(--gpa-text-faintest)" }}>أو</span>
+            <div style={{ flex: 1, height: 1, background: "var(--gpa-border)" }} />
           </div>
 
           {/* OAuth */}
@@ -228,10 +228,10 @@ function LoginPage() {
               onClick={() => handleOAuth("google")}
               style={{
                 padding: 12,
-                background: "#ffffff08",
+                background: "var(--gpa-surface-alpha-08)",
                 border: "1px solid #1e1e3f",
                 borderRadius: 10,
-                color: "#ddd",
+                color: "var(--gpa-text-soft)",
                 fontSize: 13,
                 fontWeight: 600,
                 fontFamily: FONT,
@@ -249,10 +249,10 @@ function LoginPage() {
               onClick={() => handleOAuth("apple")}
               style={{
                 padding: 12,
-                background: "#ffffff08",
+                background: "var(--gpa-surface-alpha-08)",
                 border: "1px solid #1e1e3f",
                 borderRadius: 10,
-                color: "#ddd",
+                color: "var(--gpa-text-soft)",
                 fontSize: 13,
                 fontWeight: 600,
                 fontFamily: FONT,
@@ -269,7 +269,7 @@ function LoginPage() {
           </div>
         </div>
 
-        <p style={{ textAlign: "center", fontSize: 11, color: "#333", marginTop: 14 }}>
+        <p style={{ textAlign: "center", fontSize: 11, color: "var(--gpa-text-ghost)", marginTop: 14 }}>
           بياناتك الأكاديمية تُحفظ بأمان ومرتبطة بحسابك فقط
         </p>
       </div>

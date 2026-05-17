@@ -34,24 +34,24 @@ import {
    GRADING SYSTEMS
 ══════════════════════════════════════════════════════════ */
 const GRADES_BENHA = [
-  { ar: "أ+", en: "A+", label: "ممتاز", pts: 4.0, minPct: 90, clr: "#00ff88" },
-  { ar: "أ", en: "A", label: "ممتاز", pts: 3.667, minPct: 85, clr: "#00e676" },
-  { ar: "ب+", en: "B+", label: "جيد جداً", pts: 3.333, minPct: 80, clr: "#69f0ae" },
-  { ar: "ب", en: "B", label: "جيد جداً", pts: 3.0, minPct: 75, clr: "#ffee58" },
-  { ar: "ب-", en: "B-", label: "جيد", pts: 2.667, minPct: 70, clr: "#ffd740" },
-  { ar: "ج+", en: "C+", label: "جيد", pts: 2.333, minPct: 65, clr: "#ffab40" },
-  { ar: "ج", en: "C", label: "مقبول", pts: 2.0, minPct: 60, clr: "#ff7043" },
-  { ar: "ر", en: "F", label: "راسب", pts: 0.0, minPct: 0, clr: "#ef5350" },
+  { ar: "أ+", en: "A+", label: "ممتاز", pts: 4.0, minPct: 90, clr: "var(--gpa-accent)" },
+  { ar: "أ", en: "A", label: "ممتاز", pts: 3.667, minPct: 85, clr: "var(--gpa-grade-a)" },
+  { ar: "ب+", en: "B+", label: "جيد جداً", pts: 3.333, minPct: 80, clr: "var(--gpa-grade-b-plus)" },
+  { ar: "ب", en: "B", label: "جيد جداً", pts: 3.0, minPct: 75, clr: "var(--gpa-grade-b)" },
+  { ar: "ب-", en: "B-", label: "جيد", pts: 2.667, minPct: 70, clr: "var(--gpa-grade-b-minus)" },
+  { ar: "ج+", en: "C+", label: "جيد", pts: 2.333, minPct: 65, clr: "var(--gpa-grade-c-plus)" },
+  { ar: "ج", en: "C", label: "مقبول", pts: 2.0, minPct: 60, clr: "var(--gpa-grade-c)" },
+  { ar: "ر", en: "F", label: "راسب", pts: 0.0, minPct: 0, clr: "var(--gpa-danger)" },
 ];
 const GRADES_GENERIC = [
-  { ar: "A+", en: "A+", label: "Excellent+", pts: 4.0, minPct: 97, clr: "#00ff88" },
-  { ar: "A", en: "A", label: "Excellent", pts: 3.7, minPct: 93, clr: "#00e676" },
-  { ar: "A-", en: "A-", label: "Excellent-", pts: 3.3, minPct: 90, clr: "#69f0ae" },
-  { ar: "B+", en: "B+", label: "V.Good+", pts: 3.0, minPct: 87, clr: "#ffee58" },
-  { ar: "B", en: "B", label: "V.Good", pts: 2.7, minPct: 83, clr: "#ffd740" },
-  { ar: "B-", en: "B-", label: "Good+", pts: 2.3, minPct: 80, clr: "#ffab40" },
-  { ar: "C+", en: "C+", label: "Good", pts: 2.0, minPct: 77, clr: "#ff7043" },
-  { ar: "C", en: "C", label: "Pass", pts: 1.7, minPct: 73, clr: "#ef5350" },
+  { ar: "A+", en: "A+", label: "Excellent+", pts: 4.0, minPct: 97, clr: "var(--gpa-accent)" },
+  { ar: "A", en: "A", label: "Excellent", pts: 3.7, minPct: 93, clr: "var(--gpa-grade-a)" },
+  { ar: "A-", en: "A-", label: "Excellent-", pts: 3.3, minPct: 90, clr: "var(--gpa-grade-b-plus)" },
+  { ar: "B+", en: "B+", label: "V.Good+", pts: 3.0, minPct: 87, clr: "var(--gpa-grade-b)" },
+  { ar: "B", en: "B", label: "V.Good", pts: 2.7, minPct: 83, clr: "var(--gpa-grade-b-minus)" },
+  { ar: "B-", en: "B-", label: "Good+", pts: 2.3, minPct: 80, clr: "var(--gpa-grade-c-plus)" },
+  { ar: "C+", en: "C+", label: "Good", pts: 2.0, minPct: 77, clr: "var(--gpa-grade-c)" },
+  { ar: "C", en: "C", label: "Pass", pts: 1.7, minPct: 73, clr: "var(--gpa-danger)" },
   { ar: "D", en: "D", label: "Weak", pts: 1.0, minPct: 60, clr: "#e53935" },
   { ar: "F", en: "F", label: "Fail", pts: 0.0, minPct: 0, clr: "#7b1fa2" },
 ];
@@ -65,7 +65,7 @@ const SCALE_SYSTEMS = [
 ══════════════════════════════════════════════════════════ */
 const FONT = "'Cairo','Noto Sans Arabic',sans-serif";
 const gc = (pts: number | null | undefined, grades: any[]) => {
-  if (pts == null || isNaN(pts) || !grades?.length) return "#888";
+  if (pts == null || isNaN(pts) || !grades?.length) return "var(--gpa-text-muted)";
   return grades.reduce((p, c) => (Math.abs(c.pts - pts) < Math.abs(p.pts - pts) ? c : p)).clr;
 };
 const ga = (pts: number | null | undefined, grades: any[]) => {
@@ -74,41 +74,41 @@ const ga = (pts: number | null | undefined, grades: any[]) => {
 };
 const gpaClr = (g: number) =>
   g >= 3.667
-    ? "#00ff88"
+    ? "var(--gpa-accent)"
     : g >= 3.333
-      ? "#69f0ae"
+      ? "var(--gpa-grade-b-plus)"
       : g >= 3.0
-        ? "#ffee58"
+        ? "var(--gpa-grade-b)"
         : g >= 2.667
-          ? "#ffd740"
+          ? "var(--gpa-grade-b-minus)"
           : g >= 2.333
-            ? "#ffab40"
+            ? "var(--gpa-grade-c-plus)"
             : g >= 2.0
-              ? "#ff7043"
-              : "#ef5350";
+              ? "var(--gpa-grade-c)"
+              : "var(--gpa-danger)";
 
 const standing = (g: number) => {
-  if (g >= 3.667) return { label: "ممتاز", en: "Excellent", clr: "#00ff88", emoji: "🏆", pct: "90-100%" };
-  if (g >= 3.333) return { label: "جيد جداً", en: "Very Good+", clr: "#69f0ae", emoji: "✨", pct: "80-85%" };
-  if (g >= 3.0) return { label: "جيد جداً", en: "Very Good", clr: "#ffee58", emoji: "⭐", pct: "75-80%" };
-  if (g >= 2.667) return { label: "جيد", en: "Good+", clr: "#ffd740", emoji: "👍", pct: "70-75%" };
-  if (g >= 2.333) return { label: "جيد", en: "Good", clr: "#ffab40", emoji: "👍", pct: "65-70%" };
-  if (g >= 2.0) return { label: "مقبول", en: "Pass", clr: "#ff7043", emoji: "⚠️", pct: "60-65%" };
-  return { label: "راسب", en: "Fail", clr: "#ef5350", emoji: "❌", pct: "<60%" };
+  if (g >= 3.667) return { label: "ممتاز", en: "Excellent", clr: "var(--gpa-accent)", emoji: "🏆", pct: "90-100%" };
+  if (g >= 3.333) return { label: "جيد جداً", en: "Very Good+", clr: "var(--gpa-grade-b-plus)", emoji: "✨", pct: "80-85%" };
+  if (g >= 3.0) return { label: "جيد جداً", en: "Very Good", clr: "var(--gpa-grade-b)", emoji: "⭐", pct: "75-80%" };
+  if (g >= 2.667) return { label: "جيد", en: "Good+", clr: "var(--gpa-grade-b-minus)", emoji: "👍", pct: "70-75%" };
+  if (g >= 2.333) return { label: "جيد", en: "Good", clr: "var(--gpa-grade-c-plus)", emoji: "👍", pct: "65-70%" };
+  if (g >= 2.0) return { label: "مقبول", en: "Pass", clr: "var(--gpa-grade-c)", emoji: "⚠️", pct: "60-65%" };
+  return { label: "راسب", en: "Fail", clr: "var(--gpa-danger)", emoji: "❌", pct: "<60%" };
 };
 
 const levelInfo = (cr: number) => {
-  if (cr <= 30) return { ar: "المستوى الأول", en: "Freshman", maxFail: 30, clr: "#a855f7" };
-  if (cr <= 64) return { ar: "المستوى الثاني", en: "Sophomore", maxFail: 64, clr: "#6366f1" };
-  if (cr <= 100) return { ar: "المستوى الثالث", en: "Junior", maxFail: 100, clr: "#40c4ff" };
-  return { ar: "المستوى الرابع", en: "Senior", maxFail: 136, clr: "#00ff88" };
+  if (cr <= 30) return { ar: "المستوى الأول", en: "Freshman", maxFail: 30, clr: "var(--gpa-purple)" };
+  if (cr <= 64) return { ar: "المستوى الثاني", en: "Sophomore", maxFail: 64, clr: "var(--gpa-accent-2)" };
+  if (cr <= 100) return { ar: "المستوى الثالث", en: "Junior", maxFail: 100, clr: "var(--gpa-info)" };
+  return { ar: "المستوى الرابع", en: "Senior", maxFail: 136, clr: "var(--gpa-accent)" };
 };
 
 const loadRule = (gpa: number, earned: number) => {
-  if (gpa < 2.0) return { max: 12, clr: "#ef5350", key: "watch" };
-  if (gpa >= 3.333) return { max: 20, clr: "#00ff88", key: "excel" };
-  if (earned >= 100 && gpa >= 2) return { max: 22, clr: "#69f0ae", key: "finish" };
-  return { max: 18, clr: "#40c4ff", key: "normal" };
+  if (gpa < 2.0) return { max: 12, clr: "var(--gpa-danger)", key: "watch" };
+  if (gpa >= 3.333) return { max: 20, clr: "var(--gpa-accent)", key: "excel" };
+  if (earned >= 100 && gpa >= 2) return { max: 22, clr: "var(--gpa-grade-b-plus)", key: "finish" };
+  return { max: 18, clr: "var(--gpa-info)", key: "normal" };
 };
 
 const pctToGrade = (pct: number, grades: any[]) => {
@@ -133,9 +133,9 @@ function Toast({ msg, ok }: { msg: string; ok: boolean }) {
         top: 14,
         left: "50%",
         transform: "translateX(-50%)",
-        background: ok ? "#00ff8815" : "#ef535015",
-        border: `1px solid ${ok ? "#00ff8855" : "#ef535055"}`,
-        color: ok ? "#00ff88" : "#ef5350",
+        background: ok ? "var(--gpa-accent-15)" : "var(--gpa-danger-15)",
+        border: `1px solid ${ok ? "var(--gpa-accent-55)" : "var(--gpa-danger-55)"}`,
+        color: ok ? "var(--gpa-accent)" : "var(--gpa-danger)",
         padding: "9px 24px",
         borderRadius: 22,
         fontSize: 13,
@@ -195,10 +195,10 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
     : ["Language & Scale", "University Info", "GPA & Credits", "Semester & Goal", "Honors Check"];
 
   const inp: React.CSSProperties = {
-    background: "#0d0d1a",
+    background: "var(--gpa-card)",
     border: "1px solid #1e1e3f",
     borderRadius: 10,
-    color: "#e0e0ff",
+    color: "var(--gpa-text-strong)",
     padding: "11px 14px",
     fontSize: 14,
     fontFamily: FONT,
@@ -206,7 +206,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
     outline: "none",
     boxSizing: "border-box",
   };
-  const lbl: React.CSSProperties = { fontSize: 11, color: "#666", marginBottom: 5, display: "block", letterSpacing: ".5px" };
+  const lbl: React.CSSProperties = { fontSize: 11, color: "var(--gpa-text-muted-2)", marginBottom: 5, display: "block", letterSpacing: ".5px" };
 
   const validateStep = () => {
     if (step === 1 && !scale.isBenha) {
@@ -277,10 +277,10 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
                       flex: 1,
                       padding: "12px",
                       fontFamily: FONT,
-                      background: lang === v ? "#6366f118" : "#ffffff06",
+                      background: lang === v ? "var(--gpa-accent2-18)" : "var(--gpa-surface-alpha-06)",
                       border: lang === v ? "1px solid #6366f166" : "1px solid #1e1e3f",
                       borderRadius: 10,
-                      color: lang === v ? "#a5b4fc" : "#555",
+                      color: lang === v ? "var(--gpa-accent-2-soft)" : "var(--gpa-text-faint)",
                       fontSize: 14,
                       cursor: "pointer",
                     }}
@@ -303,17 +303,17 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
                     marginBottom: 8,
                     padding: "12px 14px",
                     fontFamily: FONT,
-                    background: scaleId === s.id ? "#00ff8812" : "#ffffff06",
+                    background: scaleId === s.id ? "var(--gpa-accent-12)" : "var(--gpa-surface-alpha-06)",
                     border: scaleId === s.id ? "1px solid #00ff8844" : "1px solid #1e1e3f",
                     borderRadius: 10,
-                    color: scaleId === s.id ? "#00ff88" : "#888",
+                    color: scaleId === s.id ? "var(--gpa-accent)" : "var(--gpa-text-muted)",
                     fontSize: 13,
                     cursor: "pointer",
                   }}
                 >
                   {scaleId === s.id ? "✓ " : ""}
                   {s.label}
-                  <span style={{ color: "#555", fontSize: 11, display: "block", marginTop: 2 }}>
+                  <span style={{ color: "var(--gpa-text-faint)", fontSize: 11, display: "block", marginTop: 2 }}>
                     {s.isBenha
                       ? ar
                         ? "136 ساعة للتخرج · مادة 22 + 24"
@@ -358,19 +358,19 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
             {scale.isBenha ? (
               <div
                 style={{
-                  background: "#00ff8810",
+                  background: "var(--gpa-accent-10)",
                   border: "1px solid #00ff8825",
                   borderRadius: 10,
                   padding: "12px 14px",
                 }}
               >
-                <div style={{ fontSize: 12, color: "#69f0ae", fontWeight: 700, marginBottom: 4 }}>
+                <div style={{ fontSize: 12, color: "var(--gpa-grade-b-plus)", fontWeight: 700, marginBottom: 4 }}>
                   📋 {ar ? "ساعات التخرج طبقاً للمادة 5 من اللائحة:" : "Graduation hours per Art.5 of bylaws:"}
                 </div>
-                <div style={{ fontSize: 24, fontWeight: 900, color: "#00ff88" }}>
+                <div style={{ fontSize: 24, fontWeight: 900, color: "var(--gpa-accent)" }}>
                   136 {ar ? "ساعة معتمدة" : "credits"}
                 </div>
-                <div style={{ fontSize: 11, color: "#555", marginTop: 4 }}>
+                <div style={{ fontSize: 11, color: "var(--gpa-text-faint)", marginTop: 4 }}>
                   {ar ? "ثابتة — لا يمكن تغييرها" : "Fixed — cannot be changed"}
                 </div>
               </div>
@@ -391,7 +391,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
                   placeholder={ar ? "مثال: 120 أو 132 أو 150" : "e.g. 120, 132, 150"}
                   style={inp}
                 />
-                {err && <div style={{ marginTop: 6, color: "#ef5350", fontSize: 12 }}>⚠️ {err}</div>}
+                {err && <div style={{ marginTop: 6, color: "var(--gpa-danger)", fontSize: 12 }}>⚠️ {err}</div>}
               </div>
             )}
           </div>
@@ -406,7 +406,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
                 borderRadius: 10,
                 padding: "10px 14px",
                 fontSize: 12,
-                color: "#c084fc",
+                color: "var(--gpa-violet)",
               }}
             >
               {ar
@@ -442,9 +442,9 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
             {err && (
               <div
                 style={{
-                  color: "#ef5350",
+                  color: "var(--gpa-danger)",
                   fontSize: 12,
-                  background: "#ef535015",
+                  background: "var(--gpa-danger-15)",
                   padding: "8px 12px",
                   borderRadius: 8,
                 }}
@@ -471,10 +471,10 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
                       flex: 1,
                       padding: "12px",
                       fontFamily: FONT,
-                      background: semester === v ? "#a855f718" : "#ffffff06",
+                      background: semester === v ? "#a855f718" : "var(--gpa-surface-alpha-06)",
                       border: semester === v ? "1px solid #a855f766" : "1px solid #1e1e3f",
                       borderRadius: 10,
-                      color: semester === v ? "#c084fc" : "#555",
+                      color: semester === v ? "var(--gpa-violet)" : "var(--gpa-text-faint)",
                       fontSize: 13,
                       cursor: "pointer",
                     }}
@@ -483,12 +483,12 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
                   </button>
                 ))}
               </div>
-              {err && <div style={{ color: "#ef5350", fontSize: 12, marginTop: 6 }}>⚠️ {err}</div>}
+              {err && <div style={{ color: "var(--gpa-danger)", fontSize: 12, marginTop: 6 }}>⚠️ {err}</div>}
             </div>
             <div>
               <label style={lbl}>{ar ? "هدف المعدل التراكمي عند التخرج" : "Target GPA at Graduation"}</label>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                <span style={{ fontSize: 12, color: "#666" }}>{ar ? "الهدف:" : "Target:"}</span>
+                <span style={{ fontSize: 12, color: "var(--gpa-text-muted-2)" }}>{ar ? "الهدف:" : "Target:"}</span>
                 <span style={{ fontSize: 18, fontWeight: 800, color: gpaClr(gradTarget) }}>
                   {gradTarget.toFixed(2)}
                 </span>
@@ -515,7 +515,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
                 borderRadius: 10,
                 padding: "12px 14px",
                 fontSize: 12,
-                color: "#a5b4fc",
+                color: "var(--gpa-accent-2-soft)",
               }}
             >
               {ar
@@ -525,7 +525,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
             <div>
               <label style={lbl}>{ar ? "هل رسبت في أي مادة طوال دراستك؟" : "Have you ever failed any course?"}</label>
               <div style={{ display: "flex", gap: 8 }}>
-                {([[true, ar ? "نعم ❌" : "Yes ❌", "#ef5350"], [false, ar ? "لا ✅" : "No ✅", "#00ff88"]] as const).map(
+                {([[true, ar ? "نعم ❌" : "Yes ❌", "var(--gpa-danger)"], [false, ar ? "لا ✅" : "No ✅", "var(--gpa-accent)"]] as const).map(
                   ([v, l, c]) => (
                     <button
                       key={String(v)}
@@ -534,10 +534,10 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
                         flex: 1,
                         padding: "12px",
                         fontFamily: FONT,
-                        background: hasFailed === v ? `${c}18` : "#ffffff06",
+                        background: hasFailed === v ? `${c}18` : "var(--gpa-surface-alpha-06)",
                         border: hasFailed === v ? `1px solid ${c}66` : "1px solid #1e1e3f",
                         borderRadius: 10,
-                        color: hasFailed === v ? c : "#555",
+                        color: hasFailed === v ? c : "var(--gpa-text-faint)",
                         fontSize: 13,
                         cursor: "pointer",
                       }}
@@ -575,7 +575,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
       dir={dir}
       style={{
         fontFamily: FONT,
-        background: "#070712",
+        background: "var(--gpa-bg)",
         minHeight: "100vh",
         display: "flex",
         alignItems: "center",
@@ -603,10 +603,10 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
           >
             🎓
           </div>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: -0.5 }}>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "var(--gpa-text)", letterSpacing: -0.5 }}>
             {ar ? "المستشار الأكاديمي" : "Academic Advisor"}
           </h1>
-          <p style={{ margin: "4px 0 0", fontSize: 12, color: "#444" }}>
+          <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--gpa-text-faintest)" }}>
             {ar ? "خطط · تتبع · تفوق" : "Plan · Track · Excel"}
           </p>
         </div>
@@ -619,19 +619,19 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
                 flex: 1,
                 height: 3,
                 borderRadius: 2,
-                background: i <= step ? "#00ff88" : "#1e1e3f",
+                background: i <= step ? "var(--gpa-accent)" : "var(--gpa-border)",
                 transition: "background .3s",
               }}
             />
           ))}
         </div>
-        <div style={{ fontSize: 11, color: "#555", textAlign: "center", marginBottom: 16 }}>
+        <div style={{ fontSize: 11, color: "var(--gpa-text-faint)", textAlign: "center", marginBottom: 16 }}>
           {ar ? `الخطوة ${step + 1} من ${STEPS.length}` : `Step ${step + 1} of ${STEPS.length}`} — {STEPS[step]}
         </div>
 
         <div
           style={{
-            background: "#0d0d1a",
+            background: "var(--gpa-card)",
             border: "1px solid #1e1e3f",
             borderRadius: 20,
             padding: 22,
@@ -648,10 +648,10 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
               style={{
                 flex: 1,
                 padding: 13,
-                background: "#ffffff08",
+                background: "var(--gpa-surface-alpha-08)",
                 border: "1px solid #1e1e3f",
                 borderRadius: 12,
-                color: "#666",
+                color: "var(--gpa-text-muted-2)",
                 fontSize: 14,
                 fontFamily: FONT,
                 cursor: "pointer",
@@ -668,7 +668,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
               background: "linear-gradient(135deg,#00ff8828,#6366f120)",
               border: "1px solid #00ff8855",
               borderRadius: 12,
-              color: "#00ff88",
+              color: "var(--gpa-accent)",
               fontSize: 14,
               fontWeight: 700,
               fontFamily: FONT,
@@ -706,7 +706,7 @@ function PctConverter({ grades, lang, onClose }: any) {
     >
       <div
         style={{
-          background: "#0d0d1a",
+          background: "var(--gpa-card)",
           border: "1px solid #1e1e3f",
           borderRadius: 18,
           padding: 22,
@@ -716,19 +716,19 @@ function PctConverter({ grades, lang, onClose }: any) {
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
-          <h3 style={{ margin: 0, color: "#fff", fontSize: 15 }}>
+          <h3 style={{ margin: 0, color: "var(--gpa-text)", fontSize: 15 }}>
             🔢 {ar ? "محوّل النسبة المئوية" : "Percentage Converter"}
           </h3>
           <button
             onClick={onClose}
-            style={{ background: "none", border: "none", color: "#555", fontSize: 20, cursor: "pointer" }}
+            style={{ background: "none", border: "none", color: "var(--gpa-text-faint)", fontSize: 20, cursor: "pointer" }}
           >
             ✕
           </button>
         </div>
         <div style={{ marginBottom: 14 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ fontSize: 12, color: "#666" }}>{ar ? "النسبة المئوية:" : "Percentage:"}</span>
+            <span style={{ fontSize: 12, color: "var(--gpa-text-muted-2)" }}>{ar ? "النسبة المئوية:" : "Percentage:"}</span>
             <span style={{ fontSize: 22, fontWeight: 900, color: g.clr }}>{pct}%</span>
           </div>
           <input
@@ -753,7 +753,7 @@ function PctConverter({ grades, lang, onClose }: any) {
           <div style={{ fontSize: 16, color: g.clr, opacity: 0.8, marginTop: 4 }}>
             {g.pts.toFixed(3)} {ar ? "نقطة" : "pts"}
           </div>
-          <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>{g.label}</div>
+          <div style={{ fontSize: 12, color: "var(--gpa-text-muted-2)", marginTop: 4 }}>{g.label}</div>
         </div>
       </div>
     </div>
@@ -780,7 +780,7 @@ function HistoryPanel({ history, grades, lang, onClose }: any) {
     >
       <div
         style={{
-          background: "#0d0d1a",
+          background: "var(--gpa-card)",
           border: "1px solid #1e1e3f",
           borderRadius: 18,
           padding: 20,
@@ -792,18 +792,18 @@ function HistoryPanel({ history, grades, lang, onClose }: any) {
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
-          <h3 style={{ margin: 0, color: "#fff", fontSize: 15 }}>
+          <h3 style={{ margin: 0, color: "var(--gpa-text)", fontSize: 15 }}>
             📅 {ar ? "سجل الفصول الدراسية" : "Semester History"}
           </h3>
           <button
             onClick={onClose}
-            style={{ background: "none", border: "none", color: "#555", fontSize: 20, cursor: "pointer" }}
+            style={{ background: "none", border: "none", color: "var(--gpa-text-faint)", fontSize: 20, cursor: "pointer" }}
           >
             ✕
           </button>
         </div>
         {history.length === 0 ? (
-          <div style={{ textAlign: "center", padding: 30, color: "#444", fontSize: 13 }}>
+          <div style={{ textAlign: "center", padding: 30, color: "var(--gpa-text-faintest)", fontSize: 13 }}>
             {ar
               ? "لا يوجد فصول محفوظة بعد — اضغط 'حفظ الفصل' بعد إدخال مواد الفصل الحالي"
               : "No saved semesters yet"}
@@ -815,7 +815,7 @@ function HistoryPanel({ history, grades, lang, onClose }: any) {
               <div
                 key={i}
                 style={{
-                  background: "#0a0a18",
+                  background: "var(--gpa-bg-soft)",
                   borderRadius: 12,
                   padding: 14,
                   marginBottom: 10,
@@ -823,12 +823,12 @@ function HistoryPanel({ history, grades, lang, onClose }: any) {
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#ddd" }}>{sem.label}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gpa-text-soft)" }}>{sem.label}</div>
                   <div style={{ fontSize: 19, fontWeight: 900, color: st.clr }}>
                     {sem.cumGpa.toFixed(3)}
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: 10, fontSize: 11, color: "#555" }}>
+                <div style={{ display: "flex", gap: 10, fontSize: 11, color: "var(--gpa-text-faint)" }}>
                   <span>
                     {ar ? "فصلي:" : "Sem:"}{" "}
                     <span style={{ color: gpaClr(sem.semGpa) }}>{sem.semGpa.toFixed(2)}</span>
@@ -1013,16 +1013,16 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
   };
 
   const card: React.CSSProperties = {
-    background: "#0d0d1a",
+    background: "var(--gpa-card)",
     border: "1px solid #1e1e3f",
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,
   };
   const chip = (l: string, v: any, c: string) => (
-    <div style={{ background: "#ffffff08", borderRadius: 10, padding: "9px 6px", textAlign: "center" }}>
+    <div style={{ background: "var(--gpa-surface-alpha-08)", borderRadius: 10, padding: "9px 6px", textAlign: "center" }}>
       <div style={{ fontSize: 17, fontWeight: 800, color: c }}>{v}</div>
-      <div style={{ fontSize: 9, color: "#555", marginTop: 2 }}>{l}</div>
+      <div style={{ fontSize: 9, color: "var(--gpa-text-faint)", marginTop: 2 }}>{l}</div>
     </div>
   );
 
@@ -1049,9 +1049,9 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
       dir={dir}
       style={{
         fontFamily: FONT,
-        background: "#070712",
+        background: "var(--gpa-bg)",
         minHeight: "100vh",
-        color: "#e0e0ff",
+        color: "var(--gpa-text-strong)",
         paddingBottom: 70,
       }}
     >
@@ -1087,8 +1087,8 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
               🎓
             </div>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#ddd" }}>{uniName || (ar ? "جامعة" : "University")}</div>
-              {major && <div style={{ fontSize: 10, color: "#555" }}>{major}</div>}
+              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--gpa-text-soft)" }}>{uniName || (ar ? "جامعة" : "University")}</div>
+              {major && <div style={{ fontSize: 10, color: "var(--gpa-text-faint)" }}>{major}</div>}
             </div>
           </div>
           <div style={{ display: "flex", gap: 5 }}>
@@ -1112,7 +1112,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 7, marginBottom: 8 }}>
           {chip(ar ? "السابق" : "Prev", prevGpa.toFixed(3), gpaClr(prevGpa))}
-          {chip(ar ? "الفصل" : "Sem", semCr ? semGpa.toFixed(3) : "—", semCr ? gpaClr(semGpa) : "#555")}
+          {chip(ar ? "الفصل" : "Sem", semCr ? semGpa.toFixed(3) : "—", semCr ? gpaClr(semGpa) : "var(--gpa-text-faint)")}
           {chip(ar ? "التراكمي" : "CGPA", cumGpa.toFixed(3), gpaClr(cumGpa))}
         </div>
 
@@ -1133,14 +1133,14 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7, marginBottom: 8 }}>
-          <div style={{ background: "#ffffff06", borderRadius: 8, padding: "7px 10px" }}>
-            <div style={{ fontSize: 9, color: "#555" }}>{ar ? "المستوى" : "Level"}</div>
+          <div style={{ background: "var(--gpa-surface-alpha-06)", borderRadius: 8, padding: "7px 10px" }}>
+            <div style={{ fontSize: 9, color: "var(--gpa-text-faint)" }}>{ar ? "المستوى" : "Level"}</div>
             <div style={{ fontSize: 11, color: lv.clr, fontWeight: 700, marginTop: 2 }}>
               {ar ? lv.ar : lv.en}
             </div>
           </div>
-          <div style={{ background: "#ffffff06", borderRadius: 8, padding: "7px 10px" }}>
-            <div style={{ fontSize: 9, color: "#555" }}>{ar ? "الحد الأقصى" : "Max Load"}</div>
+          <div style={{ background: "var(--gpa-surface-alpha-06)", borderRadius: 8, padding: "7px 10px" }}>
+            <div style={{ fontSize: 9, color: "var(--gpa-text-faint)" }}>{ar ? "الحد الأقصى" : "Max Load"}</div>
             <div style={{ fontSize: 11, color: ld.clr, fontWeight: 700, marginTop: 2 }}>
               ≤ {ld.max} {ar ? "ساعة" : "cr"}
             </div>
@@ -1148,7 +1148,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
         </div>
 
         <div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#444", marginBottom: 3 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--gpa-text-faintest)", marginBottom: 3 }}>
             <span>
               {ar ? "مكتسب" : "Earned"}: {prevCr} + {semCr} = {newCr}
             </span>
@@ -1181,7 +1181,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
       <div
         style={{
           display: "flex",
-          background: "#0a0a18",
+          background: "var(--gpa-bg-soft)",
           borderBottom: "1px solid #1e1e3f",
           overflowX: "auto",
         }}
@@ -1196,7 +1196,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
               background: "none",
               border: "none",
               borderBottom: tab === id ? "2px solid #00ff88" : "2px solid transparent",
-              color: tab === id ? "#00ff88" : "#444",
+              color: tab === id ? "var(--gpa-accent)" : "var(--gpa-text-faintest)",
               fontSize: 10,
               fontFamily: FONT,
               cursor: "pointer",
@@ -1214,13 +1214,13 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
           <div>
             {courses.length > 0 && (
               <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 10, alignItems: "center" }}>
-                <span style={{ fontSize: 10, color: "#444" }}>{ar ? "تعبئة سريعة:" : "Fill all:"}</span>
+                <span style={{ fontSize: 10, color: "var(--gpa-text-faintest)" }}>{ar ? "تعبئة سريعة:" : "Fill all:"}</span>
                 {grades.filter((_: any, i: number) => i <= 5).map((g: any) => (
                   <button
                     key={g.ar}
                     onClick={() => fillAll(g.pts)}
                     style={{
-                      background: "#ffffff08",
+                      background: "var(--gpa-surface-alpha-08)",
                       border: `1px solid ${g.clr}44`,
                       borderRadius: 6,
                       padding: "3px 9px",
@@ -1237,9 +1237,9 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
             )}
 
             {courses.length === 0 && (
-              <div style={{ textAlign: "center", padding: "36px 20px", color: "#333" }}>
+              <div style={{ textAlign: "center", padding: "36px 20px", color: "var(--gpa-text-ghost)" }}>
                 <div style={{ fontSize: 44, marginBottom: 10 }}>📚</div>
-                <div style={{ fontSize: 14, color: "#444", marginBottom: 4 }}>
+                <div style={{ fontSize: 14, color: "var(--gpa-text-faintest)", marginBottom: 4 }}>
                   {ar ? "لا توجد مواد بعد" : "No courses yet"}
                 </div>
                 <div style={{ fontSize: 11, color: "#2a2a3a" }}>
@@ -1254,7 +1254,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                 <div
                   key={c.id}
                   style={{
-                    background: "#0d0d1a",
+                    background: "var(--gpa-card)",
                     border: `1px solid ${clr}22`,
                     borderRadius: 12,
                     padding: "12px 13px",
@@ -1272,7 +1272,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                         background: "transparent",
                         border: "none",
                         borderBottom: "1px dashed #252535",
-                        color: "#e0e0ff",
+                        color: "var(--gpa-text-strong)",
                         fontSize: 14,
                         fontFamily: FONT,
                         outline: "none",
@@ -1284,7 +1284,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                       style={{
                         background: "none",
                         border: "none",
-                        color: "#ef535055",
+                        color: "var(--gpa-danger-55)",
                         fontSize: 17,
                         cursor: "pointer",
                         padding: "0 2px",
@@ -1295,7 +1295,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                   </div>
                   <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <span style={{ fontSize: 10, color: "#444" }}>{ar ? "س:" : "cr:"}</span>
+                      <span style={{ fontSize: 10, color: "var(--gpa-text-faintest)" }}>{ar ? "س:" : "cr:"}</span>
                       {[1, 2, 3, 4, 5, 6].map((n) => (
                         <button
                           key={n}
@@ -1305,9 +1305,9 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                             height: 22,
                             borderRadius: 5,
                             fontFamily: FONT,
-                            background: c.cr === n ? `${clr}22` : "#ffffff06",
+                            background: c.cr === n ? `${clr}22` : "var(--gpa-surface-alpha-06)",
                             border: c.cr === n ? `1px solid ${clr}77` : "1px solid #1e1e3f",
-                            color: c.cr === n ? clr : "#444",
+                            color: c.cr === n ? clr : "var(--gpa-text-faintest)",
                             fontSize: 11,
                             cursor: "pointer",
                           }}
@@ -1334,7 +1334,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                       }}
                     >
                       {grades.map((g: any) => (
-                        <option key={g.ar} value={g.pts} style={{ background: "#0d0d1a", color: g.clr }}>
+                        <option key={g.ar} value={g.pts} style={{ background: "var(--gpa-card)", color: g.clr }}>
                           {g.ar} — {g.label} ({g.pts})
                         </option>
                       ))}
@@ -1349,11 +1349,11 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                 onClick={addCourse}
                 style={{
                   flex: 2,
-                  background: "#ffffff06",
+                  background: "var(--gpa-surface-alpha-06)",
                   border: "1px dashed #252535",
                   borderRadius: 12,
                   padding: "12px",
-                  color: "#555",
+                  color: "var(--gpa-text-faint)",
                   fontSize: 13,
                   fontFamily: FONT,
                   cursor: "pointer",
@@ -1367,11 +1367,11 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                   disabled={saveSemMut.isPending}
                   style={{
                     flex: 1,
-                    background: "#00ff8812",
+                    background: "var(--gpa-accent-12)",
                     border: "1px solid #00ff8833",
                     borderRadius: 12,
                     padding: "12px",
-                    color: "#00ff88",
+                    color: "var(--gpa-accent)",
                     fontSize: 12,
                     fontFamily: FONT,
                     cursor: saveSemMut.isPending ? "wait" : "pointer",
@@ -1389,14 +1389,14 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
         {tab === "target" && (
           <div>
             <div style={card}>
-              <h3 style={{ margin: "0 0 14px", fontSize: 14, color: "#fff" }}>
+              <h3 style={{ margin: "0 0 14px", fontSize: 14, color: "var(--gpa-text)" }}>
                 🎯 {ar ? "السيناريوهات والهدف" : "Scenarios & Target"}
               </h3>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 7, marginBottom: 16 }}>
                 {[
-                  { l: ar ? "أفضل" : "Best", v: scenBest, clr: "#00ff88" },
-                  { l: ar ? "آمن" : "Safe", v: scenSafe, clr: "#ffee58" },
-                  { l: ar ? "مقبول" : "Pass", v: scenPass, clr: "#ff7043" },
+                  { l: ar ? "أفضل" : "Best", v: scenBest, clr: "var(--gpa-accent)" },
+                  { l: ar ? "آمن" : "Safe", v: scenSafe, clr: "var(--gpa-grade-b)" },
+                  { l: ar ? "مقبول" : "Pass", v: scenPass, clr: "var(--gpa-grade-c)" },
                 ].map((s) => (
                   <div
                     key={s.l}
@@ -1416,7 +1416,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
 
               <div style={{ marginBottom: 14 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                  <label style={{ fontSize: 11, color: "#666" }}>{ar ? "الهدف:" : "Target:"}</label>
+                  <label style={{ fontSize: 11, color: "var(--gpa-text-muted-2)" }}>{ar ? "الهدف:" : "Target:"}</label>
                   <span style={{ fontSize: 18, fontWeight: 800, color: gpaClr(targetGpa) }}>
                     {targetGpa.toFixed(3)}
                   </span>
@@ -1441,14 +1441,14 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                   border: "1px dashed #1e1e3f",
                 }}
               >
-                <div style={{ fontSize: 10, color: "#555", marginBottom: 5 }}>
+                <div style={{ fontSize: 10, color: "var(--gpa-text-faint)", marginBottom: 5 }}>
                   {ar ? "المعدل الفصلي المطلوب:" : "Required semester GPA:"}
                 </div>
                 <div
                   style={{
                     fontSize: 30,
                     fontWeight: 900,
-                    color: targetNeeded > 4 ? "#ef5350" : targetNeeded < 0 ? "#00ff88" : "#40c4ff",
+                    color: targetNeeded > 4 ? "var(--gpa-danger)" : targetNeeded < 0 ? "var(--gpa-accent)" : "var(--gpa-info)",
                   }}
                 >
                   {!semCr
@@ -1469,8 +1469,8 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
             </div>
 
             {isBenha && (
-              <div style={{ ...card, border: `1px solid ${honorOk.ok ? "#00ff8844" : "#ef535033"}` }}>
-                <h4 style={{ margin: "0 0 10px", fontSize: 13, color: "#fff" }}>
+              <div style={{ ...card, border: `1px solid ${honorOk.ok ? "var(--gpa-accent-44)" : "var(--gpa-danger-33)"}` }}>
+                <h4 style={{ margin: "0 0 10px", fontSize: 13, color: "var(--gpa-text)" }}>
                   🎖️ {ar ? "مرتبة الشرف (م.24)" : "Honors (Art.24)"}
                 </h4>
                 <div
@@ -1479,11 +1479,11 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                     borderRadius: 8,
                     textAlign: "center",
                     marginBottom: 10,
-                    background: honorOk.ok ? "#00ff8812" : "#ef535012",
-                    border: `1px solid ${honorOk.ok ? "#00ff8844" : "#ef535044"}`,
+                    background: honorOk.ok ? "var(--gpa-accent-12)" : "#ef535012",
+                    border: `1px solid ${honorOk.ok ? "var(--gpa-accent-44)" : "#ef535044"}`,
                     fontSize: 13,
                     fontWeight: 700,
-                    color: honorOk.ok ? "#00ff88" : "#ef5350",
+                    color: honorOk.ok ? "var(--gpa-accent)" : "var(--gpa-danger)",
                   }}
                 >
                   {honorOk.ok
@@ -1507,7 +1507,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                 ].map((r, i) => (
                   <div key={i} style={{ display: "flex", gap: 8, padding: "6px 0", fontSize: 11 }}>
                     <span>{r.ok ? "✅" : "❌"}</span>
-                    <span style={{ color: r.ok ? "#aaa" : "#ef5350" }}>{r.t}</span>
+                    <span style={{ color: r.ok ? "#aaa" : "var(--gpa-danger)" }}>{r.t}</span>
                   </div>
                 ))}
               </div>
@@ -1518,11 +1518,11 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
         {/* WHAT-IF */}
         {tab === "whatif" && (
           <div style={card}>
-            <h3 style={{ margin: "0 0 12px", fontSize: 14, color: "#fff" }}>
+            <h3 style={{ margin: "0 0 12px", fontSize: 14, color: "var(--gpa-text)" }}>
               🔬 {ar ? "محاكاة تغيير تقدير" : "Simulate"}
             </h3>
             {courses.length === 0 ? (
-              <div style={{ textAlign: "center", padding: 32, color: "#444", fontSize: 13 }}>
+              <div style={{ textAlign: "center", padding: 32, color: "var(--gpa-text-faintest)", fontSize: 13 }}>
                 {ar ? "أضف مواداً أولاً" : "Add courses first"}
               </div>
             ) : (
@@ -1534,11 +1534,11 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                       onClick={() => setWiCourse(c.id)}
                       style={{
                         textAlign: ar ? "right" : "left",
-                        background: wiCourse === c.id ? "#6366f118" : "#ffffff06",
+                        background: wiCourse === c.id ? "var(--gpa-accent2-18)" : "var(--gpa-surface-alpha-06)",
                         border: wiCourse === c.id ? "1px solid #6366f155" : "1px solid #1e1e3f",
                         borderRadius: 8,
                         padding: "9px 12px",
-                        color: wiCourse === c.id ? "#a5b4fc" : "#888",
+                        color: wiCourse === c.id ? "var(--gpa-accent-2-soft)" : "var(--gpa-text-muted)",
                         fontSize: 12,
                         fontFamily: FONT,
                         cursor: "pointer",
@@ -1557,11 +1557,11 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                           key={g.ar}
                           onClick={() => setWiGrade(g.pts)}
                           style={{
-                            background: wiGrade === g.pts ? `${g.clr}22` : "#ffffff06",
-                            border: `1px solid ${wiGrade === g.pts ? g.clr : "#1e1e3f"}`,
+                            background: wiGrade === g.pts ? `${g.clr}22` : "var(--gpa-surface-alpha-06)",
+                            border: `1px solid ${wiGrade === g.pts ? g.clr : "var(--gpa-border)"}`,
                             borderRadius: 7,
                             padding: "6px 10px",
-                            color: wiGrade === g.pts ? g.clr : "#555",
+                            color: wiGrade === g.pts ? g.clr : "var(--gpa-text-faint)",
                             fontSize: 12,
                             fontFamily: FONT,
                             cursor: "pointer",
@@ -1586,18 +1586,18 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                         { k: "after", v: wiCumGpa },
                       ].map((x: any) =>
                         x.k === "arrow" ? (
-                          <div key="arrow" style={{ fontSize: 20, color: "#333", textAlign: "center" }}>→</div>
+                          <div key="arrow" style={{ fontSize: 20, color: "var(--gpa-text-ghost)", textAlign: "center" }}>→</div>
                         ) : (
                           <div
                             key={x.k}
                             style={{
-                              background: "#0a0a18",
+                              background: "var(--gpa-bg-soft)",
                               borderRadius: 10,
                               padding: 14,
                               textAlign: "center",
                             }}
                           >
-                            <div style={{ fontSize: 10, color: "#444", marginBottom: 3 }}>
+                            <div style={{ fontSize: 10, color: "var(--gpa-text-faintest)", marginBottom: 3 }}>
                               {x.k === "before" ? (ar ? "قبل" : "Before") : ar ? "بعد" : "After"}
                             </div>
                             <div style={{ fontSize: 24, fontWeight: 800, color: gpaClr(x.v) }}>
@@ -1618,7 +1618,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
         {tab === "charts" && (
           <div>
             <div style={card}>
-              <h4 style={{ margin: "0 0 10px", fontSize: 13, color: "#ddd" }}>
+              <h4 style={{ margin: "0 0 10px", fontSize: 13, color: "var(--gpa-text-soft)" }}>
                 {ar ? "منحنى المعدل التراكمي" : "GPA Trend"}
               </h4>
               <div style={{ height: 180 }}>
@@ -1632,30 +1632,30 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                   >
                     <defs>
                       <linearGradient id="gg" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#00ff88" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#00ff88" stopOpacity={0} />
+                        <stop offset="5%" stopColor="var(--gpa-accent)" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="var(--gpa-accent)" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#161630" />
-                    <XAxis dataKey="name" stroke="#444" style={{ fontSize: 9 }} />
-                    <YAxis domain={[0, 4]} stroke="#444" style={{ fontSize: 9 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--gpa-card-elevated)" />
+                    <XAxis dataKey="name" stroke="var(--gpa-text-faintest)" style={{ fontSize: 9 }} />
+                    <YAxis domain={[0, 4]} stroke="var(--gpa-text-faintest)" style={{ fontSize: 9 }} />
                     <Tooltip
                       contentStyle={{
-                        background: "#0d0d1a",
+                        background: "var(--gpa-card)",
                         border: "1px solid #1e1e3f",
                         fontSize: 11,
                         fontFamily: FONT,
                       }}
                     />
                     <ReferenceLine y={targetGpa} stroke="#ff704366" strokeDasharray="4 4" />
-                    <ReferenceLine y={3.667} stroke="#00ff8844" strokeDasharray="3 5" />
+                    <ReferenceLine y={3.667} stroke="var(--gpa-accent-44)" strokeDasharray="3 5" />
                     <Area
                       type="monotone"
                       dataKey="gpa"
-                      stroke="#00ff88"
+                      stroke="var(--gpa-accent)"
                       strokeWidth={2}
                       fill="url(#gg)"
-                      dot={{ r: 4, fill: "#00ff88", strokeWidth: 0 }}
+                      dot={{ r: 4, fill: "var(--gpa-accent)", strokeWidth: 0 }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -1664,7 +1664,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
 
             {courses.length > 0 && (
               <div style={card}>
-                <h4 style={{ margin: "0 0 10px", fontSize: 13, color: "#ddd" }}>
+                <h4 style={{ margin: "0 0 10px", fontSize: 13, color: "var(--gpa-text-soft)" }}>
                   {ar ? "توزيع الدرجات" : "Grade Distribution"}
                 </h4>
                 <div style={{ height: 160 }}>
@@ -1675,12 +1675,12 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                         pts: +(c.grade ?? 0).toFixed(3),
                       }))}
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#161630" />
-                      <XAxis dataKey="name" stroke="#444" style={{ fontSize: 9 }} />
-                      <YAxis domain={[0, 4]} stroke="#444" style={{ fontSize: 9 }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--gpa-card-elevated)" />
+                      <XAxis dataKey="name" stroke="var(--gpa-text-faintest)" style={{ fontSize: 9 }} />
+                      <YAxis domain={[0, 4]} stroke="var(--gpa-text-faintest)" style={{ fontSize: 9 }} />
                       <Tooltip
                         contentStyle={{
-                          background: "#0d0d1a",
+                          background: "var(--gpa-card)",
                           border: "1px solid #1e1e3f",
                           fontSize: 11,
                           fontFamily: FONT,
@@ -1699,7 +1699,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
 
             {history.length > 1 && (
               <div style={card}>
-                <h4 style={{ margin: "0 0 10px", fontSize: 13, color: "#ddd" }}>
+                <h4 style={{ margin: "0 0 10px", fontSize: 13, color: "var(--gpa-text-soft)" }}>
                   {ar ? "تطور المعدل عبر الفصول" : "GPA across Semesters"}
                 </h4>
                 <div style={{ height: 160 }}>
@@ -1711,20 +1711,20 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                         cum: +h.cumGpa.toFixed(3),
                       }))}
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#161630" />
-                      <XAxis dataKey="name" stroke="#444" style={{ fontSize: 8 }} />
-                      <YAxis domain={[0, 4]} stroke="#444" style={{ fontSize: 9 }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--gpa-card-elevated)" />
+                      <XAxis dataKey="name" stroke="var(--gpa-text-faintest)" style={{ fontSize: 8 }} />
+                      <YAxis domain={[0, 4]} stroke="var(--gpa-text-faintest)" style={{ fontSize: 9 }} />
                       <Tooltip
                         contentStyle={{
-                          background: "#0d0d1a",
+                          background: "var(--gpa-card)",
                           border: "1px solid #1e1e3f",
                           fontSize: 11,
                           fontFamily: FONT,
                         }}
                       />
-                      <Legend wrapperStyle={{ fontSize: 10, color: "#666" }} />
-                      <Bar dataKey="sem" name={ar ? "فصلي" : "Sem"} fill="#6366f1" radius={[3, 3, 0, 0]} />
-                      <Bar dataKey="cum" name={ar ? "تراكمي" : "Cum"} fill="#00ff88" radius={[3, 3, 0, 0]} />
+                      <Legend wrapperStyle={{ fontSize: 10, color: "var(--gpa-text-muted-2)" }} />
+                      <Bar dataKey="sem" name={ar ? "فصلي" : "Sem"} fill="var(--gpa-accent-2)" radius={[3, 3, 0, 0]} />
+                      <Bar dataKey="cum" name={ar ? "تراكمي" : "Cum"} fill="var(--gpa-accent)" radius={[3, 3, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -1736,7 +1736,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
         {/* ANALYSIS */}
         {tab === "analysis" && (
           <div style={card}>
-            <h3 style={{ margin: "0 0 12px", fontSize: 14, color: "#fff" }}>
+            <h3 style={{ margin: "0 0 12px", fontSize: 14, color: "var(--gpa-text)" }}>
               ⚡ {ar ? "تحليل مفصل" : "Detailed Analysis"}
             </h3>
             {[
@@ -1752,14 +1752,14 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                   justifyContent: "space-between",
                   alignItems: "center",
                   padding: "8px 11px",
-                  background: "#0a0a18",
+                  background: "var(--gpa-bg-soft)",
                   borderRadius: 8,
                   marginBottom: 6,
                 }}
               >
-                <span style={{ fontSize: 11, color: "#888" }}>
+                <span style={{ fontSize: 11, color: "var(--gpa-text-muted)" }}>
                   {r.l}
-                  <span style={{ color: "#444", fontSize: 10 }}>
+                  <span style={{ color: "var(--gpa-text-faintest)", fontSize: 10 }}>
                     {" "}
                     ({r.cr}
                     {ar ? "س" : "cr"})
@@ -1776,7 +1776,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
         {/* SCALE */}
         {tab === "scale" && (
           <div style={card}>
-            <h3 style={{ margin: "0 0 4px", fontSize: 14, color: "#fff" }}>
+            <h3 style={{ margin: "0 0 4px", fontSize: 14, color: "var(--gpa-text)" }}>
               {isBenha ? (ar ? "لائحة بنها 2021" : "Benha 2021") : ar ? "جدول التقديرات" : "Grading Scale"}
             </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 12 }}>
@@ -1788,7 +1788,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                     alignItems: "center",
                     gap: 10,
                     padding: "10px 12px",
-                    background: "#0a0a18",
+                    background: "var(--gpa-bg-soft)",
                     borderRadius: 8,
                     borderRight: `4px solid ${g.clr}`,
                   }}
@@ -1798,7 +1798,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                     <div style={{ fontSize: 12, color: "#ccc" }}>
                       {g.label} · {g.pts.toFixed(3)}
                     </div>
-                    <div style={{ fontSize: 10, color: "#555" }}>≥ {g.minPct}%</div>
+                    <div style={{ fontSize: 10, color: "var(--gpa-text-faint)" }}>≥ {g.minPct}%</div>
                   </div>
                 </div>
               ))}
@@ -1821,10 +1821,10 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
 }
 
 const iconBtn: React.CSSProperties = {
-  background: "#ffffff08",
+  background: "var(--gpa-surface-alpha-08)",
   border: "1px solid #1e1e3f",
   borderRadius: 8,
-  color: "#666",
+  color: "var(--gpa-text-muted-2)",
   padding: "6px 9px",
   fontSize: 11,
   fontFamily: FONT,
@@ -1875,9 +1875,9 @@ export default function GPAAdvisorApp() {
     return (
       <div
         style={{
-          background: "#070712",
+          background: "var(--gpa-bg)",
           minHeight: "100vh",
-          color: "#666",
+          color: "var(--gpa-text-muted-2)",
           fontFamily: FONT,
           display: "flex",
           alignItems: "center",
