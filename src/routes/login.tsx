@@ -71,7 +71,7 @@ function LoginPage() {
 
   const inp: React.CSSProperties = {
     background: "var(--gpa-card)",
-    border: "1px solid #1e1e3f",
+    border: "1px solid var(--gpa-border)",
     borderRadius: 10,
     color: "var(--gpa-text-strong)",
     padding: "12px 14px",
@@ -94,7 +94,7 @@ function LoginPage() {
         justifyContent: "center",
         padding: 16,
         backgroundImage:
-          "radial-gradient(ellipse at 20% 20%,var(--gpa-accent-10),transparent 50%),radial-gradient(ellipse at 80% 80%,#6366f110,transparent 50%)",
+          "radial-gradient(ellipse at 20% 20%,var(--gpa-accent-10),transparent 50%),radial-gradient(ellipse at 80% 80%,var(--gpa-accent2-18),transparent 50%)",
       }}
     >
       <div style={{ width: "100%", maxWidth: 420 }}>
@@ -126,7 +126,7 @@ function LoginPage() {
         <div
           style={{
             background: "var(--gpa-card)",
-            border: "1px solid #1e1e3f",
+            border: "1px solid var(--gpa-border)",
             borderRadius: 18,
             padding: 22,
           }}
@@ -144,7 +144,7 @@ function LoginPage() {
                   flex: 1,
                   padding: 11,
                   background: mode === m ? "var(--gpa-accent-12)" : "transparent",
-                  border: mode === m ? "1px solid var(--gpa-accent-44)" : "1px solid #1e1e3f",
+                  border: mode === m ? "1px solid var(--gpa-accent-44)" : "1px solid var(--gpa-border)",
                   borderRadius: 10,
                   color: mode === m ? "var(--gpa-accent)" : "var(--gpa-text-muted-2)",
                   fontSize: 13,
@@ -229,7 +229,7 @@ function LoginPage() {
               style={{
                 padding: 12,
                 background: "var(--gpa-surface-alpha-08)",
-                border: "1px solid #1e1e3f",
+                border: "1px solid var(--gpa-border)",
                 borderRadius: 10,
                 color: "var(--gpa-text-soft)",
                 fontSize: 13,
@@ -250,7 +250,7 @@ function LoginPage() {
               style={{
                 padding: 12,
                 background: "var(--gpa-surface-alpha-08)",
-                border: "1px solid #1e1e3f",
+                border: "1px solid var(--gpa-border)",
                 borderRadius: 10,
                 color: "var(--gpa-text-soft)",
                 fontSize: 13,
