@@ -172,6 +172,16 @@ type Profile = {
   gradTarget: number;
 };
 
+export type ImportPayload = {
+  profile: Profile;
+  semesters: Array<{
+    label: string;
+    sem_type: string;
+    year?: number | null;
+    courses: Array<{ name: string; code?: string; credits: number; grade_letter?: string | null; grade_pts?: number | null }>;
+  }>;
+};
+
 function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
   const [step, setStep] = useState(0);
   const [lang, setLang] = useState("ar");
