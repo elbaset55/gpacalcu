@@ -102,6 +102,9 @@ function LoginPage() {
       }}
     >
       <div style={{ width: "100%", maxWidth: 420 }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+          <ThemeSwitcher theme={theme} onChange={setTheme} />
+        </div>
         <div style={{ textAlign: "center", marginBottom: 28 }}>
           <div
             style={{
