@@ -1004,22 +1004,48 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
   };
 
   const exportData = () => {
-    const lines = [
-      `═══ ${ar ? "تقرير المعدل الأكاديمي" : "Academic GPA Report"} ═══`,
-      `${uniName || ""}${major ? ` · ${major}` : ""}`,
-      `${ar ? "التاريخ" : "Date"}: ${new Date().toLocaleDateString()}`,
-      "─────────────────────────",
-      `${ar ? "المعدل التراكمي" : "Cumulative GPA"}: ${cumGpa.toFixed(3)}`,
-      `${ar ? "معدل الفصل" : "Semester GPA"}: ${semGpa.toFixed(2)}`,
-      `${ar ? "الساعات المكتسبة" : "Credits Earned"}: ${newCr}/${totalReq}`,
-      `${ar ? "التقدير" : "Standing"}: ${ar ? stand.label : stand.en} ${stand.emoji}`,
-      "─────────────────────────",
-      ar ? "مواد الفصل:" : "Semester Courses:",
-      ...courses.map((c) => `  ${c.name || "—"} (${c.cr}${ar ? "س" : "cr"}): ${ga(c.grade, grades)}`),
-    ]
-      .filter(Boolean)
-      .join("\n");
-    navigator.clipboard?.writeText(lines).then(() => showToast(ar ? "تم نسخ التقرير" : "Report copied!"));
+    const payload: ImportPayload = {
+      profile,
+      semesters: history.map((h) => ({
+        label: h.label,
+        sem_type: "1",
+        courses: h.courses.map((c: any) => ({
+          name: c.name,
+          credits: c.cr,
+          grade_pts: c.grade,
+        })),
+      })),
+    };
+    const blob = new Blob([JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), ...payload }, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `gpa-advisor-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(ar ? "تم تنزيل النسخة الاحتياطية" : "Backup downloaded");
+  };
+
+  const printPdf = () => {
+    window.print();
+  };
+
+  const triggerImport = () => fileRef.current?.click();
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    if (!f) return;
+    try {
+      const text = await f.text();
+      const data = JSON.parse(text);
+      if (!data.profile || !Array.isArray(data.semesters)) throw new Error("invalid");
+      if (!window.confirm(ar ? "سيتم استبدال بياناتك الحالية بالكامل. متابعة؟" : "This replaces all your current data. Continue?")) return;
+      await onImport({ profile: data.profile, semesters: data.semesters });
+      showToast(ar ? "تم الاستيراد ✓" : "Imported ✓");
+    } catch {
+      showToast(ar ? "ملف غير صالح" : "Invalid file", false);
+    }
   };
 
   const handleLogout = async () => {
@@ -1028,7 +1054,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
 
   const card: React.CSSProperties = {
     background: "var(--gpa-card)",
-    border: "1px solid #1e1e3f",
+    border: "1px solid var(--gpa-border)",
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,
