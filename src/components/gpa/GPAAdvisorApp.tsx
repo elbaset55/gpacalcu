@@ -2018,6 +2018,45 @@ export default function GPAAdvisorApp() {
         if (typeof window !== "undefined" && !window.confirm(profile.lang === "ar" ? "متأكد من إعادة التعيين؟" : "Reset?")) return;
         await deleteProfileMut.mutateAsync({});
       }}
+      onImport={async (payload) => {
+        await deleteProfileMut.mutateAsync({});
+        const p = payload.profile;
+        await saveProfileMut.mutateAsync({
+          data: {
+            lang: p.lang,
+            scale_id: p.scaleId,
+            is_benha: p.isBenha,
+            total_req: p.totalReq,
+            uni_name: p.uniName ?? "",
+            major: p.major ?? "",
+            prev_gpa: p.prevGpa,
+            prev_cr: p.prevCr,
+            semester: p.semester,
+            has_failed: p.hasFailed,
+            min_prev_sem_gpa: p.minPrevSemGpa,
+            grad_target: p.gradTarget,
+          },
+        });
+        for (const sem of payload.semesters) {
+          if (!sem.courses?.length) continue;
+          await saveSemesterFn({
+            data: {
+              label: sem.label,
+              sem_type: sem.sem_type || "1",
+              year: sem.year ?? null,
+              courses: sem.courses.map((c) => ({
+                name: c.name || "—",
+                code: c.code ?? "",
+                credits: c.credits,
+                grade_letter: c.grade_letter ?? null,
+                grade_pts: c.grade_pts ?? null,
+              })),
+            },
+          });
+        }
+        queryClient.invalidateQueries({ queryKey: ["profile"] });
+        queryClient.invalidateQueries({ queryKey: ["semesters"] });
+      }}
     />
   );
 }
