@@ -17,11 +17,15 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
+import { useGpaTheme } from "@/components/gpa/use-theme";
+import { ThemeSwitcher } from "@/components/gpa/ThemeSwitcher";
+
 const FONT = "'Cairo','Noto Sans Arabic',sans-serif";
 
 function LoginPage() {
   const navigate = useNavigate();
   const { redirect: redirectTo } = Route.useSearch();
+  const { theme, setTheme } = useGpaTheme();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
