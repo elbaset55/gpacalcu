@@ -94,7 +94,7 @@ function LoginPage() {
         justifyContent: "center",
         padding: 16,
         backgroundImage:
-          "radial-gradient(ellipse at 20% 20%,#00ff8810,transparent 50%),radial-gradient(ellipse at 80% 80%,#6366f110,transparent 50%)",
+          "radial-gradient(ellipse at 20% 20%,var(--gpa-accent-10),transparent 50%),radial-gradient(ellipse at 80% 80%,#6366f110,transparent 50%)",
       }}
     >
       <div style={{ width: "100%", maxWidth: 420 }}>
@@ -104,8 +104,8 @@ function LoginPage() {
               width: 64,
               height: 64,
               borderRadius: 16,
-              background: "linear-gradient(135deg,#00ff8822,#6366f122)",
-              border: "1px solid #00ff8833",
+              background: "linear-gradient(135deg,var(--gpa-accent-20),var(--gpa-accent2-20))",
+              border: "1px solid var(--gpa-accent-33)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -144,7 +144,7 @@ function LoginPage() {
                   flex: 1,
                   padding: 11,
                   background: mode === m ? "var(--gpa-accent-12)" : "transparent",
-                  border: mode === m ? "1px solid #00ff8844" : "1px solid #1e1e3f",
+                  border: mode === m ? "1px solid var(--gpa-accent-44)" : "1px solid #1e1e3f",
                   borderRadius: 10,
                   color: mode === m ? "var(--gpa-accent)" : "var(--gpa-text-muted-2)",
                   fontSize: 13,
@@ -180,7 +180,7 @@ function LoginPage() {
               <div
                 style={{
                   background: "var(--gpa-danger-15)",
-                  border: "1px solid #ef535033",
+                  border: "1px solid var(--gpa-danger-33)",
                   borderRadius: 8,
                   padding: "8px 12px",
                   fontSize: 12,
@@ -195,15 +195,15 @@ function LoginPage() {
               disabled={loading}
               style={{
                 padding: 13,
-                background: "linear-gradient(135deg,#00ff8828,#6366f120)",
-                border: "1px solid #00ff8855",
+                background: "linear-gradient(135deg,var(--gpa-accent-25),var(--gpa-accent2-20))",
+                border: "1px solid var(--gpa-accent-55)",
                 borderRadius: 12,
                 color: "var(--gpa-accent)",
                 fontSize: 14,
                 fontWeight: 700,
                 fontFamily: FONT,
                 cursor: loading ? "wait" : "pointer",
-                boxShadow: "0 0 20px #00ff8820",
+                boxShadow: "0 0 20px var(--gpa-accent-20)",
                 opacity: loading ? 0.6 : 1,
               }}
             >

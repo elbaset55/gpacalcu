@@ -304,7 +304,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
                     padding: "12px 14px",
                     fontFamily: FONT,
                     background: scaleId === s.id ? "var(--gpa-accent-12)" : "var(--gpa-surface-alpha-06)",
-                    border: scaleId === s.id ? "1px solid #00ff8844" : "1px solid #1e1e3f",
+                    border: scaleId === s.id ? "1px solid var(--gpa-accent-44)" : "1px solid #1e1e3f",
                     borderRadius: 10,
                     color: scaleId === s.id ? "var(--gpa-accent)" : "var(--gpa-text-muted)",
                     fontSize: 13,
@@ -401,7 +401,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div
               style={{
-                background: "#a855f715",
+                background: "rgba(168,85,247,.10)",
                 border: "1px solid #a855f733",
                 borderRadius: 10,
                 padding: "10px 14px",
@@ -471,7 +471,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
                       flex: 1,
                       padding: "12px",
                       fontFamily: FONT,
-                      background: semester === v ? "#a855f718" : "var(--gpa-surface-alpha-06)",
+                      background: semester === v ? "rgba(168,85,247,.12)" : "var(--gpa-surface-alpha-06)",
                       border: semester === v ? "1px solid #a855f766" : "1px solid #1e1e3f",
                       borderRadius: 10,
                       color: semester === v ? "var(--gpa-violet)" : "var(--gpa-text-faint)",
@@ -510,7 +510,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div
               style={{
-                background: "#6366f115",
+                background: "var(--gpa-accent2-18)",
                 border: "1px solid #6366f133",
                 borderRadius: 10,
                 padding: "12px 14px",
@@ -582,7 +582,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
         justifyContent: "center",
         padding: 16,
         backgroundImage:
-          "radial-gradient(ellipse at 20% 20%,#00ff8808,transparent 50%),radial-gradient(ellipse at 80% 80%,#6366f108,transparent 50%)",
+          "radial-gradient(ellipse at 20% 20%,var(--gpa-accent-08),transparent 50%),radial-gradient(ellipse at 80% 80%,#6366f108,transparent 50%)",
       }}
     >
       <div style={{ width: "100%", maxWidth: 480 }}>
@@ -592,8 +592,8 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
               width: 64,
               height: 64,
               borderRadius: 16,
-              background: "linear-gradient(135deg,#00ff8822,#6366f122)",
-              border: "1px solid #00ff8833",
+              background: "linear-gradient(135deg,var(--gpa-accent-20),var(--gpa-accent2-20))",
+              border: "1px solid var(--gpa-accent-33)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -665,15 +665,15 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
             style={{
               flex: 2,
               padding: 13,
-              background: "linear-gradient(135deg,#00ff8828,#6366f120)",
-              border: "1px solid #00ff8855",
+              background: "linear-gradient(135deg,var(--gpa-accent-25),var(--gpa-accent2-20))",
+              border: "1px solid var(--gpa-accent-55)",
               borderRadius: 12,
               color: "var(--gpa-accent)",
               fontSize: 14,
               fontWeight: 700,
               fontFamily: FONT,
               cursor: "pointer",
-              boxShadow: "0 0 20px #00ff8820",
+              boxShadow: "0 0 20px var(--gpa-accent-20)",
             }}
           >
             {step < STEPS.length - 1 ? (ar ? "التالي →" : "Next →") : ar ? "ابدأ التخطيط 🚀" : "Start Planning 🚀"}
@@ -1064,9 +1064,9 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
       {/* HEADER */}
       <div
         style={{
-          background: "linear-gradient(160deg,#080818,#0e0826,#080e1e)",
+          background: "linear-gradient(160deg,var(--gpa-bg),var(--gpa-bg-soft),var(--gpa-bg))",
           padding: "16px 14px 12px",
-          borderBottom: "1px solid #1a1a3f",
+          borderBottom: "1px solid var(--gpa-border)",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
@@ -1076,8 +1076,8 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                 width: 32,
                 height: 32,
                 borderRadius: 8,
-                background: "linear-gradient(135deg,#00ff8822,#6366f122)",
-                border: "1px solid #00ff8833",
+                background: "linear-gradient(135deg,var(--gpa-accent-20),var(--gpa-accent2-20))",
+                border: "1px solid var(--gpa-accent-33)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -1101,7 +1101,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
             <button onClick={exportData} title={ar ? "تصدير" : "Export"} style={iconBtn}>
               📋
             </button>
-            <button onClick={onReset} title={ar ? "إعادة" : "Reset"} style={{ ...iconBtn, background: "#ef535010", color: "#ef535099", border: "1px solid #ef535033" }}>
+            <button onClick={onReset} title={ar ? "إعادة" : "Reset"} style={{ ...iconBtn, background: "var(--gpa-danger-15)", color: "var(--gpa-danger)", border: "1px solid var(--gpa-danger-33)" }}>
               ↩
             </button>
             <button onClick={handleLogout} title={ar ? "خروج" : "Logout"} style={iconBtn}>
@@ -1195,7 +1195,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
               padding: "11px 3px",
               background: "none",
               border: "none",
-              borderBottom: tab === id ? "2px solid #00ff88" : "2px solid transparent",
+              borderBottom: tab === id ? "2px solid var(--gpa-accent)" : "2px solid transparent",
               color: tab === id ? "var(--gpa-accent)" : "var(--gpa-text-faintest)",
               fontSize: 10,
               fontFamily: FONT,
@@ -1368,7 +1368,7 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                   style={{
                     flex: 1,
                     background: "var(--gpa-accent-12)",
-                    border: "1px solid #00ff8833",
+                    border: "1px solid var(--gpa-accent-33)",
                     borderRadius: 12,
                     padding: "12px",
                     color: "var(--gpa-accent)",
@@ -1479,8 +1479,8 @@ function Planner({ profile, onReset, history }: { profile: Profile; onReset: () 
                     borderRadius: 8,
                     textAlign: "center",
                     marginBottom: 10,
-                    background: honorOk.ok ? "var(--gpa-accent-12)" : "#ef535012",
-                    border: `1px solid ${honorOk.ok ? "var(--gpa-accent-44)" : "#ef535044"}`,
+                    background: honorOk.ok ? "var(--gpa-accent-12)" : "var(--gpa-danger-15)",
+                    border: `1px solid ${honorOk.ok ? "var(--gpa-accent-44)" : "var(--gpa-danger-33)"}`,
                     fontSize: 13,
                     fontWeight: 700,
                     color: honorOk.ok ? "var(--gpa-accent)" : "var(--gpa-danger)",
