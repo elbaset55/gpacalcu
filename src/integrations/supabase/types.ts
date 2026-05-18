@@ -17,6 +17,7 @@ export type Database = {
       academic_profiles: {
         Row: {
           created_at: string
+          current_level: number
           grad_target: number
           has_failed: boolean
           is_benha: boolean
@@ -34,6 +35,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          current_level?: number
           grad_target?: number
           has_failed?: boolean
           is_benha?: boolean
@@ -51,6 +53,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          current_level?: number
           grad_target?: number
           has_failed?: boolean
           is_benha?: boolean
