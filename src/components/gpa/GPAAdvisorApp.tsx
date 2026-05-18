@@ -2085,6 +2085,7 @@ export default function GPAAdvisorApp() {
             has_failed: p.hasFailed,
             min_prev_sem_gpa: p.minPrevSemGpa,
             grad_target: p.gradTarget,
+            current_level: (p as any).currentLevel ?? 1,
           },
         });
         for (const sem of payload.semesters) {
