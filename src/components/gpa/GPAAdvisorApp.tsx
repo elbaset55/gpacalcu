@@ -454,11 +454,101 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
                 {err && <div style={{ marginTop: 6, color: "var(--gpa-danger)", fontSize: 12 }}>⚠️ {err}</div>}
               </div>
             )}
+            {/* Current academic level */}
+            <div>
+              <label style={lbl}>{ar ? "المستوى/السنة الدراسية الحالية *" : "Current Academic Year *"}</label>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
+                {[1, 2, 3, 4].map((lv) => {
+                  const labels = ar
+                    ? { 1: "الأولى", 2: "الثانية", 3: "الثالثة", 4: "الرابعة" } as any
+                    : { 1: "Year 1", 2: "Year 2", 3: "Year 3", 4: "Year 4" } as any;
+                  const active = currentLevel === lv;
+                  return (
+                    <button
+                      key={lv}
+                      onClick={() => setCurrentLevel(lv)}
+                      style={{
+                        padding: "10px 6px",
+                        fontFamily: FONT,
+                        background: active ? "var(--gpa-accent-12)" : "var(--gpa-surface-alpha-06)",
+                        border: active ? "1px solid var(--gpa-accent-44)" : "1px solid var(--gpa-border)",
+                        borderRadius: 10,
+                        color: active ? "var(--gpa-accent)" : "var(--gpa-text-faint)",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {labels[lv]}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ fontSize: 11, color: "var(--gpa-text-faintest)", marginTop: 6 }}>
+                {ar ? "تستخدم لدقة التنبؤات والتخطيط الأكاديمي" : "Used to fine-tune predictions and planning"}
+              </div>
+            </div>
           </div>
         );
       case 2:
         return (
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {/* AI Transcript Analyzer */}
+            <div
+              style={{
+                background: "linear-gradient(135deg,var(--gpa-accent-12),var(--gpa-accent2-18))",
+                border: "1px solid var(--gpa-accent-44)",
+                borderRadius: 12,
+                padding: "12px 14px",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "var(--gpa-accent)" }}>
+                    ✨ {ar ? "تحليل المستند بالذكاء الاصطناعي" : "AI Transcript Analyzer"}
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--gpa-text-faint)", marginTop: 3 }}>
+                    {ar
+                      ? "ارفع صورة أو PDF لكشف الدرجات — هنستخرج المعدل والساعات والمواد تلقائياً"
+                      : "Upload an image or PDF of your transcript — we'll extract GPA, credits and courses"}
+                  </div>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,application/pdf"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleAnalyzeFile(f);
+                    e.target.value = "";
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={aiBusy}
+                  style={{
+                    padding: "10px 14px",
+                    background: "var(--gpa-accent)",
+                    border: "none",
+                    borderRadius: 10,
+                    color: "var(--gpa-bg)",
+                    fontSize: 13,
+                    fontWeight: 800,
+                    fontFamily: FONT,
+                    cursor: aiBusy ? "wait" : "pointer",
+                    opacity: aiBusy ? 0.6 : 1,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {aiBusy ? (ar ? "جاري التحليل..." : "Analyzing...") : ar ? "📎 رفع المستند" : "📎 Upload"}
+                </button>
+              </div>
+              {aiMsg && (
+                <div style={{ marginTop: 10, fontSize: 12, color: "var(--gpa-text-soft)" }}>{aiMsg}</div>
+              )}
+            </div>
             <div
               style={{
                 background: "rgba(168,85,247,.10)",
@@ -470,9 +560,10 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
               }}
             >
               {ar
-                ? "💡 أدخل معدلك وساعاتك قبل هذا الفصل — سنضيف مواد الفصل الجديد في الخطوة التالية"
-                : "💡 Enter your GPA and credits BEFORE this semester"}
+                ? "💡 أدخل معدلك وساعاتك قبل هذا الفصل — أو استخدم التحليل التلقائي بالأعلى"
+                : "💡 Enter your GPA and credits manually — or use the AI analyzer above"}
             </div>
+
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div>
                 <label style={lbl}>{ar ? "المعدل التراكمي الحالي *" : "Current Cumulative GPA *"}</label>
