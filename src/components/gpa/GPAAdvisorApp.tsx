@@ -187,8 +187,10 @@ export type ImportPayload = {
 };
 
 function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
+  const { lang: globalLang, setLang: setGlobalLang } = useLang();
   const [step, setStep] = useState(0);
-  const [lang, setLang] = useState("ar");
+  const [lang, setLang] = useState<string>(globalLang);
+  useEffect(() => { setLang(globalLang); }, [globalLang]);
   const [scaleId, setScaleId] = useState("benha");
   const [uniName, setUniName] = useState("");
   const [major, setMajor] = useState("");
@@ -198,8 +200,13 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
   const [hasFailed, setHasFailed] = useState(false);
   const [minSemGpa, setMinSemGpa] = useState("");
   const [gradTarget, setGradTarget] = useState(3.0);
+  const [currentLevel, setCurrentLevel] = useState(1);
   const [customTotalReq, setCustomTotalReq] = useState("");
   const [err, setErr] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiMsg, setAiMsg] = useState("");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const analyzeFn = useServerFn(analyzeTranscript);
   const scale = SCALE_SYSTEMS.find((s) => s.id === scaleId)!;
   const resolvedTotalReq = scale.isBenha ? 136 : parseInt(customTotalReq) || 120;
 
@@ -274,7 +281,44 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
       hasFailed,
       minPrevSemGpa: isNaN(ms) ? g : ms,
       gradTarget,
+      currentLevel,
     });
+  };
+
+  const handleAnalyzeFile = async (file: File) => {
+    setAiMsg("");
+    setAiBusy(true);
+    try {
+      const dataUrl: string = await new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(String(r.result));
+        r.onerror = () => rej(new Error("read fail"));
+        r.readAsDataURL(file);
+      });
+      const result = await analyzeFn({
+        data: {
+          fileDataUrl: dataUrl,
+          mimeType: file.type || "application/pdf",
+          scaleHint: scaleId === "benha" ? "benha" : "generic",
+          lang: lang === "en" ? "en" : "ar",
+        },
+      });
+      let filled = 0;
+      if (result.cumulative_gpa != null) { setPrevGpa(String(result.cumulative_gpa)); filled++; }
+      if (result.total_credits_earned != null) { setPrevCr(String(result.total_credits_earned)); filled++; }
+      if (result.current_level != null) { setCurrentLevel(result.current_level); filled++; }
+      if (result.university && !uniName) { setUniName(result.university); filled++; }
+      if (result.major && !major) { setMajor(result.major); filled++; }
+      setAiMsg(
+        lang === "ar"
+          ? `✅ تم استخراج ${filled} حقل + ${result.courses?.length ?? 0} مادة. راجع البيانات.`
+          : `✅ Extracted ${filled} fields + ${result.courses?.length ?? 0} courses. Please review.`,
+      );
+    } catch (e: any) {
+      setAiMsg((lang === "ar" ? "❌ فشل التحليل: " : "❌ Analysis failed: ") + (e?.message ?? "error"));
+    } finally {
+      setAiBusy(false);
+    }
   };
 
   const stepContent = () => {
