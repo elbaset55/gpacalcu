@@ -2008,6 +2008,7 @@ export default function GPAAdvisorApp() {
               has_failed: p.hasFailed,
               min_prev_sem_gpa: p.minPrevSemGpa,
               grad_target: p.gradTarget,
+              current_level: p.currentLevel,
             },
           });
         }}
@@ -2031,6 +2032,7 @@ export default function GPAAdvisorApp() {
     hasFailed: dbProfile.has_failed,
     minPrevSemGpa: Number(dbProfile.min_prev_sem_gpa),
     gradTarget: Number(dbProfile.grad_target),
+    currentLevel: (dbProfile as any).current_level ?? 1,
   };
 
   // Build history from DB
