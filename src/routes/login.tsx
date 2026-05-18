@@ -2,6 +2,10 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import { useGpaTheme } from "@/components/gpa/use-theme";
+import { ThemeSwitcher } from "@/components/gpa/ThemeSwitcher";
+import { LangSwitcher } from "@/components/gpa/LangSwitcher";
+import { useLang } from "@/lib/use-lang";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -17,24 +21,61 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
-import { useGpaTheme } from "@/components/gpa/use-theme";
-import { ThemeSwitcher } from "@/components/gpa/ThemeSwitcher";
-
 const FONT = "'Cairo','Noto Sans Arabic',sans-serif";
+
+const T = {
+  ar: {
+    appTitle: "المستشار الأكاديمي",
+    tagline: "خطط · تتبع · تفوق",
+    signin: "تسجيل الدخول",
+    signup: "إنشاء حساب",
+    email: "البريد الإلكتروني",
+    password: "كلمة المرور (٦ أحرف على الأقل)",
+    loading: "جاري...",
+    btnIn: "دخول →",
+    btnUp: "إنشاء الحساب →",
+    or: "أو",
+    google: "المتابعة بحساب Google",
+    apple: "المتابعة بحساب Apple",
+    footer: "بياناتك الأكاديمية تُحفظ بأمان ومرتبطة بحسابك فقط",
+    err: "حدث خطأ",
+    oauthErr: "فشل تسجيل الدخول",
+  },
+  en: {
+    appTitle: "Academic Advisor",
+    tagline: "Plan · Track · Excel",
+    signin: "Sign In",
+    signup: "Create Account",
+    email: "Email address",
+    password: "Password (min. 6 chars)",
+    loading: "Loading...",
+    btnIn: "Sign In →",
+    btnUp: "Create Account →",
+    or: "or",
+    google: "Continue with Google",
+    apple: "Continue with Apple",
+    footer: "Your academic data is securely stored and tied to your account only",
+    err: "An error occurred",
+    oauthErr: "Sign in failed",
+  },
+} as const;
 
 function LoginPage() {
   const navigate = useNavigate();
   const { redirect: redirectTo } = Route.useSearch();
   const { theme, setTheme } = useGpaTheme();
+  const { lang, setLang } = useLang();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
+  const t = T[lang];
+  const dir = lang === "ar" ? "rtl" : "ltr";
 
   useEffect(() => {
-    document.documentElement.dir = "rtl";
-  }, []);
+    document.documentElement.dir = dir;
+  }, [dir]);
 
   const handleEmail = async (e: FormEvent) => {
     e.preventDefault();
@@ -54,7 +95,7 @@ function LoginPage() {
       }
       navigate({ to: redirectTo as "/app" });
     } catch (e: any) {
-      setErr(e.message || "حدث خطأ");
+      setErr(e.message || t.err);
     } finally {
       setLoading(false);
     }
@@ -66,7 +107,7 @@ function LoginPage() {
       redirect_uri: window.location.origin,
     });
     if (result.error) {
-      setErr((result.error as Error).message || "فشل تسجيل الدخول");
+      setErr((result.error as Error).message || t.oauthErr);
       return;
     }
     if (result.redirected) return;
@@ -88,7 +129,7 @@ function LoginPage() {
 
   return (
     <div
-      dir="rtl"
+      dir={dir}
       style={{
         fontFamily: FONT,
         background: "var(--gpa-bg)",
@@ -102,9 +143,12 @@ function LoginPage() {
       }}
     >
       <div style={{ width: "100%", maxWidth: 420 }}>
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+        {/* Language + Theme at the very top */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, gap: 8 }}>
+          <LangSwitcher lang={lang} onChange={setLang} />
           <ThemeSwitcher theme={theme} onChange={setTheme} />
         </div>
+
         <div style={{ textAlign: "center", marginBottom: 28 }}>
           <div
             style={{
@@ -122,12 +166,8 @@ function LoginPage() {
           >
             🎓
           </div>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: "var(--gpa-text)" }}>
-            المستشار الأكاديمي
-          </h1>
-          <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--gpa-text-faint)" }}>
-            خطط · تتبع · تفوق
-          </p>
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: "var(--gpa-text)" }}>{t.appTitle}</h1>
+          <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--gpa-text-faint)" }}>{t.tagline}</p>
         </div>
 
         <div
@@ -138,7 +178,6 @@ function LoginPage() {
             padding: 22,
           }}
         >
-          {/* Tabs */}
           <div style={{ display: "flex", gap: 6, marginBottom: 18 }}>
             {(["signin", "signup"] as const).map((m) => (
               <button
@@ -160,27 +199,20 @@ function LoginPage() {
                   cursor: "pointer",
                 }}
               >
-                {m === "signin" ? "تسجيل الدخول" : "إنشاء حساب"}
+                {m === "signin" ? t.signin : t.signup}
               </button>
             ))}
           </div>
 
           <form onSubmit={handleEmail} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="البريد الإلكتروني"
-              style={inp}
-            />
+            <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t.email} style={inp} />
             <input
               type="password"
               required
               minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="كلمة المرور (٦ أحرف على الأقل)"
+              placeholder={t.password}
               style={inp}
             />
             {err && (
@@ -214,22 +246,16 @@ function LoginPage() {
                 opacity: loading ? 0.6 : 1,
               }}
             >
-              {loading
-                ? "جاري..."
-                : mode === "signin"
-                  ? "دخول →"
-                  : "إنشاء الحساب →"}
+              {loading ? t.loading : mode === "signin" ? t.btnIn : t.btnUp}
             </button>
           </form>
 
-          {/* Divider */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "18px 0" }}>
             <div style={{ flex: 1, height: 1, background: "var(--gpa-border)" }} />
-            <span style={{ fontSize: 11, color: "var(--gpa-text-faintest)" }}>أو</span>
+            <span style={{ fontSize: 11, color: "var(--gpa-text-faintest)" }}>{t.or}</span>
             <div style={{ flex: 1, height: 1, background: "var(--gpa-border)" }} />
           </div>
 
-          {/* OAuth */}
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <button
               onClick={() => handleOAuth("google")}
@@ -250,7 +276,7 @@ function LoginPage() {
               }}
             >
               <span style={{ fontSize: 16 }}>🇬</span>
-              المتابعة بحساب Google
+              {t.google}
             </button>
             <button
               onClick={() => handleOAuth("apple")}
@@ -271,14 +297,12 @@ function LoginPage() {
               }}
             >
               <span style={{ fontSize: 16 }}>🍎</span>
-              المتابعة بحساب Apple
+              {t.apple}
             </button>
           </div>
         </div>
 
-        <p style={{ textAlign: "center", fontSize: 11, color: "var(--gpa-text-ghost)", marginTop: 14 }}>
-          بياناتك الأكاديمية تُحفظ بأمان ومرتبطة بحسابك فقط
-        </p>
+        <p style={{ textAlign: "center", fontSize: 11, color: "var(--gpa-text-ghost)", marginTop: 14 }}>{t.footer}</p>
       </div>
     </div>
   );

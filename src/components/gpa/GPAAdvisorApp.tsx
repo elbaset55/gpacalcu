@@ -29,8 +29,11 @@ import {
   saveProfile,
   saveSemester,
 } from "@/lib/profile.functions";
+import { analyzeTranscript } from "@/lib/transcript.functions";
+import { useLang } from "@/lib/use-lang";
 import { useGpaTheme } from "./use-theme";
 import { ThemeSwitcher } from "./ThemeSwitcher";
+import { LangSwitcher } from "./LangSwitcher";
 
 /* ══════════════════════════════════════════════════════════
    GRADING SYSTEMS
@@ -170,6 +173,7 @@ type Profile = {
   hasFailed: boolean;
   minPrevSemGpa: number;
   gradTarget: number;
+  currentLevel: number;
 };
 
 export type ImportPayload = {
@@ -183,8 +187,10 @@ export type ImportPayload = {
 };
 
 function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
+  const { lang: globalLang, setLang: setGlobalLang } = useLang();
   const [step, setStep] = useState(0);
-  const [lang, setLang] = useState("ar");
+  const [lang, setLang] = useState<string>(globalLang);
+  useEffect(() => { setLang(globalLang); }, [globalLang]);
   const [scaleId, setScaleId] = useState("benha");
   const [uniName, setUniName] = useState("");
   const [major, setMajor] = useState("");
@@ -194,8 +200,13 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
   const [hasFailed, setHasFailed] = useState(false);
   const [minSemGpa, setMinSemGpa] = useState("");
   const [gradTarget, setGradTarget] = useState(3.0);
+  const [currentLevel, setCurrentLevel] = useState(1);
   const [customTotalReq, setCustomTotalReq] = useState("");
   const [err, setErr] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiMsg, setAiMsg] = useState("");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const analyzeFn = useServerFn(analyzeTranscript);
   const scale = SCALE_SYSTEMS.find((s) => s.id === scaleId)!;
   const resolvedTotalReq = scale.isBenha ? 136 : parseInt(customTotalReq) || 120;
 
@@ -270,7 +281,44 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
       hasFailed,
       minPrevSemGpa: isNaN(ms) ? g : ms,
       gradTarget,
+      currentLevel,
     });
+  };
+
+  const handleAnalyzeFile = async (file: File) => {
+    setAiMsg("");
+    setAiBusy(true);
+    try {
+      const dataUrl: string = await new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(String(r.result));
+        r.onerror = () => rej(new Error("read fail"));
+        r.readAsDataURL(file);
+      });
+      const result = await analyzeFn({
+        data: {
+          fileDataUrl: dataUrl,
+          mimeType: file.type || "application/pdf",
+          scaleHint: scaleId === "benha" ? "benha" : "generic",
+          lang: lang === "en" ? "en" : "ar",
+        },
+      });
+      let filled = 0;
+      if (result.cumulative_gpa != null) { setPrevGpa(String(result.cumulative_gpa)); filled++; }
+      if (result.total_credits_earned != null) { setPrevCr(String(result.total_credits_earned)); filled++; }
+      if (result.current_level != null) { setCurrentLevel(result.current_level); filled++; }
+      if (result.university && !uniName) { setUniName(result.university); filled++; }
+      if (result.major && !major) { setMajor(result.major); filled++; }
+      setAiMsg(
+        lang === "ar"
+          ? `✅ تم استخراج ${filled} حقل + ${result.courses?.length ?? 0} مادة. راجع البيانات.`
+          : `✅ Extracted ${filled} fields + ${result.courses?.length ?? 0} courses. Please review.`,
+      );
+    } catch (e: any) {
+      setAiMsg((lang === "ar" ? "❌ فشل التحليل: " : "❌ Analysis failed: ") + (e?.message ?? "error"));
+    } finally {
+      setAiBusy(false);
+    }
   };
 
   const stepContent = () => {
@@ -284,7 +332,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
                 {[["ar", "العربية 🇪🇬"], ["en", "English 🇬🇧"]].map(([v, l]) => (
                   <button
                     key={v}
-                    onClick={() => setLang(v)}
+                    onClick={() => { setLang(v); setGlobalLang(v === "en" ? "en" : "ar"); }}
                     style={{
                       flex: 1,
                       padding: "12px",
@@ -406,11 +454,101 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
                 {err && <div style={{ marginTop: 6, color: "var(--gpa-danger)", fontSize: 12 }}>⚠️ {err}</div>}
               </div>
             )}
+            {/* Current academic level */}
+            <div>
+              <label style={lbl}>{ar ? "المستوى/السنة الدراسية الحالية *" : "Current Academic Year *"}</label>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
+                {[1, 2, 3, 4].map((lv) => {
+                  const labels = ar
+                    ? { 1: "الأولى", 2: "الثانية", 3: "الثالثة", 4: "الرابعة" } as any
+                    : { 1: "Year 1", 2: "Year 2", 3: "Year 3", 4: "Year 4" } as any;
+                  const active = currentLevel === lv;
+                  return (
+                    <button
+                      key={lv}
+                      onClick={() => setCurrentLevel(lv)}
+                      style={{
+                        padding: "10px 6px",
+                        fontFamily: FONT,
+                        background: active ? "var(--gpa-accent-12)" : "var(--gpa-surface-alpha-06)",
+                        border: active ? "1px solid var(--gpa-accent-44)" : "1px solid var(--gpa-border)",
+                        borderRadius: 10,
+                        color: active ? "var(--gpa-accent)" : "var(--gpa-text-faint)",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {labels[lv]}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ fontSize: 11, color: "var(--gpa-text-faintest)", marginTop: 6 }}>
+                {ar ? "تستخدم لدقة التنبؤات والتخطيط الأكاديمي" : "Used to fine-tune predictions and planning"}
+              </div>
+            </div>
           </div>
         );
       case 2:
         return (
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {/* AI Transcript Analyzer */}
+            <div
+              style={{
+                background: "linear-gradient(135deg,var(--gpa-accent-12),var(--gpa-accent2-18))",
+                border: "1px solid var(--gpa-accent-44)",
+                borderRadius: 12,
+                padding: "12px 14px",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "var(--gpa-accent)" }}>
+                    ✨ {ar ? "تحليل المستند بالذكاء الاصطناعي" : "AI Transcript Analyzer"}
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--gpa-text-faint)", marginTop: 3 }}>
+                    {ar
+                      ? "ارفع صورة أو PDF لكشف الدرجات — هنستخرج المعدل والساعات والمواد تلقائياً"
+                      : "Upload an image or PDF of your transcript — we'll extract GPA, credits and courses"}
+                  </div>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,application/pdf"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleAnalyzeFile(f);
+                    e.target.value = "";
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={aiBusy}
+                  style={{
+                    padding: "10px 14px",
+                    background: "var(--gpa-accent)",
+                    border: "none",
+                    borderRadius: 10,
+                    color: "var(--gpa-bg)",
+                    fontSize: 13,
+                    fontWeight: 800,
+                    fontFamily: FONT,
+                    cursor: aiBusy ? "wait" : "pointer",
+                    opacity: aiBusy ? 0.6 : 1,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {aiBusy ? (ar ? "جاري التحليل..." : "Analyzing...") : ar ? "📎 رفع المستند" : "📎 Upload"}
+                </button>
+              </div>
+              {aiMsg && (
+                <div style={{ marginTop: 10, fontSize: 12, color: "var(--gpa-text-soft)" }}>{aiMsg}</div>
+              )}
+            </div>
             <div
               style={{
                 background: "rgba(168,85,247,.10)",
@@ -422,9 +560,10 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
               }}
             >
               {ar
-                ? "💡 أدخل معدلك وساعاتك قبل هذا الفصل — سنضيف مواد الفصل الجديد في الخطوة التالية"
-                : "💡 Enter your GPA and credits BEFORE this semester"}
+                ? "💡 أدخل معدلك وساعاتك قبل هذا الفصل — أو استخدم التحليل التلقائي بالأعلى"
+                : "💡 Enter your GPA and credits manually — or use the AI analyzer above"}
             </div>
+
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div>
                 <label style={lbl}>{ar ? "المعدل التراكمي الحالي *" : "Current Cumulative GPA *"}</label>
@@ -1960,6 +2099,7 @@ export default function GPAAdvisorApp() {
               has_failed: p.hasFailed,
               min_prev_sem_gpa: p.minPrevSemGpa,
               grad_target: p.gradTarget,
+              current_level: p.currentLevel,
             },
           });
         }}
@@ -1983,6 +2123,7 @@ export default function GPAAdvisorApp() {
     hasFailed: dbProfile.has_failed,
     minPrevSemGpa: Number(dbProfile.min_prev_sem_gpa),
     gradTarget: Number(dbProfile.grad_target),
+    currentLevel: (dbProfile as any).current_level ?? 1,
   };
 
   // Build history from DB
@@ -2035,6 +2176,7 @@ export default function GPAAdvisorApp() {
             has_failed: p.hasFailed,
             min_prev_sem_gpa: p.minPrevSemGpa,
             grad_target: p.gradTarget,
+            current_level: (p as any).currentLevel ?? 1,
           },
         });
         for (const sem of payload.semesters) {
