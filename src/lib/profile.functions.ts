@@ -15,6 +15,7 @@ const profileSchema = z.object({
   has_failed: z.boolean(),
   min_prev_sem_gpa: z.number().min(0).max(4),
   grad_target: z.number().min(0).max(4),
+  current_level: z.number().int().min(1).max(6).default(1),
 });
 
 export const getProfile = createServerFn({ method: "GET" })
