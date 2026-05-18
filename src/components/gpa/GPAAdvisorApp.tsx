@@ -332,7 +332,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
                 {[["ar", "العربية 🇪🇬"], ["en", "English 🇬🇧"]].map(([v, l]) => (
                   <button
                     key={v}
-                    onClick={() => setLang(v)}
+                    onClick={() => { setLang(v); setGlobalLang(v === "en" ? "en" : "ar"); }}
                     style={{
                       flex: 1,
                       padding: "12px",
