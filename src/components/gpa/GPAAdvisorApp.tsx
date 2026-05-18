@@ -29,8 +29,11 @@ import {
   saveProfile,
   saveSemester,
 } from "@/lib/profile.functions";
+import { analyzeTranscript } from "@/lib/transcript.functions";
+import { useLang } from "@/lib/use-lang";
 import { useGpaTheme } from "./use-theme";
 import { ThemeSwitcher } from "./ThemeSwitcher";
+import { LangSwitcher } from "./LangSwitcher";
 
 /* ══════════════════════════════════════════════════════════
    GRADING SYSTEMS
@@ -170,6 +173,7 @@ type Profile = {
   hasFailed: boolean;
   minPrevSemGpa: number;
   gradTarget: number;
+  currentLevel: number;
 };
 
 export type ImportPayload = {
