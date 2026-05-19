@@ -30,6 +30,7 @@ import {
   saveSemester,
 } from "@/lib/profile.functions";
 import { analyzeTranscript } from "@/lib/transcript.functions";
+import { askAdvisor } from "@/lib/advisor.functions";
 import { useLang } from "@/lib/use-lang";
 import { useGpaTheme } from "./use-theme";
 import { ThemeSwitcher } from "./ThemeSwitcher";
@@ -1038,6 +1039,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
     minPrevSemGpa,
     gradTarget,
   } = profile;
+  const currentLevel = (profile as any).currentLevel ?? 1;
   const ar = lang === "ar";
   const dir = ar ? "rtl" : "ltr";
   const newId = useIdGen();
@@ -1049,6 +1051,13 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
   const [wiGrade, setWiGrade] = useState(grades[0]?.pts ?? 4.0);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const [modal, setModal] = useState<string | null>(null);
+  const [advisorText, setAdvisorText] = useState<string>("");
+  const askAdvisorFn = useServerFn(askAdvisor);
+  const advisorMut = useMutation({
+    mutationFn: askAdvisorFn,
+    onSuccess: (r: any) => setAdvisorText(r?.text ?? ""),
+    onError: (e: any) => setAdvisorText((ar ? "❌ خطأ: " : "❌ Error: ") + (e?.message ?? "")),
+  });
 
   const queryClient = useQueryClient();
   const saveSemServer = useServerFn(saveSemester);
@@ -1212,6 +1221,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         ["whatif", "🔬 ماذا لو"],
         ["charts", "📊 الرسوم"],
         ["analysis", "⚡ التحليل"],
+        ["advisor", "🤖 المستشار"],
         ["scale", "🧮 السكيل"],
       ]
     : [
@@ -1220,8 +1230,32 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         ["whatif", "🔬 What-If"],
         ["charts", "📊 Charts"],
         ["analysis", "⚡ Analysis"],
+        ["advisor", "🤖 Advisor"],
         ["scale", "🧮 Scale"],
       ];
+
+  /* ============= SMART ALERTS ============= */
+  const alerts = useMemo(() => {
+    const a: { kind: "danger" | "warn" | "info" | "good"; msg: string }[] = [];
+    if (cumGpa > 0 && cumGpa < 2.0)
+      a.push({ kind: "danger", msg: ar ? "⚠️ معدلك تحت الإنذار الأكاديمي (<2.0). الحد الأقصى للساعات 12." : "⚠️ Academic probation (<2.0). Max load 12 credits." });
+    else if (cumGpa > 0 && cumGpa < 2.333)
+      a.push({ kind: "warn", msg: ar ? "📉 معدلك قريب من منطقة الخطر، ركّز هذا الفصل." : "📉 Close to danger zone, focus this term." });
+    if (history.length >= 2) {
+      const last = history[history.length - 1] as any;
+      const prev = history[history.length - 2] as any;
+      if (last?.semGpa && prev?.semGpa && last.semGpa < prev.semGpa - 0.4)
+        a.push({ kind: "warn", msg: ar ? `📊 الفصل الأخير أقل بـ ${(prev.semGpa - last.semGpa).toFixed(2)} نقطة من السابق.` : `📊 Last term dropped ${(prev.semGpa - last.semGpa).toFixed(2)} pts.` });
+    }
+    if (gradPredict > 0 && gradPredict < gradTarget - 0.1)
+      a.push({ kind: "info", msg: ar ? `🎯 التنبؤ ${gradPredict.toFixed(2)} أقل من هدفك ${gradTarget}. تحتاج أداء أعلى.` : `🎯 Predicted ${gradPredict.toFixed(2)} below target ${gradTarget}.` });
+    if (honorOk.ok && cumGpa >= 3.667)
+      a.push({ kind: "good", msg: ar ? "🏅 ضمن مرتبة الشرف — حافظ على هذا المستوى!" : "🏅 On honors track — keep it up!" });
+    if (newCr >= totalReq * 0.9 && remCr > 0)
+      a.push({ kind: "info", msg: ar ? `🎓 تبقى ${remCr} ساعة فقط للتخرج!` : `🎓 Only ${remCr} credits to graduation!` });
+    return a;
+  }, [cumGpa, history, gradPredict, gradTarget, honorOk, newCr, totalReq, remCr, ar]);
+
 
   return (
     <div
@@ -1363,6 +1397,37 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
           </div>
         </div>
       </div>
+
+      {/* SMART ALERTS */}
+      {alerts.length > 0 && (
+        <div style={{ padding: "10px 13px 0", display: "flex", flexDirection: "column", gap: 6 }}>
+          {alerts.map((a, i) => {
+            const map = {
+              danger: { bg: "var(--gpa-danger)", op: "22" },
+              warn: { bg: "var(--gpa-grade-b-plus)", op: "22" },
+              info: { bg: "var(--gpa-info)", op: "22" },
+              good: { bg: "var(--gpa-accent)", op: "22" },
+            } as const;
+            const m = map[a.kind];
+            return (
+              <div
+                key={i}
+                style={{
+                  background: `color-mix(in oklab, ${m.bg} 12%, var(--gpa-card))`,
+                  border: `1px solid ${m.bg}`,
+                  borderRadius: 9,
+                  padding: "8px 11px",
+                  fontSize: 12,
+                  color: "var(--gpa-text-strong)",
+                  fontFamily: FONT,
+                }}
+              >
+                {a.msg}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* TABS */}
       <div
@@ -1957,10 +2022,112 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                 </span>
               </div>
             ))}
+
+            {/* LEVEL PROGRESS */}
+            <div style={{ marginTop: 14, padding: "12px 12px", background: "var(--gpa-bg-soft)", borderRadius: 10, border: "1px solid var(--gpa-border)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <span style={{ fontSize: 12, color: "var(--gpa-text-muted)" }}>
+                  {ar ? `📚 ${lv.ar} · المستوى ${currentLevel}` : `📚 ${lv.en} · Level ${currentLevel}`}
+                </span>
+                <span style={{ fontSize: 11, color: "var(--gpa-text-faint)" }}>{newCr}/{totalReq}{ar ? "س" : "cr"}</span>
+              </div>
+              <div style={{ height: 10, background: "var(--gpa-bg)", borderRadius: 5, overflow: "hidden", border: "1px solid var(--gpa-border)" }}>
+                <div
+                  style={{
+                    width: `${Math.min((newCr / totalReq) * 100, 100)}%`,
+                    height: "100%",
+                    background: `linear-gradient(90deg, ${lv.clr}, var(--gpa-accent))`,
+                    transition: "width .6s",
+                  }}
+                />
+              </div>
+              <div style={{ marginTop: 8, fontSize: 11, color: "var(--gpa-text-faint)" }}>
+                {ar ? `الحد الأقصى للساعات هذا الفصل: ${ld.max} ساعة` : `Max load this term: ${ld.max} credits`}
+              </div>
+            </div>
           </div>
         )}
 
-        {/* SCALE */}
+        {/* ADVISOR */}
+        {tab === "advisor" && (
+          <div style={card}>
+            <h3 style={{ margin: "0 0 8px", fontSize: 14, color: "var(--gpa-text)" }}>
+              🤖 {ar ? "المستشار الذكي" : "AI Advisor"}
+            </h3>
+            <p style={{ fontSize: 11, color: "var(--gpa-text-faint)", margin: "0 0 12px" }}>
+              {ar
+                ? "يحلل وضعك الأكاديمي ويعطيك نصائح عملية مبنية على بياناتك."
+                : "Analyzes your academic data and gives actionable advice."}
+            </p>
+            <button
+              onClick={() =>
+                advisorMut.mutate({
+                  data: {
+                    lang: lang as "ar" | "en",
+                    context: {
+                      uniName: uniName || "",
+                      major: major || "",
+                      level: currentLevel,
+                      semester,
+                      prevGpa,
+                      prevCr,
+                      cumGpa,
+                      semGpa,
+                      newCr,
+                      totalReq,
+                      gradTarget,
+                      gradPredict,
+                      hasFailed,
+                      honorOk: honorOk.ok,
+                      courses: courses.map((c) => ({ name: c.name || "—", cr: c.cr, grade: c.grade })),
+                      history: history.map((h: any) => ({ label: h.label, gpa: h.cumGpa, cr: h.cumCr ?? newCr })),
+                    },
+                  },
+                })
+              }
+              disabled={advisorMut.isPending}
+              style={{
+                width: "100%",
+                padding: "12px",
+                background: advisorMut.isPending ? "var(--gpa-card-elevated)" : "linear-gradient(135deg,var(--gpa-accent),var(--gpa-accent-2))",
+                color: "var(--gpa-bg)",
+                border: "none",
+                borderRadius: 10,
+                fontFamily: FONT,
+                fontWeight: 800,
+                fontSize: 13,
+                cursor: advisorMut.isPending ? "wait" : "pointer",
+              }}
+            >
+              {advisorMut.isPending
+                ? ar
+                  ? "جاري التحليل..."
+                  : "Analyzing..."
+                : ar
+                  ? "✨ احصل على نصيحة ذكية"
+                  : "✨ Get smart advice"}
+            </button>
+            {advisorText && (
+              <div
+                style={{
+                  marginTop: 14,
+                  padding: 12,
+                  background: "var(--gpa-bg-soft)",
+                  border: "1px solid var(--gpa-border)",
+                  borderRadius: 10,
+                  fontSize: 13,
+                  lineHeight: 1.75,
+                  color: "var(--gpa-text-strong)",
+                  whiteSpace: "pre-wrap",
+                  fontFamily: FONT,
+                }}
+              >
+                {advisorText}
+              </div>
+            )}
+          </div>
+        )}
+
         {tab === "scale" && (
           <div style={card}>
             <h3 style={{ margin: "0 0 4px", fontSize: 14, color: "var(--gpa-text)" }}>
