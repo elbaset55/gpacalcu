@@ -2080,7 +2080,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                       hasFailed,
                       honorOk: honorOk.ok,
                       courses: courses.map((c) => ({ name: c.name || "—", cr: c.cr, grade: c.grade })),
-                      history: history.map((h: any) => ({ label: h.label, gpa: h.cumGpa, cr: h.newCr ?? newCr })),
+                      history: history.map((h: any) => ({ label: h.label, gpa: h.cumGpa, cr: h.cumCr ?? newCr })),
                     },
                   },
                 })
