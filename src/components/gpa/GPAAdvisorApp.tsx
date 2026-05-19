@@ -30,6 +30,7 @@ import {
   saveSemester,
 } from "@/lib/profile.functions";
 import { analyzeTranscript } from "@/lib/transcript.functions";
+import { askAdvisor } from "@/lib/advisor.functions";
 import { useLang } from "@/lib/use-lang";
 import { useGpaTheme } from "./use-theme";
 import { ThemeSwitcher } from "./ThemeSwitcher";
