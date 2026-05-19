@@ -1398,6 +1398,37 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         </div>
       </div>
 
+      {/* SMART ALERTS */}
+      {alerts.length > 0 && (
+        <div style={{ padding: "10px 13px 0", display: "flex", flexDirection: "column", gap: 6 }}>
+          {alerts.map((a, i) => {
+            const map = {
+              danger: { bg: "var(--gpa-danger)", op: "22" },
+              warn: { bg: "var(--gpa-grade-b-plus)", op: "22" },
+              info: { bg: "var(--gpa-info)", op: "22" },
+              good: { bg: "var(--gpa-accent)", op: "22" },
+            } as const;
+            const m = map[a.kind];
+            return (
+              <div
+                key={i}
+                style={{
+                  background: `color-mix(in oklab, ${m.bg} 12%, var(--gpa-card))`,
+                  border: `1px solid ${m.bg}`,
+                  borderRadius: 9,
+                  padding: "8px 11px",
+                  fontSize: 12,
+                  color: "var(--gpa-text-strong)",
+                  fontFamily: FONT,
+                }}
+              >
+                {a.msg}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* TABS */}
       <div
         style={{
