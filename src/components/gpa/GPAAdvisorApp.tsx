@@ -1221,6 +1221,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         ["whatif", "🔬 ماذا لو"],
         ["charts", "📊 الرسوم"],
         ["analysis", "⚡ التحليل"],
+        ["advisor", "🤖 المستشار"],
         ["scale", "🧮 السكيل"],
       ]
     : [
@@ -1229,8 +1230,32 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         ["whatif", "🔬 What-If"],
         ["charts", "📊 Charts"],
         ["analysis", "⚡ Analysis"],
+        ["advisor", "🤖 Advisor"],
         ["scale", "🧮 Scale"],
       ];
+
+  /* ============= SMART ALERTS ============= */
+  const alerts = useMemo(() => {
+    const a: { kind: "danger" | "warn" | "info" | "good"; msg: string }[] = [];
+    if (cumGpa > 0 && cumGpa < 2.0)
+      a.push({ kind: "danger", msg: ar ? "⚠️ معدلك تحت الإنذار الأكاديمي (<2.0). الحد الأقصى للساعات 12." : "⚠️ Academic probation (<2.0). Max load 12 credits." });
+    else if (cumGpa > 0 && cumGpa < 2.333)
+      a.push({ kind: "warn", msg: ar ? "📉 معدلك قريب من منطقة الخطر، ركّز هذا الفصل." : "📉 Close to danger zone, focus this term." });
+    if (history.length >= 2) {
+      const last = history[history.length - 1] as any;
+      const prev = history[history.length - 2] as any;
+      if (last?.semGpa && prev?.semGpa && last.semGpa < prev.semGpa - 0.4)
+        a.push({ kind: "warn", msg: ar ? `📊 الفصل الأخير أقل بـ ${(prev.semGpa - last.semGpa).toFixed(2)} نقطة من السابق.` : `📊 Last term dropped ${(prev.semGpa - last.semGpa).toFixed(2)} pts.` });
+    }
+    if (gradPredict > 0 && gradPredict < gradTarget - 0.1)
+      a.push({ kind: "info", msg: ar ? `🎯 التنبؤ ${gradPredict.toFixed(2)} أقل من هدفك ${gradTarget}. تحتاج أداء أعلى.` : `🎯 Predicted ${gradPredict.toFixed(2)} below target ${gradTarget}.` });
+    if (honorOk.ok && cumGpa >= 3.667)
+      a.push({ kind: "good", msg: ar ? "🏅 ضمن مرتبة الشرف — حافظ على هذا المستوى!" : "🏅 On honors track — keep it up!" });
+    if (newCr >= totalReq * 0.9 && remCr > 0)
+      a.push({ kind: "info", msg: ar ? `🎓 تبقى ${remCr} ساعة فقط للتخرج!` : `🎓 Only ${remCr} credits to graduation!` });
+    return a;
+  }, [cumGpa, history, gradPredict, gradTarget, honorOk, newCr, totalReq, remCr, ar]);
+
 
   return (
     <div
