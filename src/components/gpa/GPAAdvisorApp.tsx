@@ -2022,10 +2022,112 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                 </span>
               </div>
             ))}
+
+            {/* LEVEL PROGRESS */}
+            <div style={{ marginTop: 14, padding: "12px 12px", background: "var(--gpa-bg-soft)", borderRadius: 10, border: "1px solid var(--gpa-border)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <span style={{ fontSize: 12, color: "var(--gpa-text-muted)" }}>
+                  {ar ? `📚 ${lv.ar} · المستوى ${currentLevel}` : `📚 ${lv.en} · Level ${currentLevel}`}
+                </span>
+                <span style={{ fontSize: 11, color: "var(--gpa-text-faint)" }}>{newCr}/{totalReq}{ar ? "س" : "cr"}</span>
+              </div>
+              <div style={{ height: 10, background: "var(--gpa-bg)", borderRadius: 5, overflow: "hidden", border: "1px solid var(--gpa-border)" }}>
+                <div
+                  style={{
+                    width: `${Math.min((newCr / totalReq) * 100, 100)}%`,
+                    height: "100%",
+                    background: `linear-gradient(90deg, ${lv.clr}, var(--gpa-accent))`,
+                    transition: "width .6s",
+                  }}
+                />
+              </div>
+              <div style={{ marginTop: 8, fontSize: 11, color: "var(--gpa-text-faint)" }}>
+                {ar ? `الحد الأقصى للساعات هذا الفصل: ${ld.max} ساعة` : `Max load this term: ${ld.max} credits`}
+              </div>
+            </div>
           </div>
         )}
 
-        {/* SCALE */}
+        {/* ADVISOR */}
+        {tab === "advisor" && (
+          <div style={card}>
+            <h3 style={{ margin: "0 0 8px", fontSize: 14, color: "var(--gpa-text)" }}>
+              🤖 {ar ? "المستشار الذكي" : "AI Advisor"}
+            </h3>
+            <p style={{ fontSize: 11, color: "var(--gpa-text-faint)", margin: "0 0 12px" }}>
+              {ar
+                ? "يحلل وضعك الأكاديمي ويعطيك نصائح عملية مبنية على بياناتك."
+                : "Analyzes your academic data and gives actionable advice."}
+            </p>
+            <button
+              onClick={() =>
+                advisorMut.mutate({
+                  data: {
+                    lang: lang as "ar" | "en",
+                    context: {
+                      uniName: uniName || "",
+                      major: major || "",
+                      level: currentLevel,
+                      semester,
+                      prevGpa,
+                      prevCr,
+                      cumGpa,
+                      semGpa,
+                      newCr,
+                      totalReq,
+                      gradTarget,
+                      gradPredict,
+                      hasFailed,
+                      honorOk: honorOk.ok,
+                      courses: courses.map((c) => ({ name: c.name || "—", cr: c.cr, grade: c.grade })),
+                      history: history.map((h: any) => ({ label: h.label, gpa: h.cumGpa, cr: h.newCr ?? newCr })),
+                    },
+                  },
+                })
+              }
+              disabled={advisorMut.isPending}
+              style={{
+                width: "100%",
+                padding: "12px",
+                background: advisorMut.isPending ? "var(--gpa-card-elevated)" : "linear-gradient(135deg,var(--gpa-accent),var(--gpa-accent-2))",
+                color: "var(--gpa-bg)",
+                border: "none",
+                borderRadius: 10,
+                fontFamily: FONT,
+                fontWeight: 800,
+                fontSize: 13,
+                cursor: advisorMut.isPending ? "wait" : "pointer",
+              }}
+            >
+              {advisorMut.isPending
+                ? ar
+                  ? "جاري التحليل..."
+                  : "Analyzing..."
+                : ar
+                  ? "✨ احصل على نصيحة ذكية"
+                  : "✨ Get smart advice"}
+            </button>
+            {advisorText && (
+              <div
+                style={{
+                  marginTop: 14,
+                  padding: 12,
+                  background: "var(--gpa-bg-soft)",
+                  border: "1px solid var(--gpa-border)",
+                  borderRadius: 10,
+                  fontSize: 13,
+                  lineHeight: 1.75,
+                  color: "var(--gpa-text-strong)",
+                  whiteSpace: "pre-wrap",
+                  fontFamily: FONT,
+                }}
+              >
+                {advisorText}
+              </div>
+            )}
+          </div>
+        )}
+
         {tab === "scale" && (
           <div style={card}>
             <h3 style={{ margin: "0 0 4px", fontSize: 14, color: "var(--gpa-text)" }}>
