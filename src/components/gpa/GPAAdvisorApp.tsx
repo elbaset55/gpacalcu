@@ -1038,9 +1038,8 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
     hasFailed,
     minPrevSemGpa,
     gradTarget,
-    currentLevel,
-    uniName: _u2,
-  } = profile as any;
+  } = profile;
+  const currentLevel = (profile as any).currentLevel ?? 1;
   const ar = lang === "ar";
   const dir = ar ? "rtl" : "ltr";
   const newId = useIdGen();
