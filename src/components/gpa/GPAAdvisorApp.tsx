@@ -31,6 +31,7 @@ import {
 } from "@/lib/profile.functions";
 import { analyzeTranscript } from "@/lib/transcript.functions";
 import { askAdvisor } from "@/lib/advisor.functions";
+import { generateRoadmap } from "@/lib/roadmap.functions";
 import { useLang } from "@/lib/use-lang";
 import { useGpaTheme } from "./use-theme";
 import { ThemeSwitcher } from "./ThemeSwitcher";
@@ -1062,7 +1063,12 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
     onError: (e: any) => setAdvisorText((ar ? "❌ خطأ: " : "❌ Error: ") + (e?.message ?? "")),
   });
   const [roadmapText, setRoadmapText] = useState<string>("");
-  const roadmapFn = useServerFn((globalThis as any).__roadmap__ ?? (async () => ({ text: "" })));
+  const roadmapFn = useServerFn(generateRoadmap);
+  const roadmapMut = useMutation({
+    mutationFn: roadmapFn,
+    onSuccess: (r: any) => setRoadmapText(r?.text ?? ""),
+    onError: (e: any) => setRoadmapText((ar ? "❌ خطأ: " : "❌ Error: ") + (e?.message ?? "")),
+  });
 
   const queryClient = useQueryClient();
   const saveSemServer = useServerFn(saveSemester);
@@ -1227,6 +1233,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         ["charts", "📊 الرسوم"],
         ["analysis", "⚡ التحليل"],
         ["advisor", "🤖 المستشار"],
+        ["roadmap", "🗺️ الخريطة"],
         ["scale", "🧮 السكيل"],
       ]
     : [
@@ -1236,6 +1243,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         ["charts", "📊 Charts"],
         ["analysis", "⚡ Analysis"],
         ["advisor", "🤖 Advisor"],
+        ["roadmap", "🗺️ Roadmap"],
         ["scale", "🧮 Scale"],
       ];
 
@@ -2152,6 +2160,39 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                 }}
               >
                 {advisorText}
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === "roadmap" && (
+          <div style={card}>
+            <h3 style={{ margin: "0 0 8px", fontSize: 14, color: "var(--gpa-text)" }}>
+              🗺️ {ar ? "خريطة الطريق للتخرج" : "Graduation Roadmap"}
+            </h3>
+            <p style={{ fontSize: 11, color: "var(--gpa-text-faint)", margin: "0 0 12px" }}>
+              {ar ? "خطة فصلية ذكية بناءً على مستواك ومعدلك للوصول لهدف التخرج." : "Smart semester-by-semester plan based on your level and GPA."}
+            </p>
+            <button
+              onClick={() => roadmapMut.mutate({ data: {
+                lang: lang as "ar" | "en",
+                uniName: uniName || "",
+                major: major || "",
+                currentLevel,
+                prevGpa: cumGpa,
+                newCr,
+                totalReq,
+                gradTarget,
+                hasFailed,
+              } })}
+              disabled={roadmapMut.isPending}
+              style={{ width: "100%", padding: 12, background: roadmapMut.isPending ? "var(--gpa-card-elevated)" : "linear-gradient(135deg,var(--gpa-accent),var(--gpa-accent-2))", color: "var(--gpa-bg)", border: "none", borderRadius: 10, fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: roadmapMut.isPending ? "wait" : "pointer" }}
+            >
+              {roadmapMut.isPending ? (ar ? "جاري التخطيط..." : "Planning...") : (ar ? "🚀 ولّد الخطة" : "🚀 Generate plan")}
+            </button>
+            {roadmapText && (
+              <div style={{ marginTop: 14, padding: 12, background: "var(--gpa-bg-soft)", border: "1px solid var(--gpa-border)", borderRadius: 10, fontSize: 13, lineHeight: 1.75, color: "var(--gpa-text-strong)", whiteSpace: "pre-wrap", fontFamily: FONT }}>
+                {roadmapText}
               </div>
             )}
           </div>
