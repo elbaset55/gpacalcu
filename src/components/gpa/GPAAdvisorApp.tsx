@@ -1276,10 +1276,10 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         <HistoryPanel history={history} grades={grades} lang={lang} onClose={() => setModal(null)} />
       )}
       {modal === "pct" && <PctConverter grades={grades} lang={lang} onClose={() => setModal(null)} />}
-      {modal === "reminders" && <RemindersPanel lang={lang} onClose={() => setModal(null)} />}
+      {modal === "reminders" && <RemindersPanel lang={lang as "ar" | "en"} onClose={() => setModal(null)} />}
       {modal === "share" && (
         <AchievementCard
-          lang={lang}
+          lang={lang as "ar" | "en"}
           onClose={() => setModal(null)}
           cumGpa={cumGpa}
           newCr={newCr}
