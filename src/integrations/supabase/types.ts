@@ -82,6 +82,7 @@ export type Database = {
           is_failed: boolean
           name: string
           percentage: number | null
+          retake_of: string | null
           semester_id: string
           user_id: string
         }
@@ -95,6 +96,7 @@ export type Database = {
           is_failed?: boolean
           name: string
           percentage?: number | null
+          retake_of?: string | null
           semester_id: string
           user_id: string
         }
@@ -108,10 +110,18 @@ export type Database = {
           is_failed?: boolean
           name?: string
           percentage?: number | null
+          retake_of?: string | null
           semester_id?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "courses_retake_of_fkey"
+            columns: ["retake_of"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "courses_semester_id_fkey"
             columns: ["semester_id"]
@@ -120,6 +130,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      reminders: {
+        Row: {
+          body: string | null
+          created_at: string
+          done: boolean
+          due_at: string
+          id: string
+          kind: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          done?: boolean
+          due_at: string
+          id?: string
+          kind?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          done?: boolean
+          due_at?: string
+          id?: string
+          kind?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       semesters: {
         Row: {
