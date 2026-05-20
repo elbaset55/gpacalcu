@@ -19,7 +19,7 @@ export const listReminders = createServerFn({ method: "GET" })
       .eq("user_id", userId)
       .order("due_at", { ascending: true });
     if (error) throw new Error(error.message);
-    return (data ?? []) as Array<{
+    return ((data ?? []) as unknown) as Array<{
       id: string;
       title: string;
       body: string;
