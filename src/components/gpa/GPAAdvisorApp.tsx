@@ -1325,6 +1325,9 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
             <button onClick={onReset} title={ar ? "إعادة" : "Reset"} aria-label={ar ? "إعادة" : "Reset"} style={{ ...iconBtn, background: "var(--gpa-danger-15)", color: "var(--gpa-danger)", border: "1px solid var(--gpa-danger-33)" }}>
               ↩
             </button>
+            <button onClick={() => navigate({ to: "/profile" })} title={ar ? "حسابي" : "Account"} aria-label={ar ? "حسابي" : "Account"} style={iconBtn}>
+              👤
+            </button>
             <button onClick={handleLogout} title={ar ? "خروج" : "Logout"} aria-label={ar ? "خروج" : "Logout"} style={iconBtn}>
               🚪
             </button>
