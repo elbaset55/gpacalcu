@@ -31,10 +31,13 @@ import {
 } from "@/lib/profile.functions";
 import { analyzeTranscript } from "@/lib/transcript.functions";
 import { askAdvisor } from "@/lib/advisor.functions";
+import { generateRoadmap } from "@/lib/roadmap.functions";
 import { useLang } from "@/lib/use-lang";
 import { useGpaTheme } from "./use-theme";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { LangSwitcher } from "./LangSwitcher";
+import { RemindersPanel } from "./RemindersPanel";
+import { AchievementCard } from "./AchievementCard";
 
 /* ══════════════════════════════════════════════════════════
    GRADING SYSTEMS
@@ -1024,6 +1027,7 @@ type Course = { id: string; name: string; cr: number; grade: number };
 
 function Planner({ profile, onReset, history, onImport }: { profile: Profile; onReset: () => void; history: any[]; onImport: (payload: ImportPayload) => Promise<void> }) {
   const { theme, setTheme } = useGpaTheme();
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
   const {
     lang,
@@ -1057,6 +1061,13 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
     mutationFn: askAdvisorFn,
     onSuccess: (r: any) => setAdvisorText(r?.text ?? ""),
     onError: (e: any) => setAdvisorText((ar ? "❌ خطأ: " : "❌ Error: ") + (e?.message ?? "")),
+  });
+  const [roadmapText, setRoadmapText] = useState<string>("");
+  const roadmapFn = useServerFn(generateRoadmap);
+  const roadmapMut = useMutation({
+    mutationFn: roadmapFn,
+    onSuccess: (r: any) => setRoadmapText(r?.text ?? ""),
+    onError: (e: any) => setRoadmapText((ar ? "❌ خطأ: " : "❌ Error: ") + (e?.message ?? "")),
   });
 
   const queryClient = useQueryClient();
@@ -1222,6 +1233,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         ["charts", "📊 الرسوم"],
         ["analysis", "⚡ التحليل"],
         ["advisor", "🤖 المستشار"],
+        ["roadmap", "🗺️ الخريطة"],
         ["scale", "🧮 السكيل"],
       ]
     : [
@@ -1231,6 +1243,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         ["charts", "📊 Charts"],
         ["analysis", "⚡ Analysis"],
         ["advisor", "🤖 Advisor"],
+        ["roadmap", "🗺️ Roadmap"],
         ["scale", "🧮 Scale"],
       ];
 
@@ -1273,6 +1286,21 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         <HistoryPanel history={history} grades={grades} lang={lang} onClose={() => setModal(null)} />
       )}
       {modal === "pct" && <PctConverter grades={grades} lang={lang} onClose={() => setModal(null)} />}
+      {modal === "reminders" && <RemindersPanel lang={lang as "ar" | "en"} onClose={() => setModal(null)} />}
+      {modal === "share" && (
+        <AchievementCard
+          lang={lang as "ar" | "en"}
+          onClose={() => setModal(null)}
+          cumGpa={cumGpa}
+          newCr={newCr}
+          totalReq={totalReq}
+          uniName={uniName}
+          major={major || ""}
+          currentLevel={currentLevel}
+          standLabel={ar ? stand.label : stand.en}
+          honors={!!(isBenha && honorOk.ok)}
+        />
+      )}
 
       {/* HEADER */}
       <div
@@ -1319,11 +1347,20 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
               📂
             </button>
             <input ref={fileRef} type="file" accept="application/json,.json" onChange={handleImportFile} style={{ display: "none" }} />
+            <button onClick={() => setModal("reminders")} title={ar ? "تذكيرات" : "Reminders"} aria-label={ar ? "تذكيرات" : "Reminders"} style={iconBtn}>
+              ⏰
+            </button>
+            <button onClick={() => setModal("share")} title={ar ? "مشاركة" : "Share"} aria-label={ar ? "مشاركة" : "Share"} style={iconBtn}>
+              🔗
+            </button>
             <button onClick={printPdf} title={ar ? "طباعة / PDF" : "Print / PDF"} aria-label={ar ? "طباعة" : "Print"} style={iconBtn}>
               🖨️
             </button>
             <button onClick={onReset} title={ar ? "إعادة" : "Reset"} aria-label={ar ? "إعادة" : "Reset"} style={{ ...iconBtn, background: "var(--gpa-danger-15)", color: "var(--gpa-danger)", border: "1px solid var(--gpa-danger-33)" }}>
               ↩
+            </button>
+            <button onClick={() => navigate({ to: "/profile" })} title={ar ? "حسابي" : "Account"} aria-label={ar ? "حسابي" : "Account"} style={iconBtn}>
+              👤
             </button>
             <button onClick={handleLogout} title={ar ? "خروج" : "Logout"} aria-label={ar ? "خروج" : "Logout"} style={iconBtn}>
               🚪
@@ -2123,6 +2160,39 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                 }}
               >
                 {advisorText}
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === "roadmap" && (
+          <div style={card}>
+            <h3 style={{ margin: "0 0 8px", fontSize: 14, color: "var(--gpa-text)" }}>
+              🗺️ {ar ? "خريطة الطريق للتخرج" : "Graduation Roadmap"}
+            </h3>
+            <p style={{ fontSize: 11, color: "var(--gpa-text-faint)", margin: "0 0 12px" }}>
+              {ar ? "خطة فصلية ذكية بناءً على مستواك ومعدلك للوصول لهدف التخرج." : "Smart semester-by-semester plan based on your level and GPA."}
+            </p>
+            <button
+              onClick={() => roadmapMut.mutate({ data: {
+                lang: lang as "ar" | "en",
+                uniName: uniName || "",
+                major: major || "",
+                currentLevel,
+                prevGpa: cumGpa,
+                newCr,
+                totalReq,
+                gradTarget,
+                hasFailed,
+              } })}
+              disabled={roadmapMut.isPending}
+              style={{ width: "100%", padding: 12, background: roadmapMut.isPending ? "var(--gpa-card-elevated)" : "linear-gradient(135deg,var(--gpa-accent),var(--gpa-accent-2))", color: "var(--gpa-bg)", border: "none", borderRadius: 10, fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: roadmapMut.isPending ? "wait" : "pointer" }}
+            >
+              {roadmapMut.isPending ? (ar ? "جاري التخطيط..." : "Planning...") : (ar ? "🚀 ولّد الخطة" : "🚀 Generate plan")}
+            </button>
+            {roadmapText && (
+              <div style={{ marginTop: 14, padding: 12, background: "var(--gpa-bg-soft)", border: "1px solid var(--gpa-border)", borderRadius: 10, fontSize: 13, lineHeight: 1.75, color: "var(--gpa-text-strong)", whiteSpace: "pre-wrap", fontFamily: FONT }}>
+                {roadmapText}
               </div>
             )}
           </div>
