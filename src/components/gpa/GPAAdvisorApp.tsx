@@ -1061,6 +1061,8 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
     onSuccess: (r: any) => setAdvisorText(r?.text ?? ""),
     onError: (e: any) => setAdvisorText((ar ? "❌ خطأ: " : "❌ Error: ") + (e?.message ?? "")),
   });
+  const [roadmapText, setRoadmapText] = useState<string>("");
+  const roadmapFn = useServerFn((globalThis as any).__roadmap__ ?? (async () => ({ text: "" })));
 
   const queryClient = useQueryClient();
   const saveSemServer = useServerFn(saveSemester);
