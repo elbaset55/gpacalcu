@@ -35,6 +35,8 @@ import { useLang } from "@/lib/use-lang";
 import { useGpaTheme } from "./use-theme";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { LangSwitcher } from "./LangSwitcher";
+import { RemindersPanel } from "./RemindersPanel";
+import { AchievementCard } from "./AchievementCard";
 
 /* ══════════════════════════════════════════════════════════
    GRADING SYSTEMS
@@ -1274,6 +1276,21 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         <HistoryPanel history={history} grades={grades} lang={lang} onClose={() => setModal(null)} />
       )}
       {modal === "pct" && <PctConverter grades={grades} lang={lang} onClose={() => setModal(null)} />}
+      {modal === "reminders" && <RemindersPanel lang={lang} onClose={() => setModal(null)} />}
+      {modal === "share" && (
+        <AchievementCard
+          lang={lang}
+          onClose={() => setModal(null)}
+          cumGpa={cumGpa}
+          newCr={newCr}
+          totalReq={totalReq}
+          uniName={uniName}
+          major={major || ""}
+          currentLevel={currentLevel}
+          standLabel={ar ? stand.label : stand.en}
+          honors={!!(isBenha && honorOk.ok)}
+        />
+      )}
 
       {/* HEADER */}
       <div
@@ -1320,6 +1337,12 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
               📂
             </button>
             <input ref={fileRef} type="file" accept="application/json,.json" onChange={handleImportFile} style={{ display: "none" }} />
+            <button onClick={() => setModal("reminders")} title={ar ? "تذكيرات" : "Reminders"} aria-label={ar ? "تذكيرات" : "Reminders"} style={iconBtn}>
+              ⏰
+            </button>
+            <button onClick={() => setModal("share")} title={ar ? "مشاركة" : "Share"} aria-label={ar ? "مشاركة" : "Share"} style={iconBtn}>
+              🔗
+            </button>
             <button onClick={printPdf} title={ar ? "طباعة / PDF" : "Print / PDF"} aria-label={ar ? "طباعة" : "Print"} style={iconBtn}>
               🖨️
             </button>
