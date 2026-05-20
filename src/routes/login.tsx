@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -40,6 +40,7 @@ const T = {
     footer: "بياناتك الأكاديمية تُحفظ بأمان ومرتبطة بحسابك فقط",
     err: "حدث خطأ",
     oauthErr: "فشل تسجيل الدخول",
+    forgot: "نسيت كلمة المرور؟",
   },
   en: {
     appTitle: "Academic Advisor",
@@ -57,6 +58,7 @@ const T = {
     footer: "Your academic data is securely stored and tied to your account only",
     err: "An error occurred",
     oauthErr: "Sign in failed",
+    forgot: "Forgot password?",
   },
 } as const;
 
@@ -248,6 +250,11 @@ function LoginPage() {
             >
               {loading ? t.loading : mode === "signin" ? t.btnIn : t.btnUp}
             </button>
+            {mode === "signin" && (
+              <Link to="/forgot-password" style={{ textAlign: "center", fontSize: 12, color: "var(--gpa-text-faint)", textDecoration: "none", marginTop: 2 }}>
+                {t.forgot}
+              </Link>
+            )}
           </form>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "18px 0" }}>
