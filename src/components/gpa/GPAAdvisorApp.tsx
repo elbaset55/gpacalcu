@@ -1024,6 +1024,7 @@ type Course = { id: string; name: string; cr: number; grade: number };
 
 function Planner({ profile, onReset, history, onImport }: { profile: Profile; onReset: () => void; history: any[]; onImport: (payload: ImportPayload) => Promise<void> }) {
   const { theme, setTheme } = useGpaTheme();
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
   const {
     lang,
