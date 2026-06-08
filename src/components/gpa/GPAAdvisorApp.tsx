@@ -1050,6 +1050,8 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [tab, setTab] = useState("courses");
+  const [cmpA, setCmpA] = useState(0);
+  const [cmpB, setCmpB] = useState(1);
   const [targetGpa, setTargetGpa] = useState(gradTarget || 3.0);
   const [wiCourse, setWiCourse] = useState<string | null>(null);
   const [wiGrade, setWiGrade] = useState(grades[0]?.pts ?? 4.0);
