@@ -1662,7 +1662,32 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                         </option>
                       ))}
                     </select>
+                    <button
+                      onClick={() => upd(c.id, "retake", !c.retake)}
+                      title={ar ? "إعادة مادة راسبة" : "Retake of a failed course"}
+                      style={{
+                        background: c.retake ? "var(--gpa-info-15, rgba(56,189,248,.12))" : "var(--gpa-surface-alpha-06)",
+                        border: c.retake ? "1px solid var(--gpa-info)" : "1px solid #1e1e3f",
+                        borderRadius: 7,
+                        padding: "5px 9px",
+                        color: c.retake ? "var(--gpa-info)" : "var(--gpa-text-faintest)",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        fontFamily: FONT,
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      ♻ {ar ? "إعادة" : "Retake"}
+                    </button>
                   </div>
+                  {c.retake && (
+                    <div style={{ fontSize: 10, color: "var(--gpa-info)", marginTop: 7 }}>
+                      {ar
+                        ? "ℹ️ تُحتسب كإعادة — التقدير الجديد يحل محل القديم في التراكمي."
+                        : "ℹ️ Counted as a retake — the new grade replaces the old one in CGPA."}
+                    </div>
+                  )}
                 </div>
               );
             })}
