@@ -1023,7 +1023,7 @@ function HistoryPanel({ history, grades, lang, onClose }: any) {
 /* ══════════════════════════════════════════════════════════
    PLANNER
 ══════════════════════════════════════════════════════════ */
-type Course = { id: string; name: string; cr: number; grade: number };
+type Course = { id: string; name: string; cr: number; grade: number; retake?: boolean };
 
 function Planner({ profile, onReset, history, onImport }: { profile: Profile; onReset: () => void; history: any[]; onImport: (payload: ImportPayload) => Promise<void> }) {
   const { theme, setTheme } = useGpaTheme();
