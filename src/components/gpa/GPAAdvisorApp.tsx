@@ -1503,6 +1503,38 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         {/* COURSES */}
         {tab === "courses" && (
           <div>
+            {/* Smart Course Loader */}
+            <div
+              style={{
+                background: semCr > ld.max ? "var(--gpa-danger-15)" : "var(--gpa-surface-alpha-06)",
+                border: `1px solid ${semCr > ld.max ? "var(--gpa-danger-33)" : "var(--gpa-border)"}`,
+                borderRadius: 10,
+                padding: "9px 12px",
+                marginBottom: 10,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 8,
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ fontSize: 11, color: "var(--gpa-text-faint)" }}>
+                {ar ? "العبء الدراسي" : "Course load"}{" "}
+                <span style={{ fontWeight: 800, color: semCr > ld.max ? "var(--gpa-danger)" : ld.clr }}>
+                  {semCr}
+                </span>{" "}
+                / {ld.max} {ar ? "ساعة" : "cr"}
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: semCr > ld.max ? "var(--gpa-danger)" : "var(--gpa-text-faintest)" }}>
+                {semCr > ld.max
+                  ? ar
+                    ? `⚠️ تجاوزت الحد المسموح بمعدلك (${cumGpa.toFixed(2)})`
+                    : `⚠️ Over your CGPA limit (${cumGpa.toFixed(2)})`
+                  : ar
+                  ? `✓ ضمن الحد المسموح حسب معدلك`
+                  : `✓ Within your CGPA limit`}
+              </div>
+            </div>
             {courses.length > 0 && (
               <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 10, alignItems: "center" }}>
                 <span style={{ fontSize: 10, color: "var(--gpa-text-faintest)" }}>{ar ? "تعبئة سريعة:" : "Fill all:"}</span>
