@@ -2078,6 +2078,86 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                 </div>
               </div>
             )}
+
+            {history.length > 1 && (() => {
+              const a = history[Math.min(cmpA, history.length - 1)];
+              const b = history[Math.min(cmpB, history.length - 1)];
+              const stat = (h: any) => {
+                const cs = h?.courses ?? [];
+                const gradesArr = cs.map((c: any) => c.grade ?? 0);
+                const cr = cs.reduce((s: number, c: any) => s + (c.cr || 0), 0);
+                return {
+                  gpa: h?.semGpa ?? 0,
+                  cum: h?.cumGpa ?? 0,
+                  count: cs.length,
+                  cr,
+                  hi: gradesArr.length ? Math.max(...gradesArr) : 0,
+                  lo: gradesArr.length ? Math.min(...gradesArr) : 0,
+                };
+              };
+              const sa = stat(a);
+              const sb = stat(b);
+              const sel = {
+                background: "var(--gpa-surface-alpha-08)",
+                border: "1px solid var(--gpa-border)",
+                borderRadius: 8,
+                color: "var(--gpa-text-soft)",
+                padding: "5px 8px",
+                fontSize: 11,
+                fontFamily: FONT,
+                outline: "none",
+                flex: 1,
+              } as const;
+              const rows: [string, number, number, boolean][] = [
+                [ar ? "المعدل الفصلي" : "Sem GPA", sa.gpa, sb.gpa, true],
+                [ar ? "التراكمي" : "Cumulative", sa.cum, sb.cum, true],
+                [ar ? "عدد المواد" : "Courses", sa.count, sb.count, false],
+                [ar ? "الساعات" : "Credits", sa.cr, sb.cr, false],
+                [ar ? "أعلى درجة" : "Highest", sa.hi, sb.hi, true],
+                [ar ? "أقل درجة" : "Lowest", sa.lo, sb.lo, true],
+              ];
+              const cell = (v: number, dec: boolean, win: boolean) => (
+                <div style={{ fontSize: 13, fontWeight: 800, color: win ? "var(--gpa-accent)" : "var(--gpa-text-soft)" }}>
+                  {dec ? v.toFixed(2) : v}
+                </div>
+              );
+              return (
+                <div style={card}>
+                  <h4 style={{ margin: "0 0 10px", fontSize: 13, color: "var(--gpa-text-soft)" }}>
+                    {ar ? "مقارنة فصلين" : "Compare two semesters"}
+                  </h4>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                    <select value={cmpA} onChange={(e) => setCmpA(+e.target.value)} style={sel}>
+                      {history.map((h: any, i: number) => (
+                        <option key={i} value={i} style={{ background: "var(--gpa-card)" }}>{h.label}</option>
+                      ))}
+                    </select>
+                    <span style={{ color: "var(--gpa-text-faintest)", alignSelf: "center", fontSize: 11 }}>{ar ? "مقابل" : "vs"}</span>
+                    <select value={cmpB} onChange={(e) => setCmpB(+e.target.value)} style={sel}>
+                      {history.map((h: any, i: number) => (
+                        <option key={i} value={i} style={{ background: "var(--gpa-card)" }}>{h.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", gap: 1, background: "var(--gpa-border)", borderRadius: 8, overflow: "hidden" }}>
+                    <div style={{ background: "var(--gpa-card)", padding: "8px 10px", fontSize: 10, color: "var(--gpa-text-faintest)" }} />
+                    <div style={{ background: "var(--gpa-card)", padding: "8px 10px", fontSize: 11, fontWeight: 700, color: "var(--gpa-text)", textAlign: "center" }}>{a.label}</div>
+                    <div style={{ background: "var(--gpa-card)", padding: "8px 10px", fontSize: 11, fontWeight: 700, color: "var(--gpa-text)", textAlign: "center" }}>{b.label}</div>
+                    {rows.map(([label, va, vb, dec], i) => {
+                      const aWin = va > vb;
+                      const bWin = vb > va;
+                      return (
+                        <Fragment key={i}>
+                          <div style={{ background: "var(--gpa-card)", padding: "8px 10px", fontSize: 11, color: "var(--gpa-text-faint)" }}>{label}</div>
+                          <div style={{ background: "var(--gpa-card)", padding: "8px 10px", textAlign: "center" }}>{cell(va, dec, aWin)}</div>
+                          <div style={{ background: "var(--gpa-card)", padding: "8px 10px", textAlign: "center" }}>{cell(vb, dec, bWin)}</div>
+                        </Fragment>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 
