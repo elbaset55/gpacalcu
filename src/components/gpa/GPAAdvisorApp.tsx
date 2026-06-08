@@ -2,7 +2,7 @@
 // Inline styles preserved to keep the original neon dark aesthetic intact.
 // Persistence layer (was in-memory SESSION) replaced with Supabase via server fns.
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -1023,7 +1023,7 @@ function HistoryPanel({ history, grades, lang, onClose }: any) {
 /* ══════════════════════════════════════════════════════════
    PLANNER
 ══════════════════════════════════════════════════════════ */
-type Course = { id: string; name: string; cr: number; grade: number };
+type Course = { id: string; name: string; cr: number; grade: number; retake?: boolean };
 
 function Planner({ profile, onReset, history, onImport }: { profile: Profile; onReset: () => void; history: any[]; onImport: (payload: ImportPayload) => Promise<void> }) {
   const { theme, setTheme } = useGpaTheme();
@@ -1050,6 +1050,8 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [tab, setTab] = useState("courses");
+  const [cmpA, setCmpA] = useState(0);
+  const [cmpB, setCmpB] = useState(1);
   const [targetGpa, setTargetGpa] = useState(gradTarget || 3.0);
   const [wiCourse, setWiCourse] = useState<string | null>(null);
   const [wiGrade, setWiGrade] = useState(grades[0]?.pts ?? 4.0);
@@ -1501,6 +1503,38 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         {/* COURSES */}
         {tab === "courses" && (
           <div>
+            {/* Smart Course Loader */}
+            <div
+              style={{
+                background: semCr > ld.max ? "var(--gpa-danger-15)" : "var(--gpa-surface-alpha-06)",
+                border: `1px solid ${semCr > ld.max ? "var(--gpa-danger-33)" : "var(--gpa-border)"}`,
+                borderRadius: 10,
+                padding: "9px 12px",
+                marginBottom: 10,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 8,
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ fontSize: 11, color: "var(--gpa-text-faint)" }}>
+                {ar ? "العبء الدراسي" : "Course load"}{" "}
+                <span style={{ fontWeight: 800, color: semCr > ld.max ? "var(--gpa-danger)" : ld.clr }}>
+                  {semCr}
+                </span>{" "}
+                / {ld.max} {ar ? "ساعة" : "cr"}
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: semCr > ld.max ? "var(--gpa-danger)" : "var(--gpa-text-faintest)" }}>
+                {semCr > ld.max
+                  ? ar
+                    ? `⚠️ تجاوزت الحد المسموح بمعدلك (${cumGpa.toFixed(2)})`
+                    : `⚠️ Over your CGPA limit (${cumGpa.toFixed(2)})`
+                  : ar
+                  ? `✓ ضمن الحد المسموح حسب معدلك`
+                  : `✓ Within your CGPA limit`}
+              </div>
+            </div>
             {courses.length > 0 && (
               <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 10, alignItems: "center" }}>
                 <span style={{ fontSize: 10, color: "var(--gpa-text-faintest)" }}>{ar ? "تعبئة سريعة:" : "Fill all:"}</span>
@@ -1628,7 +1662,32 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                         </option>
                       ))}
                     </select>
+                    <button
+                      onClick={() => upd(c.id, "retake", !c.retake)}
+                      title={ar ? "إعادة مادة راسبة" : "Retake of a failed course"}
+                      style={{
+                        background: c.retake ? "var(--gpa-info-15, rgba(56,189,248,.12))" : "var(--gpa-surface-alpha-06)",
+                        border: c.retake ? "1px solid var(--gpa-info)" : "1px solid #1e1e3f",
+                        borderRadius: 7,
+                        padding: "5px 9px",
+                        color: c.retake ? "var(--gpa-info)" : "var(--gpa-text-faintest)",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        fontFamily: FONT,
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      ♻ {ar ? "إعادة" : "Retake"}
+                    </button>
                   </div>
+                  {c.retake && (
+                    <div style={{ fontSize: 10, color: "var(--gpa-info)", marginTop: 7 }}>
+                      {ar
+                        ? "ℹ️ تُحتسب كإعادة — التقدير الجديد يحل محل القديم في التراكمي."
+                        : "ℹ️ Counted as a retake — the new grade replaces the old one in CGPA."}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -2019,6 +2078,86 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                 </div>
               </div>
             )}
+
+            {history.length > 1 && (() => {
+              const a = history[Math.min(cmpA, history.length - 1)];
+              const b = history[Math.min(cmpB, history.length - 1)];
+              const stat = (h: any) => {
+                const cs = h?.courses ?? [];
+                const gradesArr = cs.map((c: any) => c.grade ?? 0);
+                const cr = cs.reduce((s: number, c: any) => s + (c.cr || 0), 0);
+                return {
+                  gpa: h?.semGpa ?? 0,
+                  cum: h?.cumGpa ?? 0,
+                  count: cs.length,
+                  cr,
+                  hi: gradesArr.length ? Math.max(...gradesArr) : 0,
+                  lo: gradesArr.length ? Math.min(...gradesArr) : 0,
+                };
+              };
+              const sa = stat(a);
+              const sb = stat(b);
+              const sel = {
+                background: "var(--gpa-surface-alpha-08)",
+                border: "1px solid var(--gpa-border)",
+                borderRadius: 8,
+                color: "var(--gpa-text-soft)",
+                padding: "5px 8px",
+                fontSize: 11,
+                fontFamily: FONT,
+                outline: "none",
+                flex: 1,
+              } as const;
+              const rows: [string, number, number, boolean][] = [
+                [ar ? "المعدل الفصلي" : "Sem GPA", sa.gpa, sb.gpa, true],
+                [ar ? "التراكمي" : "Cumulative", sa.cum, sb.cum, true],
+                [ar ? "عدد المواد" : "Courses", sa.count, sb.count, false],
+                [ar ? "الساعات" : "Credits", sa.cr, sb.cr, false],
+                [ar ? "أعلى درجة" : "Highest", sa.hi, sb.hi, true],
+                [ar ? "أقل درجة" : "Lowest", sa.lo, sb.lo, true],
+              ];
+              const cell = (v: number, dec: boolean, win: boolean) => (
+                <div style={{ fontSize: 13, fontWeight: 800, color: win ? "var(--gpa-accent)" : "var(--gpa-text-soft)" }}>
+                  {dec ? v.toFixed(2) : v}
+                </div>
+              );
+              return (
+                <div style={card}>
+                  <h4 style={{ margin: "0 0 10px", fontSize: 13, color: "var(--gpa-text-soft)" }}>
+                    {ar ? "مقارنة فصلين" : "Compare two semesters"}
+                  </h4>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                    <select value={cmpA} onChange={(e) => setCmpA(+e.target.value)} style={sel}>
+                      {history.map((h: any, i: number) => (
+                        <option key={i} value={i} style={{ background: "var(--gpa-card)" }}>{h.label}</option>
+                      ))}
+                    </select>
+                    <span style={{ color: "var(--gpa-text-faintest)", alignSelf: "center", fontSize: 11 }}>{ar ? "مقابل" : "vs"}</span>
+                    <select value={cmpB} onChange={(e) => setCmpB(+e.target.value)} style={sel}>
+                      {history.map((h: any, i: number) => (
+                        <option key={i} value={i} style={{ background: "var(--gpa-card)" }}>{h.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", gap: 1, background: "var(--gpa-border)", borderRadius: 8, overflow: "hidden" }}>
+                    <div style={{ background: "var(--gpa-card)", padding: "8px 10px", fontSize: 10, color: "var(--gpa-text-faintest)" }} />
+                    <div style={{ background: "var(--gpa-card)", padding: "8px 10px", fontSize: 11, fontWeight: 700, color: "var(--gpa-text)", textAlign: "center" }}>{a.label}</div>
+                    <div style={{ background: "var(--gpa-card)", padding: "8px 10px", fontSize: 11, fontWeight: 700, color: "var(--gpa-text)", textAlign: "center" }}>{b.label}</div>
+                    {rows.map(([label, va, vb, dec], i) => {
+                      const aWin = va > vb;
+                      const bWin = vb > va;
+                      return (
+                        <Fragment key={i}>
+                          <div style={{ background: "var(--gpa-card)", padding: "8px 10px", fontSize: 11, color: "var(--gpa-text-faint)" }}>{label}</div>
+                          <div style={{ background: "var(--gpa-card)", padding: "8px 10px", textAlign: "center" }}>{cell(va, dec, aWin)}</div>
+                          <div style={{ background: "var(--gpa-card)", padding: "8px 10px", textAlign: "center" }}>{cell(vb, dec, bWin)}</div>
+                        </Fragment>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 
