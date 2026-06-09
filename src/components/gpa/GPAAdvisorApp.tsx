@@ -39,6 +39,7 @@ import { LangSwitcher } from "./LangSwitcher";
 import { RemindersPanel } from "./RemindersPanel";
 import { AchievementCard } from "./AchievementCard";
 import { TranscriptReview } from "./TranscriptReview";
+import { Logo } from "./Logo";
 import {
   structureTranscript,
   normalizeTranscript,
