@@ -280,22 +280,25 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
   const submit = () => {
     const g = parseFloat(prevGpa), c = parseInt(prevCr), ms = parseFloat(minSemGpa);
     if (isNaN(g) || isNaN(c)) return;
-    onDone({
-      lang,
-      scaleId,
-      grades: scale.grades,
-      totalReq: resolvedTotalReq,
-      isBenha: scale.isBenha,
-      uniName: uniName || (scaleId === "benha" ? "جامعة بنها · كلية العلوم" : ""),
-      major,
-      prevGpa: g,
-      prevCr: c,
-      semester,
-      hasFailed,
-      minPrevSemGpa: isNaN(ms) ? g : ms,
-      gradTarget,
-      currentLevel,
-    });
+    onDone(
+      {
+        lang,
+        scaleId,
+        grades: scale.grades,
+        totalReq: resolvedTotalReq,
+        isBenha: scale.isBenha,
+        uniName: uniName || (scaleId === "benha" ? "جامعة بنها · كلية العلوم" : ""),
+        major,
+        prevGpa: g,
+        prevCr: c,
+        semester,
+        hasFailed,
+        minPrevSemGpa: isNaN(ms) ? g : ms,
+        gradTarget,
+        currentLevel,
+      },
+      pendingSems.length ? pendingSems : undefined,
+    );
   };
 
   const handleAnalyzeFile = async (file: File) => {
