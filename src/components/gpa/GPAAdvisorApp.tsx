@@ -325,11 +325,27 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
       if (result.current_level != null) { setCurrentLevel(result.current_level); filled++; }
       if (result.university && !uniName) { setUniName(result.university); filled++; }
       if (result.major && !major) { setMajor(result.major); filled++; }
-      setAiMsg(
-        lang === "ar"
-          ? `✅ تم استخراج ${filled} حقل + ${result.courses?.length ?? 0} مادة. راجع البيانات.`
-          : `✅ Extracted ${filled} fields + ${result.courses?.length ?? 0} courses. Please review.`,
-      );
+
+      // PHASE 1 — structure into app template
+      const structured = structureTranscript(result as any, scale.grades, lang);
+      // PHASE 2 — normalize & validate
+      const { sems, warnings } = normalizeTranscript(structured, scale.grades, result as any, lang);
+      const courseCount = sems.reduce((a, s) => a + s.courses.length, 0);
+
+      if (courseCount > 0) {
+        setReviewData({ sems, warnings });
+        setAiMsg(
+          lang === "ar"
+            ? `✅ تم استخراج ${filled} حقل + ${courseCount} مادة. راجع وعدّل قبل الحفظ.`
+            : `✅ Extracted ${filled} fields + ${courseCount} courses. Review before saving.`,
+        );
+      } else {
+        setAiMsg(
+          lang === "ar"
+            ? `✅ تم استخراج ${filled} حقل. لم نجد مواد واضحة في المستند.`
+            : `✅ Extracted ${filled} fields. No clear courses found.`,
+        );
+      }
     } catch (e: any) {
       setAiMsg((lang === "ar" ? "❌ فشل التحليل: " : "❌ Analysis failed: ") + (e?.message ?? "error"));
     } finally {
