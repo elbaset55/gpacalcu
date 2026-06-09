@@ -6,6 +6,7 @@ import { useGpaTheme } from "@/components/gpa/use-theme";
 import { ThemeSwitcher } from "@/components/gpa/ThemeSwitcher";
 import { LangSwitcher } from "@/components/gpa/LangSwitcher";
 import { useLang } from "@/lib/use-lang";
+import { Logo } from "@/components/gpa/Logo";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (search: Record<string, unknown>) => ({
