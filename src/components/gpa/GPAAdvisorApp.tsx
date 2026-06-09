@@ -215,6 +215,9 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
   const [err, setErr] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [aiMsg, setAiMsg] = useState("");
+  const [pendingSems, setPendingSems] = useState<ReviewSem[]>([]);
+  const [reviewData, setReviewData] = useState<{ sems: ReviewSem[]; warnings: string[] } | null>(null);
+  const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const analyzeFn = useServerFn(analyzeTranscript);
   const scale = SCALE_SYSTEMS.find((s) => s.id === scaleId)!;
