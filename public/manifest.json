@@ -1,7 +1,7 @@
 {
-  "name": "GPA Advisor — المستشار الأكاديمي",
-  "short_name": "GPA Advisor",
-  "description": "خطط، تتبع، وتفوق في معدلك التراكمي",
+  "name": "Termly — مستشارك الأكاديمي الذكي",
+  "short_name": "Termly",
+  "description": "خطط، تتبع، وتفوق في معدلك التراكمي مع Termly",
   "start_url": "/app",
   "scope": "/",
   "display": "standalone",
@@ -11,8 +11,8 @@
   "lang": "ar",
   "dir": "rtl",
   "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

@@ -39,6 +39,7 @@ import { LangSwitcher } from "./LangSwitcher";
 import { RemindersPanel } from "./RemindersPanel";
 import { AchievementCard } from "./AchievementCard";
 import { TranscriptReview } from "./TranscriptReview";
+import { Logo } from "./Logo";
 import {
   structureTranscript,
   normalizeTranscript,
@@ -791,25 +792,9 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
     >
       <div style={{ width: "100%", maxWidth: 480 }}>
         <div style={{ textAlign: "center", marginBottom: 28 }}>
-          <div
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: 16,
-              background: "linear-gradient(135deg,var(--gpa-accent-20),var(--gpa-accent2-20))",
-              border: "1px solid var(--gpa-accent-33)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 32,
-              margin: "0 auto 12px",
-            }}
-          >
-            🎓
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+            <Logo height={42} />
           </div>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "var(--gpa-text)", letterSpacing: -0.5 }}>
-            {ar ? "المستشار الأكاديمي" : "Academic Advisor"}
-          </h1>
           <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--gpa-text-faintest)" }}>
             {ar ? "خطط · تتبع · تفوق" : "Plan · Track · Excel"}
           </p>
@@ -1364,21 +1349,8 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                background: "linear-gradient(135deg,var(--gpa-accent-20),var(--gpa-accent2-20))",
-                border: "1px solid var(--gpa-accent-33)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 16,
-              }}
-            >
-              🎓
-            </div>
+            <Logo height={26} />
+
             <div>
               <div style={{ fontSize: 13, fontWeight: 800, color: "var(--gpa-text-soft)" }}>{uniName || (ar ? "جامعة" : "University")}</div>
               {major && <div style={{ fontSize: 10, color: "var(--gpa-text-faint)" }}>{major}</div>}

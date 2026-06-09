@@ -6,6 +6,7 @@ import { useGpaTheme } from "@/components/gpa/use-theme";
 import { ThemeSwitcher } from "@/components/gpa/ThemeSwitcher";
 import { LangSwitcher } from "@/components/gpa/LangSwitcher";
 import { useLang } from "@/lib/use-lang";
+import { Logo } from "@/components/gpa/Logo";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -152,23 +153,9 @@ function LoginPage() {
         </div>
 
         <div style={{ textAlign: "center", marginBottom: 28 }}>
-          <div
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: 16,
-              background: "linear-gradient(135deg,var(--gpa-accent-20),var(--gpa-accent2-20))",
-              border: "1px solid var(--gpa-accent-33)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 32,
-              margin: "0 auto 12px",
-            }}
-          >
-            🎓
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+            <Logo height={44} />
           </div>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: "var(--gpa-text)" }}>{t.appTitle}</h1>
           <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--gpa-text-faint)" }}>{t.tagline}</p>
         </div>
 
