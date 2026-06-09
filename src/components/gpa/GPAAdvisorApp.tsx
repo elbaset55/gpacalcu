@@ -885,6 +885,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
         </div>
       </div>
     </div>
+    </>
   );
 }
 
