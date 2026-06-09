@@ -1349,21 +1349,8 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                background: "linear-gradient(135deg,var(--gpa-accent-20),var(--gpa-accent2-20))",
-                border: "1px solid var(--gpa-accent-33)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 16,
-              }}
-            >
-              🎓
-            </div>
+            <Logo height={26} />
+
             <div>
               <div style={{ fontSize: 13, fontWeight: 800, color: "var(--gpa-text-soft)" }}>{uniName || (ar ? "جامعة" : "University")}</div>
               {major && <div style={{ fontSize: 10, color: "var(--gpa-text-faint)" }}>{major}</div>}
