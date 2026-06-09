@@ -754,6 +754,27 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
   };
 
   return (
+    <>
+    {reviewData && (
+      <TranscriptReview
+        initial={reviewData.sems}
+        warnings={reviewData.warnings}
+        grades={scale.grades}
+        lang={lang}
+        busy={saving}
+        onConfirm={(sems) => {
+          setPendingSems(sems);
+          setReviewData(null);
+          const n = sems.reduce((a, s) => a + s.courses.length, 0);
+          setAiMsg(
+            lang === "ar"
+              ? `✅ ${n} مادة جاهزة — هتتحفظ مع إنهاء الإعداد.`
+              : `✅ ${n} courses ready — saved when you finish setup.`,
+          );
+        }}
+        onCancel={() => setReviewData(null)}
+      />
+    )}
     <div
       dir={dir}
       style={{
