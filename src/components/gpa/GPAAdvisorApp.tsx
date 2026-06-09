@@ -38,6 +38,12 @@ import { ThemeSwitcher } from "./ThemeSwitcher";
 import { LangSwitcher } from "./LangSwitcher";
 import { RemindersPanel } from "./RemindersPanel";
 import { AchievementCard } from "./AchievementCard";
+import { TranscriptReview } from "./TranscriptReview";
+import {
+  structureTranscript,
+  normalizeTranscript,
+  type ReviewSem,
+} from "@/lib/transcript-normalize";
 
 /* ══════════════════════════════════════════════════════════
    GRADING SYSTEMS
@@ -190,7 +196,7 @@ export type ImportPayload = {
   }>;
 };
 
-function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
+function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => void | Promise<void> }) {
   const { lang: globalLang, setLang: setGlobalLang } = useLang();
   const [step, setStep] = useState(0);
   const [lang, setLang] = useState<string>(globalLang);
@@ -209,6 +215,9 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
   const [err, setErr] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [aiMsg, setAiMsg] = useState("");
+  const [pendingSems, setPendingSems] = useState<ReviewSem[]>([]);
+  const [reviewData, setReviewData] = useState<{ sems: ReviewSem[]; warnings: string[] } | null>(null);
+  const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const analyzeFn = useServerFn(analyzeTranscript);
   const scale = SCALE_SYSTEMS.find((s) => s.id === scaleId)!;
@@ -271,22 +280,25 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
   const submit = () => {
     const g = parseFloat(prevGpa), c = parseInt(prevCr), ms = parseFloat(minSemGpa);
     if (isNaN(g) || isNaN(c)) return;
-    onDone({
-      lang,
-      scaleId,
-      grades: scale.grades,
-      totalReq: resolvedTotalReq,
-      isBenha: scale.isBenha,
-      uniName: uniName || (scaleId === "benha" ? "جامعة بنها · كلية العلوم" : ""),
-      major,
-      prevGpa: g,
-      prevCr: c,
-      semester,
-      hasFailed,
-      minPrevSemGpa: isNaN(ms) ? g : ms,
-      gradTarget,
-      currentLevel,
-    });
+    onDone(
+      {
+        lang,
+        scaleId,
+        grades: scale.grades,
+        totalReq: resolvedTotalReq,
+        isBenha: scale.isBenha,
+        uniName: uniName || (scaleId === "benha" ? "جامعة بنها · كلية العلوم" : ""),
+        major,
+        prevGpa: g,
+        prevCr: c,
+        semester,
+        hasFailed,
+        minPrevSemGpa: isNaN(ms) ? g : ms,
+        gradTarget,
+        currentLevel,
+      },
+      pendingSems.length ? pendingSems : undefined,
+    );
   };
 
   const handleAnalyzeFile = async (file: File) => {
@@ -313,11 +325,27 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
       if (result.current_level != null) { setCurrentLevel(result.current_level); filled++; }
       if (result.university && !uniName) { setUniName(result.university); filled++; }
       if (result.major && !major) { setMajor(result.major); filled++; }
-      setAiMsg(
-        lang === "ar"
-          ? `✅ تم استخراج ${filled} حقل + ${result.courses?.length ?? 0} مادة. راجع البيانات.`
-          : `✅ Extracted ${filled} fields + ${result.courses?.length ?? 0} courses. Please review.`,
-      );
+
+      // PHASE 1 — structure into app template
+      const structured = structureTranscript(result as any, scale.grades, lang);
+      // PHASE 2 — normalize & validate
+      const { sems, warnings } = normalizeTranscript(structured, scale.grades, result as any, lang);
+      const courseCount = sems.reduce((a, s) => a + s.courses.length, 0);
+
+      if (courseCount > 0) {
+        setReviewData({ sems, warnings });
+        setAiMsg(
+          lang === "ar"
+            ? `✅ تم استخراج ${filled} حقل + ${courseCount} مادة. راجع وعدّل قبل الحفظ.`
+            : `✅ Extracted ${filled} fields + ${courseCount} courses. Review before saving.`,
+        );
+      } else {
+        setAiMsg(
+          lang === "ar"
+            ? `✅ تم استخراج ${filled} حقل. لم نجد مواد واضحة في المستند.`
+            : `✅ Extracted ${filled} fields. No clear courses found.`,
+        );
+      }
     } catch (e: any) {
       setAiMsg((lang === "ar" ? "❌ فشل التحليل: " : "❌ Analysis failed: ") + (e?.message ?? "error"));
     } finally {
@@ -726,6 +754,27 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
   };
 
   return (
+    <>
+    {reviewData && (
+      <TranscriptReview
+        initial={reviewData.sems}
+        warnings={reviewData.warnings}
+        grades={scale.grades}
+        lang={lang}
+        busy={saving}
+        onConfirm={(sems) => {
+          setPendingSems(sems);
+          setReviewData(null);
+          const n = sems.reduce((a, s) => a + s.courses.length, 0);
+          setAiMsg(
+            lang === "ar"
+              ? `✅ ${n} مادة جاهزة — هتتحفظ مع إنهاء الإعداد.`
+              : `✅ ${n} courses ready — saved when you finish setup.`,
+          );
+        }}
+        onCancel={() => setReviewData(null)}
+      />
+    )}
     <div
       dir={dir}
       style={{
@@ -836,6 +885,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
@@ -2460,7 +2510,7 @@ export default function GPAAdvisorApp() {
   if (!dbProfile) {
     return (
       <SetupScreen
-        onDone={async (p) => {
+        onDone={async (p, sems) => {
           await saveProfileMut.mutateAsync({
             data: {
               lang: p.lang,
@@ -2478,8 +2528,29 @@ export default function GPAAdvisorApp() {
               current_level: p.currentLevel,
             },
           });
+          if (sems?.length) {
+            for (const s of sems) {
+              if (!s.courses?.length) continue;
+              await saveSemesterFn({
+                data: {
+                  label: s.label,
+                  sem_type: s.sem_type || "1",
+                  year: s.year ?? null,
+                  courses: s.courses.slice(0, 20).map((c) => ({
+                    name: c.name || "—",
+                    code: c.code ?? "",
+                    credits: c.credits,
+                    grade_letter: c.grade_letter ?? null,
+                    grade_pts: c.grade_pts ?? null,
+                  })),
+                },
+              });
+            }
+            queryClient.invalidateQueries({ queryKey: ["semesters"] });
+          }
         }}
       />
+
     );
   }
 
