@@ -2510,7 +2510,7 @@ export default function GPAAdvisorApp() {
   if (!dbProfile) {
     return (
       <SetupScreen
-        onDone={async (p) => {
+        onDone={async (p, sems) => {
           await saveProfileMut.mutateAsync({
             data: {
               lang: p.lang,
@@ -2528,8 +2528,29 @@ export default function GPAAdvisorApp() {
               current_level: p.currentLevel,
             },
           });
+          if (sems?.length) {
+            for (const s of sems) {
+              if (!s.courses?.length) continue;
+              await saveSemesterFn({
+                data: {
+                  label: s.label,
+                  sem_type: s.sem_type || "1",
+                  year: s.year ?? null,
+                  courses: s.courses.slice(0, 20).map((c) => ({
+                    name: c.name || "—",
+                    code: c.code ?? "",
+                    credits: c.credits,
+                    grade_letter: c.grade_letter ?? null,
+                    grade_pts: c.grade_pts ?? null,
+                  })),
+                },
+              });
+            }
+            queryClient.invalidateQueries({ queryKey: ["semesters"] });
+          }
         }}
       />
+
     );
   }
 
