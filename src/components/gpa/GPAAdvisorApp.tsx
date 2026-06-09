@@ -38,6 +38,12 @@ import { ThemeSwitcher } from "./ThemeSwitcher";
 import { LangSwitcher } from "./LangSwitcher";
 import { RemindersPanel } from "./RemindersPanel";
 import { AchievementCard } from "./AchievementCard";
+import { TranscriptReview } from "./TranscriptReview";
+import {
+  structureTranscript,
+  normalizeTranscript,
+  type ReviewSem,
+} from "@/lib/transcript-normalize";
 
 /* ══════════════════════════════════════════════════════════
    GRADING SYSTEMS
