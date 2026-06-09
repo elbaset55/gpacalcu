@@ -196,7 +196,7 @@ export type ImportPayload = {
   }>;
 };
 
-function SetupScreen({ onDone }: { onDone: (p: Profile) => void }) {
+function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => void | Promise<void> }) {
   const { lang: globalLang, setLang: setGlobalLang } = useLang();
   const [step, setStep] = useState(0);
   const [lang, setLang] = useState<string>(globalLang);
