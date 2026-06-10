@@ -1106,6 +1106,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
   const [wiGrade, setWiGrade] = useState(grades[0]?.pts ?? 4.0);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const [modal, setModal] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [advisorText, setAdvisorText] = useState<string>("");
   const askAdvisorFn = useServerFn(askAdvisor);
   const advisorMut = useMutation({
