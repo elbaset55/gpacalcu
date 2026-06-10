@@ -4,6 +4,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import {
+  Menu as MenuIcon,
+  CalendarDays,
+  Percent,
+  Download,
+  Upload,
+  Bell,
+  Share2,
+  Printer,
+  RotateCcw,
+  User,
+  LogOut,
+  X as XIcon,
+} from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
