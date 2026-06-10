@@ -1371,39 +1371,82 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
               {major && <div style={{ fontSize: 10, color: "var(--gpa-text-faint)" }}>{major}</div>}
             </div>
           </div>
-          <div className="gpa-no-print" style={{ display: "flex", gap: 5, alignItems: "center", flexWrap: "wrap" }}>
+          <div className="gpa-no-print" style={{ display: "flex", gap: 6, alignItems: "center", position: "relative" }}>
             <ThemeSwitcher theme={theme} onChange={setTheme} />
-            <button onClick={() => setModal("history")} title={ar ? "السجل" : "History"} aria-label={ar ? "السجل" : "History"} style={iconBtn}>
-              📅
-            </button>
-            <button onClick={() => setModal("pct")} title={ar ? "محوّل النسبة" : "%"} aria-label={ar ? "محوّل النسبة" : "Percent converter"} style={iconBtn}>
-              🔢
-            </button>
-            <button onClick={exportData} title={ar ? "تنزيل JSON" : "Export JSON"} aria-label={ar ? "تنزيل JSON" : "Export JSON"} style={iconBtn}>
-              💾
-            </button>
-            <button onClick={triggerImport} title={ar ? "استيراد" : "Import"} aria-label={ar ? "استيراد" : "Import"} style={iconBtn}>
-              📂
-            </button>
             <input ref={fileRef} type="file" accept="application/json,.json" onChange={handleImportFile} style={{ display: "none" }} />
-            <button onClick={() => setModal("reminders")} title={ar ? "تذكيرات" : "Reminders"} aria-label={ar ? "تذكيرات" : "Reminders"} style={iconBtn}>
-              ⏰
+            <button
+              onClick={() => setMenuOpen((o) => !o)}
+              aria-label={ar ? "القائمة" : "Menu"}
+              aria-expanded={menuOpen}
+              style={{ ...iconBtn, display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 12px", fontSize: 13, fontWeight: 700 }}
+            >
+              {menuOpen ? <XIcon size={16} /> : <MenuIcon size={16} />}
+              <span>{ar ? "القائمة" : "Menu"}</span>
             </button>
-            <button onClick={() => setModal("share")} title={ar ? "مشاركة" : "Share"} aria-label={ar ? "مشاركة" : "Share"} style={iconBtn}>
-              🔗
-            </button>
-            <button onClick={printPdf} title={ar ? "طباعة / PDF" : "Print / PDF"} aria-label={ar ? "طباعة" : "Print"} style={iconBtn}>
-              🖨️
-            </button>
-            <button onClick={onReset} title={ar ? "إعادة" : "Reset"} aria-label={ar ? "إعادة" : "Reset"} style={{ ...iconBtn, background: "var(--gpa-danger-15)", color: "var(--gpa-danger)", border: "1px solid var(--gpa-danger-33)" }}>
-              ↩
-            </button>
-            <button onClick={() => navigate({ to: "/profile" })} title={ar ? "حسابي" : "Account"} aria-label={ar ? "حسابي" : "Account"} style={iconBtn}>
-              👤
-            </button>
-            <button onClick={handleLogout} title={ar ? "خروج" : "Logout"} aria-label={ar ? "خروج" : "Logout"} style={iconBtn}>
-              🚪
-            </button>
+
+            {menuOpen && (
+              <>
+                <div onClick={() => setMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
+                <div
+                  role="menu"
+                  style={{
+                    position: "absolute",
+                    top: "calc(100% + 8px)",
+                    insetInlineEnd: 0,
+                    zIndex: 41,
+                    minWidth: 210,
+                    background: "var(--gpa-card)",
+                    border: "1px solid var(--gpa-border)",
+                    borderRadius: 14,
+                    padding: 6,
+                    boxShadow: "0 18px 50px rgba(0,0,0,.45)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                  }}
+                >
+                  {([
+                    { Icon: CalendarDays, label: ar ? "السجل" : "History", run: () => setModal("history") },
+                    { Icon: Percent, label: ar ? "محوّل النسبة" : "Percent converter", run: () => setModal("pct") },
+                    { Icon: Bell, label: ar ? "التذكيرات" : "Reminders", run: () => setModal("reminders") },
+                    { Icon: Share2, label: ar ? "مشاركة الإنجاز" : "Share achievement", run: () => setModal("share") },
+                    { Icon: Printer, label: ar ? "طباعة / PDF" : "Print / PDF", run: () => printPdf() },
+                    { Icon: Download, label: ar ? "تنزيل نسخة (JSON)" : "Export JSON", run: () => exportData() },
+                    { Icon: Upload, label: ar ? "استيراد نسخة" : "Import JSON", run: () => triggerImport() },
+                    { Icon: User, label: ar ? "حسابي" : "Account", run: () => navigate({ to: "/profile" }) },
+                  ] as const).map(({ Icon, label, run }) => (
+                    <button
+                      key={label}
+                      role="menuitem"
+                      onClick={() => { setMenuOpen(false); run(); }}
+                      style={menuItem}
+                    >
+                      <Icon size={17} style={{ flexShrink: 0 }} />
+                      <span>{label}</span>
+                    </button>
+                  ))}
+
+                  <div style={{ height: 1, background: "var(--gpa-border)", margin: "4px 2px" }} />
+
+                  <button
+                    role="menuitem"
+                    onClick={() => { setMenuOpen(false); onReset(); }}
+                    style={{ ...menuItem, color: "var(--gpa-danger)" }}
+                  >
+                    <RotateCcw size={17} style={{ flexShrink: 0 }} />
+                    <span>{ar ? "إعادة تعيين" : "Reset"}</span>
+                  </button>
+                  <button
+                    role="menuitem"
+                    onClick={() => { setMenuOpen(false); handleLogout(); }}
+                    style={{ ...menuItem, color: "var(--gpa-danger)" }}
+                  >
+                    <LogOut size={17} style={{ flexShrink: 0 }} />
+                    <span>{ar ? "تسجيل الخروج" : "Logout"}</span>
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
