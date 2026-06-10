@@ -2474,6 +2474,23 @@ const iconBtn: React.CSSProperties = {
   cursor: "pointer",
 };
 
+const menuItem: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 10,
+  width: "100%",
+  textAlign: "start",
+  background: "transparent",
+  border: "none",
+  borderRadius: 10,
+  color: "var(--gpa-text-soft)",
+  padding: "10px 12px",
+  fontSize: 13.5,
+  fontWeight: 600,
+  fontFamily: FONT,
+  cursor: "pointer",
+};
+
 /* ══════════════════════════════════════════════════════════
    ROOT
 ══════════════════════════════════════════════════════════ */
