@@ -165,6 +165,7 @@ function LoginPage() {
             border: "1px solid var(--gpa-border)",
             borderRadius: 18,
             padding: 22,
+            boxShadow: "var(--gpa-shadow)",
           }}
         >
           <div style={{ display: "flex", gap: 6, marginBottom: 18 }}>
