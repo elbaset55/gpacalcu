@@ -1176,6 +1176,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
       setChatBusy(false);
     }
   }, [chatInput, chatBusy, chatMsgs, chatFn, lang, ar, uniName, major, currentLevel, cumGpa, semGpa, newCr, totalReq, gradTarget, gradPredict]);
+  const queryClient = useQueryClient();
   const saveSemServer = useServerFn(saveSemester);
   const saveSemMut = useMutation({
     mutationFn: saveSemServer,
