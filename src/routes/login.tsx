@@ -22,7 +22,7 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
-const FONT = "'Cairo','Noto Sans Arabic',sans-serif";
+const FONT = "'Manrope','Cairo','Noto Sans Arabic',sans-serif";
 
 const T = {
   ar: {
