@@ -2440,6 +2440,113 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
           </div>
         )}
 
+        {/* AI CHAT */}
+        {tab === "chat" && (
+          <div style={{ ...card, display: "flex", flexDirection: "column", padding: 0, overflow: "hidden" }}>
+            <div style={{ padding: "12px 14px", borderBottom: "1px solid var(--gpa-border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h3 style={{ margin: 0, fontSize: 14, color: "var(--gpa-text)", fontFamily: FONT_HEAD }}>
+                💬 {ar ? "محادثة مع المستشار" : "Chat with Advisor"}
+              </h3>
+              {chatMsgs.length > 0 && (
+                <button
+                  onClick={() => setChatMsgs([])}
+                  style={{ background: "none", border: "none", color: "var(--gpa-text-faint)", fontSize: 11, cursor: "pointer", fontFamily: FONT }}
+                >
+                  {ar ? "مسح" : "Clear"}
+                </button>
+              )}
+            </div>
+
+            <div
+              ref={chatScrollRef}
+              style={{ flex: 1, minHeight: 320, maxHeight: 460, overflowY: "auto", padding: "14px", display: "flex", flexDirection: "column", gap: 10 }}
+            >
+              {chatMsgs.length === 0 && (
+                <div style={{ margin: "auto", textAlign: "center", color: "var(--gpa-text-faint)", fontSize: 12, lineHeight: 1.8 }}>
+                  <div style={{ fontSize: 32, marginBottom: 8 }}>🎓</div>
+                  {ar
+                    ? "اسأل المستشار أي سؤال عن خطتك الدراسية، الإعادة، رفع المعدل، أو الحمل الدراسي."
+                    : "Ask the advisor anything about your study plan, retakes, raising GPA, or course load."}
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center", marginTop: 14 }}>
+                    {(ar
+                      ? ["كيف أرفع معدلي؟", "هل أعيد مادة؟", "كم ساعة آخذ هذا الفصل؟"]
+                      : ["How do I raise my GPA?", "Should I retake a course?", "How many credits this term?"]
+                    ).map((q) => (
+                      <button
+                        key={q}
+                        onClick={() => setChatInput(q)}
+                        style={{ background: "var(--gpa-accent-08)", border: "1px solid var(--gpa-border)", borderRadius: 999, padding: "6px 12px", fontSize: 11, color: "var(--gpa-accent)", cursor: "pointer", fontFamily: FONT }}
+                      >
+                        {q}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {chatMsgs.map((m, i) => (
+                <div
+                  key={i}
+                  style={{
+                    alignSelf: m.role === "user" ? "flex-end" : "flex-start",
+                    maxWidth: "85%",
+                    background: m.role === "user" ? "linear-gradient(135deg,var(--gpa-accent),var(--gpa-accent-2))" : "var(--gpa-bg-soft)",
+                    color: m.role === "user" ? "#fff" : "var(--gpa-text-strong)",
+                    border: m.role === "user" ? "none" : "1px solid var(--gpa-border)",
+                    borderRadius: 14,
+                    padding: "10px 13px",
+                    fontSize: 13,
+                    lineHeight: 1.7,
+                    whiteSpace: "pre-wrap",
+                    fontFamily: FONT,
+                  }}
+                >
+                  {m.content || (chatBusy && i === chatMsgs.length - 1 ? "…" : "")}
+                </div>
+              ))}
+            </div>
+
+            <div style={{ padding: 10, borderTop: "1px solid var(--gpa-border)", display: "flex", gap: 8 }}>
+              <input
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); } }}
+                placeholder={ar ? "اكتب سؤالك..." : "Type your question..."}
+                disabled={chatBusy}
+                style={{
+                  flex: 1,
+                  background: "var(--gpa-card)",
+                  border: "1px solid var(--gpa-border)",
+                  borderRadius: 10,
+                  color: "var(--gpa-text-strong)",
+                  padding: "11px 13px",
+                  fontSize: 13,
+                  fontFamily: FONT,
+                  outline: "none",
+                }}
+              />
+              <button
+                onClick={sendChat}
+                disabled={chatBusy || !chatInput.trim()}
+                style={{
+                  background: chatBusy || !chatInput.trim() ? "var(--gpa-card-elevated)" : "linear-gradient(135deg,var(--gpa-accent),var(--gpa-accent-2))",
+                  color: chatBusy || !chatInput.trim() ? "var(--gpa-text-faint)" : "#fff",
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "0 16px",
+                  fontSize: 13,
+                  fontWeight: 800,
+                  fontFamily: FONT,
+                  cursor: chatBusy || !chatInput.trim() ? "default" : "pointer",
+                }}
+              >
+                {chatBusy ? "…" : ar ? "إرسال" : "Send"}
+              </button>
+            </div>
+          </div>
+        )}
+
+
+
         {tab === "roadmap" && (
           <div style={card}>
             <h3 style={{ margin: "0 0 8px", fontSize: 14, color: "var(--gpa-text)" }}>
