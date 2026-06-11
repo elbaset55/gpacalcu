@@ -45,6 +45,7 @@ import {
 } from "@/lib/profile.functions";
 import { analyzeTranscript } from "@/lib/transcript.functions";
 import { askAdvisor } from "@/lib/advisor.functions";
+import { chatWithAdvisor } from "@/lib/chat.functions";
 import { generateRoadmap } from "@/lib/roadmap.functions";
 import { useLang } from "@/lib/use-lang";
 import { useGpaTheme } from "./use-theme";
