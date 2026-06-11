@@ -1124,7 +1124,58 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
     onError: (e: any) => setRoadmapText((ar ? "❌ خطأ: " : "❌ Error: ") + (e?.message ?? "")),
   });
 
-  const queryClient = useQueryClient();
+  /* ============= AI CHAT (streaming) ============= */
+  type ChatMsg = { role: "user" | "assistant"; content: string };
+  const [chatMsgs, setChatMsgs] = useState<ChatMsg[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatBusy, setChatBusy] = useState(false);
+  const chatFn = useServerFn(chatWithAdvisor);
+  const chatScrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    chatScrollRef.current?.scrollTo({ top: chatScrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [chatMsgs]);
+
+  const sendChat = useCallback(async () => {
+    const text = chatInput.trim();
+    if (!text || chatBusy) return;
+    const next: ChatMsg[] = [...chatMsgs, { role: "user", content: text }];
+    setChatMsgs([...next, { role: "assistant", content: "" }]);
+    setChatInput("");
+    setChatBusy(true);
+    try {
+      const summary = ar
+        ? `الجامعة: ${uniName || "-"} | التخصص: ${major || "-"} | المستوى: ${currentLevel} | التراكمي: ${cumGpa.toFixed(2)} | الفصلي: ${semGpa.toFixed(2)} | الساعات المكتسبة: ${newCr}/${totalReq} | هدف التخرج: ${gradTarget} | التنبؤ: ${gradPredict.toFixed(2)}`
+        : `University: ${uniName || "-"} | Major: ${major || "-"} | Level: ${currentLevel} | CGPA: ${cumGpa.toFixed(2)} | Term GPA: ${semGpa.toFixed(2)} | Earned: ${newCr}/${totalReq} | Target: ${gradTarget} | Predicted: ${gradPredict.toFixed(2)}`;
+      const stream = (await chatFn({
+        data: { lang: lang as "ar" | "en", contextSummary: summary, messages: next.slice(-20) },
+      })) as AsyncIterable<{ delta: string }>;
+      let acc = "";
+      for await (const chunk of stream) {
+        acc += chunk?.delta ?? "";
+        setChatMsgs((m) => {
+          const copy = [...m];
+          copy[copy.length - 1] = { role: "assistant", content: acc };
+          return copy;
+        });
+      }
+      if (!acc) {
+        setChatMsgs((m) => {
+          const copy = [...m];
+          copy[copy.length - 1] = { role: "assistant", content: ar ? "لم أستلم رداً." : "No response received." };
+          return copy;
+        });
+      }
+    } catch (e: any) {
+      setChatMsgs((m) => {
+        const copy = [...m];
+        copy[copy.length - 1] = { role: "assistant", content: (ar ? "❌ خطأ: " : "❌ Error: ") + (e?.message ?? "") };
+        return copy;
+      });
+    } finally {
+      setChatBusy(false);
+    }
+  }, [chatInput, chatBusy, chatMsgs, chatFn, lang, ar, uniName, major, currentLevel, cumGpa, semGpa, newCr, totalReq, gradTarget, gradPredict]);
   const saveSemServer = useServerFn(saveSemester);
   const saveSemMut = useMutation({
     mutationFn: saveSemServer,
