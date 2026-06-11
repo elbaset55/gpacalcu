@@ -1350,6 +1350,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         ["charts", "📊 Charts"],
         ["analysis", "⚡ Analysis"],
         ["advisor", "🤖 Advisor"],
+        ["chat", "💬 Chat"],
         ["roadmap", "🗺️ Roadmap"],
         ["scale", "🧮 Scale"],
       ];
