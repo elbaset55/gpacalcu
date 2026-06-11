@@ -22,7 +22,7 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
-const FONT = "'Cairo','Noto Sans Arabic',sans-serif";
+const FONT = "'Manrope','Cairo','Noto Sans Arabic',sans-serif";
 
 const T = {
   ar: {
@@ -165,6 +165,7 @@ function LoginPage() {
             border: "1px solid var(--gpa-border)",
             borderRadius: 18,
             padding: 22,
+            boxShadow: "var(--gpa-shadow)",
           }}
         >
           <div style={{ display: "flex", gap: 6, marginBottom: 18 }}>

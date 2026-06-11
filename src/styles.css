@@ -204,57 +204,57 @@
 }
 
 [data-gpa-theme="light"] {
-  --gpa-bg: #f6f7fb;
-  --gpa-bg-soft: #eef0f7;
+  --gpa-bg: #f7f9fc;
+  --gpa-bg-soft: #eef2f8;
   --gpa-card: #ffffff;
-  --gpa-card-elevated: #f1f3fa;
-  --gpa-border: #e2e6f0;
-  --gpa-border-soft: #00000010;
+  --gpa-card-elevated: #f4f7fb;
+  --gpa-border: #e2e8f0;
+  --gpa-border-soft: #0f172a0f;
 
-  --gpa-text: #0b1020;
-  --gpa-text-strong: #111827;
-  --gpa-text-soft: #1f2937;
-  --gpa-text-muted: #4b5563;
-  --gpa-text-muted-2: #6b7280;
-  --gpa-text-faint: #6b7280;
-  --gpa-text-faintest: #9ca3af;
-  --gpa-text-ghost: #9ca3af;
+  --gpa-text: #0f172a;
+  --gpa-text-strong: #0f172a;
+  --gpa-text-soft: #1e293b;
+  --gpa-text-muted: #475569;
+  --gpa-text-muted-2: #64748b;
+  --gpa-text-faint: #64748b;
+  --gpa-text-faintest: #94a3b8;
+  --gpa-text-ghost: #cbd5e1;
 
-  --gpa-accent: #047857;
-  --gpa-accent-2: #4f46e5;
-  --gpa-accent-2-soft: #6366f1;
-  --gpa-info: #0284c7;
+  --gpa-accent: #2563eb;
+  --gpa-accent-2: #6366f1;
+  --gpa-accent-2-soft: #818cf8;
+  --gpa-info: #0ea5e9;
   --gpa-violet: #7c3aed;
-  --gpa-purple: #7e22ce;
-  --gpa-danger: #b91c1c;
+  --gpa-purple: #8b5cf6;
+  --gpa-danger: #dc2626;
 
-  --gpa-accent-06: rgba(4,120,87,.06);
-  --gpa-accent-08: rgba(4,120,87,.08);
-  --gpa-accent-10: rgba(4,120,87,.10);
-  --gpa-accent-12: rgba(4,120,87,.10);
-  --gpa-accent-15: rgba(4,120,87,.12);
-  --gpa-accent-20: rgba(4,120,87,.16);
-  --gpa-accent-25: rgba(4,120,87,.18);
-  --gpa-accent-33: rgba(4,120,87,.22);
-  --gpa-accent-44: rgba(4,120,87,.28);
-  --gpa-accent-55: rgba(4,120,87,.35);
+  --gpa-accent-06: rgba(37,99,235,.05);
+  --gpa-accent-08: rgba(37,99,235,.07);
+  --gpa-accent-10: rgba(37,99,235,.09);
+  --gpa-accent-12: rgba(37,99,235,.10);
+  --gpa-accent-15: rgba(37,99,235,.12);
+  --gpa-accent-20: rgba(37,99,235,.15);
+  --gpa-accent-25: rgba(37,99,235,.18);
+  --gpa-accent-33: rgba(37,99,235,.22);
+  --gpa-accent-44: rgba(37,99,235,.28);
+  --gpa-accent-55: rgba(37,99,235,.35);
 
-  --gpa-accent2-18: rgba(79,70,229,.10);
-  --gpa-accent2-20: rgba(79,70,229,.14);
+  --gpa-accent2-18: rgba(99,102,241,.10);
+  --gpa-accent2-20: rgba(99,102,241,.14);
 
-  --gpa-danger-15: rgba(185,28,28,.08);
-  --gpa-danger-33: rgba(185,28,28,.20);
-  --gpa-danger-55: rgba(185,28,28,.32);
+  --gpa-danger-15: rgba(220,38,38,.08);
+  --gpa-danger-33: rgba(220,38,38,.20);
+  --gpa-danger-55: rgba(220,38,38,.32);
 
-  --gpa-surface-alpha-06: #00000006;
-  --gpa-surface-alpha-08: #0000000a;
-  --gpa-shadow: 0 4px 18px rgba(15,23,42,.10);
+  --gpa-surface-alpha-06: #0f172a06;
+  --gpa-surface-alpha-08: #0f172a0a;
+  --gpa-shadow: 0 8px 30px -12px rgba(15,23,42,.18);
 
-  --gpa-grade-a-plus: #047857;
-  --gpa-grade-a: #059669;
-  --gpa-grade-b-plus: #16a34a;
-  --gpa-grade-b: #ca8a04;
-  --gpa-grade-b-minus: #d97706;
+  --gpa-grade-a-plus: #2563eb;
+  --gpa-grade-a: #0891b2;
+  --gpa-grade-b-plus: #059669;
+  --gpa-grade-b: #16a34a;
+  --gpa-grade-b-minus: #ca8a04;
   --gpa-grade-c-plus: #ea580c;
   --gpa-grade-c: #dc2626;
   --gpa-grade-f: #991b1b;
