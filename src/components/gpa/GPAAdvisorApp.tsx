@@ -1498,11 +1498,11 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
               {ar ? "س متبقية" : "cr left"} / {totalReq}
             </span>
           </div>
-          <div style={{ height: 6, background: "#141420", borderRadius: 4, overflow: "hidden", display: "flex" }}>
+          <div style={{ height: 6, background: "var(--gpa-card-elevated)", borderRadius: 4, overflow: "hidden", display: "flex" }}>
             <div
               style={{
                 width: `${Math.min((prevCr / totalReq) * 100, 100)}%`,
-                background: "#334155",
+                background: "var(--gpa-text-faintest)",
                 transition: "width .5s",
               }}
             />
