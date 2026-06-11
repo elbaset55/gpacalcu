@@ -839,7 +839,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
             border: "1px solid var(--gpa-border)",
             borderRadius: 20,
             padding: 22,
-            boxShadow: "0 24px 60px #00000066",
+            boxShadow: "var(--gpa-shadow)",
           }}
         >
           {stepContent()}
@@ -1400,7 +1400,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                     border: "1px solid var(--gpa-border)",
                     borderRadius: 14,
                     padding: 6,
-                    boxShadow: "0 18px 50px rgba(0,0,0,.45)",
+                    boxShadow: "var(--gpa-shadow)",
                     display: "flex",
                     flexDirection: "column",
                     gap: 2,
