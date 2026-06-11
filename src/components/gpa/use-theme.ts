@@ -4,12 +4,12 @@ export type GpaTheme = "dark" | "light" | "hc";
 const KEY = "gpa-theme";
 
 function detect(): GpaTheme {
-  if (typeof window === "undefined") return "dark";
+  if (typeof window === "undefined") return "light";
   const saved = localStorage.getItem(KEY) as GpaTheme | null;
   if (saved === "dark" || saved === "light" || saved === "hc") return saved;
   if (window.matchMedia?.("(prefers-contrast: more)").matches) return "hc";
-  if (window.matchMedia?.("(prefers-color-scheme: light)").matches) return "light";
-  return "dark";
+  if (window.matchMedia?.("(prefers-color-scheme: dark)").matches) return "dark";
+  return "light";
 }
 
 export function useGpaTheme() {
