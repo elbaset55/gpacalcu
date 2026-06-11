@@ -1554,7 +1554,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         style={{
           display: "flex",
           background: "var(--gpa-bg-soft)",
-          borderBottom: "1px solid #1e1e3f",
+          borderBottom: "1px solid var(--gpa-border)",
           overflowX: "auto",
         }}
       >
