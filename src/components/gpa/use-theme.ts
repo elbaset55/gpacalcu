@@ -13,7 +13,7 @@ function detect(): GpaTheme {
 }
 
 export function useGpaTheme() {
-  const [theme, setThemeState] = useState<GpaTheme>("dark");
+  const [theme, setThemeState] = useState<GpaTheme>("light");
 
   useEffect(() => {
     const t = detect();
