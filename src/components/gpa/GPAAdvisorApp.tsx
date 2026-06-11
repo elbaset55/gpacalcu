@@ -248,7 +248,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
 
   const inp: React.CSSProperties = {
     background: "var(--gpa-card)",
-    border: "1px solid #1e1e3f",
+    border: "1px solid var(--gpa-border)",
     borderRadius: 10,
     color: "var(--gpa-text-strong)",
     padding: "11px 14px",
@@ -386,7 +386,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
                       padding: "12px",
                       fontFamily: FONT,
                       background: lang === v ? "var(--gpa-accent2-18)" : "var(--gpa-surface-alpha-06)",
-                      border: lang === v ? "1px solid #6366f166" : "1px solid #1e1e3f",
+                      border: lang === v ? "1px solid #6366f166" : "1px solid var(--gpa-border)",
                       borderRadius: 10,
                       color: lang === v ? "var(--gpa-accent-2-soft)" : "var(--gpa-text-faint)",
                       fontSize: 14,
@@ -412,7 +412,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
                     padding: "12px 14px",
                     fontFamily: FONT,
                     background: scaleId === s.id ? "var(--gpa-accent-12)" : "var(--gpa-surface-alpha-06)",
-                    border: scaleId === s.id ? "1px solid var(--gpa-accent-44)" : "1px solid #1e1e3f",
+                    border: scaleId === s.id ? "1px solid var(--gpa-accent-44)" : "1px solid var(--gpa-border)",
                     borderRadius: 10,
                     color: scaleId === s.id ? "var(--gpa-accent)" : "var(--gpa-text-muted)",
                     fontSize: 13,
@@ -671,7 +671,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
                       padding: "12px",
                       fontFamily: FONT,
                       background: semester === v ? "rgba(168,85,247,.12)" : "var(--gpa-surface-alpha-06)",
-                      border: semester === v ? "1px solid #a855f766" : "1px solid #1e1e3f",
+                      border: semester === v ? "1px solid #a855f766" : "1px solid var(--gpa-border)",
                       borderRadius: 10,
                       color: semester === v ? "var(--gpa-violet)" : "var(--gpa-text-faint)",
                       fontSize: 13,
@@ -734,7 +734,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
                         padding: "12px",
                         fontFamily: FONT,
                         background: hasFailed === v ? `${c}18` : "var(--gpa-surface-alpha-06)",
-                        border: hasFailed === v ? `1px solid ${c}66` : "1px solid #1e1e3f",
+                        border: hasFailed === v ? `1px solid ${c}66` : "1px solid var(--gpa-border)",
                         borderRadius: 10,
                         color: hasFailed === v ? c : "var(--gpa-text-faint)",
                         fontSize: 13,
@@ -836,7 +836,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
         <div
           style={{
             background: "var(--gpa-card)",
-            border: "1px solid #1e1e3f",
+            border: "1px solid var(--gpa-border)",
             borderRadius: 20,
             padding: 22,
             boxShadow: "0 24px 60px #00000066",
@@ -853,7 +853,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
                 flex: 1,
                 padding: 13,
                 background: "var(--gpa-surface-alpha-08)",
-                border: "1px solid #1e1e3f",
+                border: "1px solid var(--gpa-border)",
                 borderRadius: 12,
                 color: "var(--gpa-text-muted-2)",
                 fontSize: 14,
@@ -912,7 +912,7 @@ function PctConverter({ grades, lang, onClose }: any) {
       <div
         style={{
           background: "var(--gpa-card)",
-          border: "1px solid #1e1e3f",
+          border: "1px solid var(--gpa-border)",
           borderRadius: 18,
           padding: 22,
           maxWidth: 380,
@@ -986,7 +986,7 @@ function HistoryPanel({ history, grades, lang, onClose }: any) {
       <div
         style={{
           background: "var(--gpa-card)",
-          border: "1px solid #1e1e3f",
+          border: "1px solid var(--gpa-border)",
           borderRadius: 18,
           padding: 20,
           maxWidth: 500,
@@ -1675,7 +1675,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                         flex: 1,
                         background: "transparent",
                         border: "none",
-                        borderBottom: "1px dashed #252535",
+                        borderBottom: "1px dashed var(--gpa-border)",
                         color: "var(--gpa-text-strong)",
                         fontSize: 14,
                         fontFamily: FONT,
@@ -1710,7 +1710,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                             borderRadius: 5,
                             fontFamily: FONT,
                             background: c.cr === n ? `${clr}22` : "var(--gpa-surface-alpha-06)",
-                            border: c.cr === n ? `1px solid ${clr}77` : "1px solid #1e1e3f",
+                            border: c.cr === n ? `1px solid ${clr}77` : "1px solid var(--gpa-border)",
                             color: c.cr === n ? clr : "var(--gpa-text-faintest)",
                             fontSize: 11,
                             cursor: "pointer",
@@ -1748,7 +1748,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                       title={ar ? "إعادة مادة راسبة" : "Retake of a failed course"}
                       style={{
                         background: c.retake ? "var(--gpa-info-15, rgba(56,189,248,.12))" : "var(--gpa-surface-alpha-06)",
-                        border: c.retake ? "1px solid var(--gpa-info)" : "1px solid #1e1e3f",
+                        border: c.retake ? "1px solid var(--gpa-info)" : "1px solid var(--gpa-border)",
                         borderRadius: 7,
                         padding: "5px 9px",
                         color: c.retake ? "var(--gpa-info)" : "var(--gpa-text-faintest)",
@@ -1779,7 +1779,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                 style={{
                   flex: 2,
                   background: "var(--gpa-surface-alpha-06)",
-                  border: "1px dashed #252535",
+                  border: "1px dashed var(--gpa-border)",
                   borderRadius: 12,
                   padding: "12px",
                   color: "var(--gpa-text-faint)",
@@ -1867,7 +1867,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                   padding: 14,
                   borderRadius: 12,
                   textAlign: "center",
-                  border: "1px dashed #1e1e3f",
+                  border: "1px dashed var(--gpa-border)",
                 }}
               >
                 <div style={{ fontSize: 10, color: "var(--gpa-text-faint)", marginBottom: 5 }}>
@@ -1964,7 +1964,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                       style={{
                         textAlign: ar ? "right" : "left",
                         background: wiCourse === c.id ? "var(--gpa-accent2-18)" : "var(--gpa-surface-alpha-06)",
-                        border: wiCourse === c.id ? "1px solid #6366f155" : "1px solid #1e1e3f",
+                        border: wiCourse === c.id ? "1px solid #6366f155" : "1px solid var(--gpa-border)",
                         borderRadius: 8,
                         padding: "9px 12px",
                         color: wiCourse === c.id ? "var(--gpa-accent-2-soft)" : "var(--gpa-text-muted)",
@@ -2071,7 +2071,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                     <Tooltip
                       contentStyle={{
                         background: "var(--gpa-card)",
-                        border: "1px solid #1e1e3f",
+                        border: "1px solid var(--gpa-border)",
                         fontSize: 11,
                         fontFamily: FONT,
                       }}
@@ -2110,7 +2110,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                       <Tooltip
                         contentStyle={{
                           background: "var(--gpa-card)",
-                          border: "1px solid #1e1e3f",
+                          border: "1px solid var(--gpa-border)",
                           fontSize: 11,
                           fontFamily: FONT,
                         }}
@@ -2146,7 +2146,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                       <Tooltip
                         contentStyle={{
                           background: "var(--gpa-card)",
-                          border: "1px solid #1e1e3f",
+                          border: "1px solid var(--gpa-border)",
                           fontSize: 11,
                           fontFamily: FONT,
                         }}
@@ -2457,7 +2457,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         input[type=range]{width:100%}
         ::-webkit-scrollbar{width:4px;height:4px}
         ::-webkit-scrollbar-track{background:#070712}
-        ::-webkit-scrollbar-thumb{background:#1e1e3f;border-radius:2px}
+        ::-webkit-scrollbar-thumb{background:var(--gpa-border);border-radius:2px}
         select option{background:#0d0d1a}
       `}</style>
     </div>
