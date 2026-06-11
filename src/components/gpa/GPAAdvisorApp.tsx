@@ -1339,6 +1339,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         ["charts", "📊 الرسوم"],
         ["analysis", "⚡ التحليل"],
         ["advisor", "🤖 المستشار"],
+        ["chat", "💬 محادثة"],
         ["roadmap", "🗺️ الخريطة"],
         ["scale", "🧮 السكيل"],
       ]
