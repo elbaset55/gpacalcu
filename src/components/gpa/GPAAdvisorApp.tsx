@@ -1646,7 +1646,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                 <div style={{ fontSize: 14, color: "var(--gpa-text-faintest)", marginBottom: 4 }}>
                   {ar ? "لا توجد مواد بعد" : "No courses yet"}
                 </div>
-                <div style={{ fontSize: 11, color: "#2a2a3a" }}>
+                <div style={{ fontSize: 11, color: "var(--gpa-text-muted)" }}>
                   {ar ? "اضغط + لإضافة مادة" : "Press + to add a course"}
                 </div>
               </div>
@@ -1863,7 +1863,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
 
               <div
                 style={{
-                  background: "#05050f",
+                  background: "var(--gpa-bg-soft)",
                   padding: 14,
                   borderRadius: 12,
                   textAlign: "center",
@@ -2439,7 +2439,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                 >
                   <span style={{ fontSize: 16, fontWeight: 900, color: g.clr, minWidth: 28 }}>{g.ar}</span>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12, color: "#ccc" }}>
+                    <div style={{ fontSize: 12, color: "var(--gpa-text-soft)" }}>
                       {g.label} · {g.pts.toFixed(3)}
                     </div>
                     <div style={{ fontSize: 10, color: "var(--gpa-text-faint)" }}>≥ {g.minPct}%</div>
@@ -2456,9 +2456,9 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         *{box-sizing:border-box}
         input[type=range]{width:100%}
         ::-webkit-scrollbar{width:4px;height:4px}
-        ::-webkit-scrollbar-track{background:#070712}
+        ::-webkit-scrollbar-track{background:var(--gpa-bg-soft)}
         ::-webkit-scrollbar-thumb{background:var(--gpa-border);border-radius:2px}
-        select option{background:#0d0d1a}
+        select option{background:var(--gpa-card)}
       `}</style>
     </div>
   );
