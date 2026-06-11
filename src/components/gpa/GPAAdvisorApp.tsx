@@ -93,7 +93,8 @@ const SCALE_SYSTEMS = [
 /* ══════════════════════════════════════════════════════════
    HELPERS
 ══════════════════════════════════════════════════════════ */
-const FONT = "'Cairo','Noto Sans Arabic',sans-serif";
+const FONT = "'Manrope','Cairo','Noto Sans Arabic',sans-serif";
+const FONT_HEAD = "'Sora','Cairo','Noto Sans Arabic',sans-serif";
 const gc = (pts: number | null | undefined, grades: any[]) => {
   if (pts == null || isNaN(pts) || !grades?.length) return "var(--gpa-text-muted)";
   return grades.reduce((p, c) => (Math.abs(c.pts - pts) < Math.abs(p.pts - pts) ? c : p)).clr;
