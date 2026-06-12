@@ -12,22 +12,36 @@ const inputSchema = z.object({
   lang: z.enum(["ar", "en"]).default("ar"),
 });
 
+const looseNum = z.preprocess((value) => {
+  if (value == null || value === "") return undefined;
+  if (typeof value === "number") return Number.isFinite(value) ? value : undefined;
+  if (typeof value !== "string") return value;
+  const normalized = value
+    .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)))
+    .replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
+    .replace(/,/g, ".")
+    .replace(/[^\d.-]/g, "")
+    .trim();
+  const n = Number(normalized);
+  return Number.isFinite(n) ? n : undefined;
+}, z.number().optional());
+
 const courseSchema = z.object({
-  name: z.string(),
-  code: z.string().optional(),
-  credits: z.coerce.number().optional(),
-  grade_letter: z.string().optional(),
-  grade_pts: z.coerce.number().optional(),
-  percentage: z.coerce.number().optional(),
-  semester_label: z.string().optional(),
+  name: z.coerce.string().default(""),
+  code: z.coerce.string().optional(),
+  credits: looseNum,
+  grade_letter: z.coerce.string().optional(),
+  grade_pts: looseNum,
+  percentage: looseNum,
+  semester_label: z.coerce.string().optional(),
 });
 
 const outputSchema = z.object({
-  cumulative_gpa: z.coerce.number().nullable().optional(),
-  total_credits_earned: z.coerce.number().nullable().optional(),
-  current_level: z.coerce.number().nullable().optional(),
-  university: z.string().nullable().optional(),
-  major: z.string().nullable().optional(),
+  cumulative_gpa: looseNum.nullable(),
+  total_credits_earned: looseNum.nullable(),
+  current_level: looseNum.nullable(),
+  university: z.coerce.string().nullable().optional(),
+  major: z.coerce.string().nullable().optional(),
   courses: z.array(courseSchema).default([]),
   notes: z.string().optional(),
 });
@@ -46,6 +60,12 @@ function extractJson(text: string): unknown {
   return JSON.parse(candidate.slice(start, end + 1));
 }
 
+function dataUrlToBase64(fileDataUrl: string, fallbackMime: string) {
+  const match = fileDataUrl.match(/^data:([^;,]+)?;base64,(.*)$/s);
+  if (!match) return { mediaType: fallbackMime || "application/pdf", base64: fileDataUrl };
+  return { mediaType: match[1] || fallbackMime || "application/pdf", base64: match[2].replace(/\s/g, "") };
+}
+
 export const analyzeTranscript = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => inputSchema.parse(input))
@@ -54,7 +74,7 @@ export const analyzeTranscript = createServerFn({ method: "POST" })
     if (!key) throw new Error("LOVABLE_API_KEY is not configured");
 
     const gateway = createLovableAiGatewayProvider(key);
-    const model = gateway("google/gemini-2.5-pro");
+    const model = gateway("google/gemini-3-flash-preview");
 
     const scaleName = data.scaleHint === "benha" ? "بنها 2021" : "4.0 جنرك";
 
@@ -91,8 +111,11 @@ Return ONLY JSON (no prose outside the JSON) in exactly this shape:
 }
 If grades are in % convert to ${scaleName} scale. Use null or omit unknown fields. Do not invent data.`;
 
-    const { text } = await generateText({
+    const file = dataUrlToBase64(data.fileDataUrl, data.mimeType);
+    const { text, finishReason } = await generateText({
       model,
+      temperature: 0,
+      maxOutputTokens: 12000,
       messages: [
         { role: "system", content: sys },
         {
@@ -107,13 +130,18 @@ If grades are in % convert to ${scaleName} scale. Use null or omit unknown field
             },
             {
               type: "file",
-              data: data.fileDataUrl,
-              mediaType: data.mimeType,
+              data: file.base64,
+              mediaType: file.mediaType,
+              filename: file.mediaType === "application/pdf" ? "transcript.pdf" : "transcript-image",
             } as any,
           ],
         },
       ],
     });
+
+    if (finishReason === "length") {
+      throw new Error(data.lang === "ar" ? "رد التحليل اتقطع. جرّب PDF أصغر أو أوضح." : "Analysis response was truncated. Try a smaller or clearer PDF.");
+    }
 
     const parsed = extractJson(text);
     // Lenient parse: coerce types, drop bad rows instead of failing the whole call.
