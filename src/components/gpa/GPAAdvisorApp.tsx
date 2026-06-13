@@ -1638,6 +1638,138 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
       </div>
 
       <div style={{ padding: "12px 13px 0" }}>
+        {/* MY RECORD — saved academic transcript */}
+        {tab === "record" && (
+          <div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4,1fr)",
+                gap: 8,
+                marginBottom: 14,
+              }}
+            >
+              {chip(ar ? "التراكمي" : "CGPA", cumGpa.toFixed(2), gpaClr(cumGpa))}
+              {chip(ar ? "الساعات" : "Credits", `${newCr}`, "var(--gpa-accent)")}
+              {chip(ar ? "المستوى" : "Level", `${lv.maxFail ? profile.currentLevel : 1}`, "var(--gpa-accent-2)")}
+              {chip(
+                ar ? "المواد" : "Courses",
+                `${history.reduce((a: number, h: any) => a + (h.courses?.length ?? 0), 0)}`,
+                "var(--gpa-text-strong)",
+              )}
+            </div>
+
+            {(() => {
+              const missing = history.reduce(
+                (a: number, h: any) => a + (h.courses?.filter((c: any) => !c.grade).length ?? 0),
+                0,
+              );
+              if (missing > 0)
+                return (
+                  <div
+                    style={{
+                      background: "var(--gpa-danger-15)",
+                      border: "1px solid var(--gpa-danger-33)",
+                      borderRadius: 10,
+                      padding: "9px 12px",
+                      marginBottom: 12,
+                      fontSize: 11,
+                      color: "var(--gpa-danger)",
+                    }}
+                  >
+                    ⚠️{" "}
+                    {ar
+                      ? `${missing} مادة بدون تقدير — افتح تبويب "التحليل" وأعد رفع كشف أوضح أو عدّل التقدير يدوياً.`
+                      : `${missing} course(s) without a grade — open the "Analysis" tab to re-upload a clearer transcript or fix manually.`}
+                  </div>
+                );
+              return null;
+            })()}
+
+            {history.length === 0 ? (
+              <div
+                style={{
+                  ...card,
+                  textAlign: "center",
+                  color: "var(--gpa-text-faint)",
+                  fontSize: 13,
+                  padding: 28,
+                }}
+              >
+                {ar
+                  ? "لا يوجد سجل بعد. افتح تبويب \"التحليل\" وارفع كشف الدرجات لاستخراج موادك تلقائياً."
+                  : 'No record yet. Open the "Analysis" tab and upload your transcript to extract your courses.'}
+              </div>
+            ) : (
+              history.map((sem: any, i: number) => {
+                const st = standing(sem.cumGpa);
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      background: "var(--gpa-card)",
+                      border: "1px solid var(--gpa-border)",
+                      borderRadius: 12,
+                      padding: 14,
+                      marginBottom: 10,
+                      borderInlineStart: `3px solid ${st.clr}`,
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, alignItems: "center" }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gpa-text-soft)" }}>{sem.label}</div>
+                      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                        <span style={{ fontSize: 11, color: "var(--gpa-text-faint)" }}>
+                          {ar ? "فصلي" : "Term"}{" "}
+                          <b style={{ color: gpaClr(sem.semGpa) }}>{sem.semGpa.toFixed(2)}</b>
+                        </span>
+                        <span style={{ fontSize: 11, color: "var(--gpa-text-faint)" }}>
+                          {sem.cr} {ar ? "س" : "cr"}
+                        </span>
+                        <span style={{ fontSize: 18, fontWeight: 900, color: st.clr }}>{sem.cumGpa.toFixed(2)}</span>
+                      </div>
+                    </div>
+                    {sem.courses?.length > 0 && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                        {sem.courses.map((c: any, j: number) => (
+                          <div
+                            key={j}
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              background: "var(--gpa-surface-alpha-06)",
+                              borderRadius: 8,
+                              padding: "6px 10px",
+                            }}
+                          >
+                            <span style={{ fontSize: 12, color: "var(--gpa-text-soft)" }}>{c.name || "—"}</span>
+                            <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                              <span style={{ fontSize: 10, color: "var(--gpa-text-faintest)" }}>
+                                {c.cr} {ar ? "س" : "cr"}
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: 11,
+                                  fontWeight: 800,
+                                  color: c.grade ? gc(c.grade, grades) : "var(--gpa-danger)",
+                                  minWidth: 34,
+                                  textAlign: "center",
+                                }}
+                              >
+                                {c.grade ? ga(c.grade, grades) : ar ? "؟" : "?"}
+                              </span>
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+
         {/* COURSES */}
         {tab === "courses" && (
           <div>
