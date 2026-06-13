@@ -78,11 +78,35 @@ export const analyzeTranscript = createServerFn({ method: "POST" })
 
     const scaleName = data.scaleHint === "benha" ? "بنها 2021" : "4.0 جنرك";
 
+    // Benha 2021 letter ↔ points ↔ percentage reference, embedded so the model
+    // can resolve a grade from ANY column present (letter, points, or %).
+    const benhaTable =
+      data.scaleHint === "benha"
+        ? `جدول التقديرات (لائحة بنها 2021):
+أ+ / A+ = 4.00 (90-100%)
+أ / A = 3.667 (85-89%)
+ب+ / B+ = 3.333 (80-84%)
+ب / B = 3.00 (75-79%)
+ب- / B- = 2.667 (70-74%)
+ج+ / C+ = 2.333 (65-69%)
+ج / C = 2.00 (60-64%)
+ر / F = 0.00 (راسب، أقل من 60%)`
+        : `4.0 generic scale: A+=4.0, A=3.7, A-=3.3, B+=3.0, B=2.7, B-=2.3, C+=2.0, C=1.7, D=1.0, F=0.0`;
+
     const sys =
       data.lang === "ar"
-        ? `أنت مساعد ذكي يقرأ كشوف الدرجات وبيانات الطالب الأكاديمية.
-حلّل المستند المرفق واستخرج البيانات.
-أعِد JSON فقط (بدون أي شرح أو نص خارج الـ JSON) بالشكل التالي بالضبط:
+        ? `أنت محلّل خبير لكشوف الدرجات الجامعية المصرية. اقرأ كل صفوف الجدول بدقة.
+${benhaTable}
+
+قواعد إلزامية:
+1. استخرج كل مادة في الكشف بدون استثناء، حتى لو كانت في صفحات أو فصول مختلفة.
+2. لكل مادة لازم تملأ التقدير: ابحث في كل الأعمدة (الحرف / النقاط / النسبة المئوية / كلمة "ناجح/راسب"). لو لقيت أي واحدة منهم املأ grade_letter و grade_pts و percentage معاً قدر الإمكان باستخدام الجدول أعلاه.
+3. متسيبش grade فاضي إلا لو المادة فعلاً بدون أي تقدير في المستند (مثلاً "غير مكتمل" أو فارغة تماماً).
+4. استخدم الحرف زي ما هو مكتوب في المستند في grade_letter، وحوّله لنقاط في grade_pts حسب الجدول.
+5. حدّد semester_label لكل مادة (الفصل/الترم اللي ظهرت فيه).
+6. لا تخترع مواد أو درجات غير موجودة.
+
+أعِد JSON فقط (بدون أي شرح خارج الـ JSON) بهذا الشكل بالضبط:
 {
   "cumulative_gpa": رقم أو null,
   "total_credits_earned": رقم أو null,
@@ -93,10 +117,18 @@ export const analyzeTranscript = createServerFn({ method: "POST" })
     { "name": "اسم المادة", "code": "كود أو حذفه", "credits": رقم, "grade_letter": "الحرف", "grade_pts": رقم من 4.0, "percentage": رقم, "semester_label": "اسم الفصل" }
   ],
   "notes": "ملاحظات قصيرة"
-}
-لو المستند بنظام 100% حوّل النسبة لنقاط حسب لائحة ${scaleName}.
-اترك الحقول المجهولة null أو احذفها من المادة. لا تخترع بيانات.`
-        : `You are an academic transcript parser. Analyze the attached document.
+}`
+        : `You are an expert Egyptian university transcript analyzer. Read every table row carefully.
+${benhaTable}
+
+Mandatory rules:
+1. Extract EVERY course in the transcript, even across multiple pages or terms.
+2. Every course MUST have a resolved grade: scan ALL columns (letter / points / percentage / pass-fail word). If any of them is present, fill grade_letter, grade_pts AND percentage together as far as possible using the table above.
+3. Only leave a grade empty if the course genuinely has no grade in the document (e.g. "incomplete" or fully blank).
+4. Put the letter exactly as written in grade_letter, and convert it to grade_pts using the table.
+5. Set semester_label for each course (the term it appears in).
+6. Never invent courses or grades.
+
 Return ONLY JSON (no prose outside the JSON) in exactly this shape:
 {
   "cumulative_gpa": number or null,
@@ -108,8 +140,7 @@ Return ONLY JSON (no prose outside the JSON) in exactly this shape:
     { "name": "course name", "code": "code or omit", "credits": number, "grade_letter": "letter", "grade_pts": number out of 4.0, "percentage": number, "semester_label": "term" }
   ],
   "notes": "short notes"
-}
-If grades are in % convert to ${scaleName} scale. Use null or omit unknown fields. Do not invent data.`;
+}`;
 
     const file = dataUrlToBase64(data.fileDataUrl, data.mimeType);
     const { text, finishReason } = await generateText({
