@@ -1333,6 +1333,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
 
   const TABS = ar
     ? [
+        ["record", "📚 سجلّي"],
         ["courses", "📋 المواد"],
         ["target", "🎯 الهدف"],
         ["whatif", "🔬 ماذا لو"],
@@ -1344,6 +1345,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         ["scale", "🧮 السكيل"],
       ]
     : [
+        ["record", "📚 My Record"],
         ["courses", "📋 Courses"],
         ["target", "🎯 Target"],
         ["whatif", "🔬 What-If"],
