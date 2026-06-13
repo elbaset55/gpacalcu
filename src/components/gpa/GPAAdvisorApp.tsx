@@ -876,6 +876,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
           )}
           <button
             onClick={next}
+            disabled={saving}
             style={{
               flex: 2,
               padding: 13,
@@ -886,11 +887,22 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
               fontSize: 14,
               fontWeight: 700,
               fontFamily: FONT,
-              cursor: "pointer",
+              cursor: saving ? "wait" : "pointer",
+              opacity: saving ? 0.6 : 1,
               boxShadow: "0 0 20px var(--gpa-accent-20)",
             }}
           >
-            {step < STEPS.length - 1 ? (ar ? "التالي →" : "Next →") : ar ? "ابدأ التخطيط 🚀" : "Start Planning 🚀"}
+            {saving
+              ? ar
+                ? "جاري الحفظ..."
+                : "Saving..."
+              : step < STEPS.length - 1
+              ? ar
+                ? "التالي →"
+                : "Next →"
+              : ar
+              ? "ابدأ التخطيط 🚀"
+              : "Start Planning 🚀"}
           </button>
         </div>
       </div>
