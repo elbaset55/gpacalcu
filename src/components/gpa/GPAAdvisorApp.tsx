@@ -2864,6 +2864,28 @@ export default function GPAAdvisorApp() {
     return (
       <SetupScreen
         onDone={async (p, sems) => {
+          // Save semesters/courses FIRST so they exist before the profile
+          // query invalidation swaps this screen out for the Planner.
+          if (sems?.length) {
+            for (const s of sems) {
+              if (!s.courses?.length) continue;
+              await saveSemesterFn({
+                data: {
+                  label: (s.label || "فصل").slice(0, 80),
+                  sem_type: s.sem_type || "1",
+                  year: s.year ?? null,
+                  courses: s.courses.slice(0, 20).map((c) => ({
+                    name: (c.name || "—").slice(0, 120),
+                    code: (c.code ?? "").slice(0, 40),
+                    credits: Math.max(0, Math.min(12, Math.round(c.credits || 0))),
+                    grade_letter: c.grade_letter ? c.grade_letter.slice(0, 8) : null,
+                    grade_pts:
+                      c.grade_pts == null ? null : Math.max(0, Math.min(4, Number(c.grade_pts))),
+                  })),
+                },
+              });
+            }
+          }
           await saveProfileMut.mutateAsync({
             data: {
               lang: p.lang,
@@ -2881,26 +2903,7 @@ export default function GPAAdvisorApp() {
               current_level: p.currentLevel,
             },
           });
-          if (sems?.length) {
-            for (const s of sems) {
-              if (!s.courses?.length) continue;
-              await saveSemesterFn({
-                data: {
-                  label: s.label,
-                  sem_type: s.sem_type || "1",
-                  year: s.year ?? null,
-                  courses: s.courses.slice(0, 20).map((c) => ({
-                    name: c.name || "—",
-                    code: c.code ?? "",
-                    credits: c.credits,
-                    grade_letter: c.grade_letter ?? null,
-                    grade_pts: c.grade_pts ?? null,
-                  })),
-                },
-              });
-            }
-            queryClient.invalidateQueries({ queryKey: ["semesters"] });
-          }
+          queryClient.invalidateQueries({ queryKey: ["semesters"] });
         }}
       />
 
