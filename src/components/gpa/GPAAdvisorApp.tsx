@@ -294,29 +294,38 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
   };
   const back = () => setStep((s) => s - 1);
 
-  const submit = () => {
+  const submit = async () => {
     const g = parseFloat(prevGpa), c = parseInt(prevCr), ms = parseFloat(minSemGpa);
     if (isNaN(g) || isNaN(c)) return;
-    onDone(
-      {
-        lang,
-        scaleId,
-        grades: scale.grades,
-        totalReq: resolvedTotalReq,
-        isBenha: scale.isBenha,
-        uniName: uniName || (scaleId === "benha" ? "جامعة بنها · كلية العلوم" : ""),
-        major,
-        prevGpa: g,
-        prevCr: c,
-        semester,
-        hasFailed,
-        minPrevSemGpa: isNaN(ms) ? g : ms,
-        gradTarget,
-        currentLevel,
-      },
-      pendingSems.length ? pendingSems : undefined,
-    );
+    setSaving(true);
+    setErr("");
+    try {
+      await onDone(
+        {
+          lang,
+          scaleId,
+          grades: scale.grades,
+          totalReq: resolvedTotalReq,
+          isBenha: scale.isBenha,
+          uniName: uniName || (scaleId === "benha" ? "جامعة بنها · كلية العلوم" : ""),
+          major,
+          prevGpa: g,
+          prevCr: c,
+          semester,
+          hasFailed,
+          minPrevSemGpa: isNaN(ms) ? g : ms,
+          gradTarget,
+          currentLevel,
+        },
+        pendingSems.length ? pendingSems : undefined,
+      );
+    } catch (e: any) {
+      setErr((ar ? "فشل الحفظ: " : "Save failed: ") + (e?.message ?? "error"));
+    } finally {
+      setSaving(false);
+    }
   };
+
 
   const handleAnalyzeFile = async (file: File) => {
     setAiMsg("");
