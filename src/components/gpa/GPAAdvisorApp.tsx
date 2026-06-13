@@ -1100,7 +1100,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
   const newId = useIdGen();
 
   const [courses, setCourses] = useState<Course[]>([]);
-  const [tab, setTab] = useState("courses");
+  const [tab, setTab] = useState("record");
   const [cmpA, setCmpA] = useState(0);
   const [cmpB, setCmpB] = useState(1);
   const [targetGpa, setTargetGpa] = useState(gradTarget || 3.0);
