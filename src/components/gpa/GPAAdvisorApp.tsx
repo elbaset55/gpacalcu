@@ -294,29 +294,38 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
   };
   const back = () => setStep((s) => s - 1);
 
-  const submit = () => {
+  const submit = async () => {
     const g = parseFloat(prevGpa), c = parseInt(prevCr), ms = parseFloat(minSemGpa);
     if (isNaN(g) || isNaN(c)) return;
-    onDone(
-      {
-        lang,
-        scaleId,
-        grades: scale.grades,
-        totalReq: resolvedTotalReq,
-        isBenha: scale.isBenha,
-        uniName: uniName || (scaleId === "benha" ? "جامعة بنها · كلية العلوم" : ""),
-        major,
-        prevGpa: g,
-        prevCr: c,
-        semester,
-        hasFailed,
-        minPrevSemGpa: isNaN(ms) ? g : ms,
-        gradTarget,
-        currentLevel,
-      },
-      pendingSems.length ? pendingSems : undefined,
-    );
+    setSaving(true);
+    setErr("");
+    try {
+      await onDone(
+        {
+          lang,
+          scaleId,
+          grades: scale.grades,
+          totalReq: resolvedTotalReq,
+          isBenha: scale.isBenha,
+          uniName: uniName || (scaleId === "benha" ? "جامعة بنها · كلية العلوم" : ""),
+          major,
+          prevGpa: g,
+          prevCr: c,
+          semester,
+          hasFailed,
+          minPrevSemGpa: isNaN(ms) ? g : ms,
+          gradTarget,
+          currentLevel,
+        },
+        pendingSems.length ? pendingSems : undefined,
+      );
+    } catch (e: any) {
+      setErr((ar ? "فشل الحفظ: " : "Save failed: ") + (e?.message ?? "error"));
+    } finally {
+      setSaving(false);
+    }
   };
+
 
   const handleAnalyzeFile = async (file: File) => {
     setAiMsg("");
@@ -867,6 +876,7 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
           )}
           <button
             onClick={next}
+            disabled={saving}
             style={{
               flex: 2,
               padding: 13,
@@ -877,11 +887,22 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
               fontSize: 14,
               fontWeight: 700,
               fontFamily: FONT,
-              cursor: "pointer",
+              cursor: saving ? "wait" : "pointer",
+              opacity: saving ? 0.6 : 1,
               boxShadow: "0 0 20px var(--gpa-accent-20)",
             }}
           >
-            {step < STEPS.length - 1 ? (ar ? "التالي →" : "Next →") : ar ? "ابدأ التخطيط 🚀" : "Start Planning 🚀"}
+            {saving
+              ? ar
+                ? "جاري الحفظ..."
+                : "Saving..."
+              : step < STEPS.length - 1
+              ? ar
+                ? "التالي →"
+                : "Next →"
+              : ar
+              ? "ابدأ التخطيط 🚀"
+              : "Start Planning 🚀"}
           </button>
         </div>
       </div>
@@ -1100,7 +1121,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
   const newId = useIdGen();
 
   const [courses, setCourses] = useState<Course[]>([]);
-  const [tab, setTab] = useState("courses");
+  const [tab, setTab] = useState("record");
   const [cmpA, setCmpA] = useState(0);
   const [cmpB, setCmpB] = useState(1);
   const [targetGpa, setTargetGpa] = useState(gradTarget || 3.0);
@@ -1333,6 +1354,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
 
   const TABS = ar
     ? [
+        ["record", "📚 سجلّي"],
         ["courses", "📋 المواد"],
         ["target", "🎯 الهدف"],
         ["whatif", "🔬 ماذا لو"],
@@ -1344,6 +1366,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         ["scale", "🧮 السكيل"],
       ]
     : [
+        ["record", "📚 My Record"],
         ["courses", "📋 Courses"],
         ["target", "🎯 Target"],
         ["whatif", "🔬 What-If"],
@@ -1636,6 +1659,138 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
       </div>
 
       <div style={{ padding: "12px 13px 0" }}>
+        {/* MY RECORD — saved academic transcript */}
+        {tab === "record" && (
+          <div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4,1fr)",
+                gap: 8,
+                marginBottom: 14,
+              }}
+            >
+              {chip(ar ? "التراكمي" : "CGPA", cumGpa.toFixed(2), gpaClr(cumGpa))}
+              {chip(ar ? "الساعات" : "Credits", `${newCr}`, "var(--gpa-accent)")}
+              {chip(ar ? "المستوى" : "Level", `${lv.maxFail ? profile.currentLevel : 1}`, "var(--gpa-accent-2)")}
+              {chip(
+                ar ? "المواد" : "Courses",
+                `${history.reduce((a: number, h: any) => a + (h.courses?.length ?? 0), 0)}`,
+                "var(--gpa-text-strong)",
+              )}
+            </div>
+
+            {(() => {
+              const missing = history.reduce(
+                (a: number, h: any) => a + (h.courses?.filter((c: any) => !c.grade).length ?? 0),
+                0,
+              );
+              if (missing > 0)
+                return (
+                  <div
+                    style={{
+                      background: "var(--gpa-danger-15)",
+                      border: "1px solid var(--gpa-danger-33)",
+                      borderRadius: 10,
+                      padding: "9px 12px",
+                      marginBottom: 12,
+                      fontSize: 11,
+                      color: "var(--gpa-danger)",
+                    }}
+                  >
+                    ⚠️{" "}
+                    {ar
+                      ? `${missing} مادة بدون تقدير — افتح تبويب "التحليل" وأعد رفع كشف أوضح أو عدّل التقدير يدوياً.`
+                      : `${missing} course(s) without a grade — open the "Analysis" tab to re-upload a clearer transcript or fix manually.`}
+                  </div>
+                );
+              return null;
+            })()}
+
+            {history.length === 0 ? (
+              <div
+                style={{
+                  ...card,
+                  textAlign: "center",
+                  color: "var(--gpa-text-faint)",
+                  fontSize: 13,
+                  padding: 28,
+                }}
+              >
+                {ar
+                  ? "لا يوجد سجل بعد. افتح تبويب \"التحليل\" وارفع كشف الدرجات لاستخراج موادك تلقائياً."
+                  : 'No record yet. Open the "Analysis" tab and upload your transcript to extract your courses.'}
+              </div>
+            ) : (
+              history.map((sem: any, i: number) => {
+                const st = standing(sem.cumGpa);
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      background: "var(--gpa-card)",
+                      border: "1px solid var(--gpa-border)",
+                      borderRadius: 12,
+                      padding: 14,
+                      marginBottom: 10,
+                      borderInlineStart: `3px solid ${st.clr}`,
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, alignItems: "center" }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gpa-text-soft)" }}>{sem.label}</div>
+                      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                        <span style={{ fontSize: 11, color: "var(--gpa-text-faint)" }}>
+                          {ar ? "فصلي" : "Term"}{" "}
+                          <b style={{ color: gpaClr(sem.semGpa) }}>{sem.semGpa.toFixed(2)}</b>
+                        </span>
+                        <span style={{ fontSize: 11, color: "var(--gpa-text-faint)" }}>
+                          {sem.cr} {ar ? "س" : "cr"}
+                        </span>
+                        <span style={{ fontSize: 18, fontWeight: 900, color: st.clr }}>{sem.cumGpa.toFixed(2)}</span>
+                      </div>
+                    </div>
+                    {sem.courses?.length > 0 && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                        {sem.courses.map((c: any, j: number) => (
+                          <div
+                            key={j}
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              background: "var(--gpa-surface-alpha-06)",
+                              borderRadius: 8,
+                              padding: "6px 10px",
+                            }}
+                          >
+                            <span style={{ fontSize: 12, color: "var(--gpa-text-soft)" }}>{c.name || "—"}</span>
+                            <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                              <span style={{ fontSize: 10, color: "var(--gpa-text-faintest)" }}>
+                                {c.cr} {ar ? "س" : "cr"}
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: 11,
+                                  fontWeight: 800,
+                                  color: c.grade ? gc(c.grade, grades) : "var(--gpa-danger)",
+                                  minWidth: 34,
+                                  textAlign: "center",
+                                }}
+                              >
+                                {c.grade ? ga(c.grade, grades) : ar ? "؟" : "?"}
+                              </span>
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+
         {/* COURSES */}
         {tab === "courses" && (
           <div>
@@ -2721,6 +2876,28 @@ export default function GPAAdvisorApp() {
     return (
       <SetupScreen
         onDone={async (p, sems) => {
+          // Save semesters/courses FIRST so they exist before the profile
+          // query invalidation swaps this screen out for the Planner.
+          if (sems?.length) {
+            for (const s of sems) {
+              if (!s.courses?.length) continue;
+              await saveSemesterFn({
+                data: {
+                  label: (s.label || "فصل").slice(0, 80),
+                  sem_type: s.sem_type || "1",
+                  year: s.year ?? null,
+                  courses: s.courses.slice(0, 20).map((c) => ({
+                    name: (c.name || "—").slice(0, 120),
+                    code: (c.code ?? "").slice(0, 40),
+                    credits: Math.max(0, Math.min(12, Math.round(c.credits || 0))),
+                    grade_letter: c.grade_letter ? c.grade_letter.slice(0, 8) : null,
+                    grade_pts:
+                      c.grade_pts == null ? null : Math.max(0, Math.min(4, Number(c.grade_pts))),
+                  })),
+                },
+              });
+            }
+          }
           await saveProfileMut.mutateAsync({
             data: {
               lang: p.lang,
@@ -2738,26 +2915,7 @@ export default function GPAAdvisorApp() {
               current_level: p.currentLevel,
             },
           });
-          if (sems?.length) {
-            for (const s of sems) {
-              if (!s.courses?.length) continue;
-              await saveSemesterFn({
-                data: {
-                  label: s.label,
-                  sem_type: s.sem_type || "1",
-                  year: s.year ?? null,
-                  courses: s.courses.slice(0, 20).map((c) => ({
-                    name: c.name || "—",
-                    code: c.code ?? "",
-                    credits: c.credits,
-                    grade_letter: c.grade_letter ?? null,
-                    grade_pts: c.grade_pts ?? null,
-                  })),
-                },
-              });
-            }
-            queryClient.invalidateQueries({ queryKey: ["semesters"] });
-          }
+          queryClient.invalidateQueries({ queryKey: ["semesters"] });
         }}
       />
 
