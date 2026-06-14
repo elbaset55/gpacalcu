@@ -5,7 +5,7 @@ export const Route = createFileRoute("/")({
     if (typeof window === "undefined") {
       // Server-side: send a 302 to /login immediately — no white screen.
       // If the user has a valid session, _authenticated layout handles the auth guard.
-      throw redirect({ to: "/login" });
+      throw redirect({ to: "/login", search: { redirect: "/" } });
     }
     // Client-side: check cookie directly
     const hasSid = /(?:^|;\s*)termly_sid=/.test(document.cookie);

@@ -1,6 +1,6 @@
 import * as client from "openid-client";
 import { createMiddleware } from "@tanstack/react-start";
-import { getWebRequest } from "@tanstack/react-start/server";
+import { getRequest as getWebRequest } from "@tanstack/react-start/server";
 import pg from "pg";
 
 const { Pool } = pg;

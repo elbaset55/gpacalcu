@@ -18,6 +18,7 @@ import {
   LogOut,
   X as XIcon,
 } from "lucide-react";
+import { TermlyAppShell } from "./TermlyAppShell";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -1428,17 +1429,39 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
 
 
   return (
-    <div
+    <TermlyAppShell
+      tab={tab}
+      onTabChange={setTab}
+      tabs={TABS}
+      lang={lang}
       dir={dir}
-      style={{
-        fontFamily: FONT,
-        background: "var(--gpa-bg)",
-        backgroundImage: "var(--gpa-dot-pattern, none)",
-        backgroundSize: "var(--gpa-dot-size, 28px 28px)",
-        minHeight: "100vh",
-        color: "var(--gpa-text-strong)",
-        paddingBottom: 70,
-      }}
+      theme={theme}
+      onThemeChange={setTheme}
+      cumGpa={cumGpa}
+      prevGpa={prevGpa}
+      semGpa={semGpa}
+      semCr={semCr}
+      newCr={newCr}
+      totalReq={totalReq}
+      remCr={remCr}
+      currentLevel={currentLevel}
+      uniName={uniName}
+      major={major || ""}
+      standLabel={stand.label}
+      standEn={stand.en}
+      standClr={stand.clr}
+      standEmoji={stand.emoji}
+      isGuest={isGuest}
+      onLogout={handleLogout}
+      onReset={onReset}
+      onNavigateProfile={() => navigate({ to: "/profile" })}
+      onShowHistory={() => setModal("history")}
+      onShowPctConverter={() => setModal("pct")}
+      onShowReminders={() => setModal("reminders")}
+      onShowShare={() => setModal("share")}
+      onExport={exportData}
+      onPrint={printPdf}
+      onImport={triggerImport}
     >
       {toast && <Toast msg={toast.msg} ok={toast.ok} />}
       {modal === "history" && (
@@ -1460,173 +1483,8 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
           honors={!!(isBenha && honorOk.ok)}
         />
       )}
+      <input ref={fileRef} type="file" accept="application/json,.json" onChange={handleImportFile} style={{ display: "none" }} />
 
-      {/* HEADER */}
-      <div
-        style={{
-          background: "linear-gradient(160deg, var(--gpa-bg) 0%, var(--gpa-bg-soft) 60%, var(--gpa-bg) 100%)",
-          padding: "16px 14px 14px",
-          borderBottom: "1px solid var(--gpa-border)",
-          boxShadow: "0 1px 16px rgba(0,0,0,0.2)",
-          position: "relative",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Logo height={26} />
-
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--gpa-text-soft)" }}>{uniName || (ar ? "جامعة" : "University")}</div>
-              {major && <div style={{ fontSize: 10, color: "var(--gpa-text-faint)" }}>{major}</div>}
-            </div>
-          </div>
-          <div className="gpa-no-print" style={{ display: "flex", gap: 6, alignItems: "center", position: "relative" }}>
-            <ThemeSwitcher theme={theme} onChange={setTheme} />
-            <input ref={fileRef} type="file" accept="application/json,.json" onChange={handleImportFile} style={{ display: "none" }} />
-            <button
-              onClick={() => setMenuOpen((o) => !o)}
-              aria-label={ar ? "القائمة" : "Menu"}
-              aria-expanded={menuOpen}
-              style={{ ...iconBtn, display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 12px", fontSize: 13, fontWeight: 700 }}
-            >
-              {menuOpen ? <XIcon size={16} /> : <MenuIcon size={16} />}
-              <span>{ar ? "القائمة" : "Menu"}</span>
-            </button>
-
-            {menuOpen && (
-              <>
-                <div onClick={() => setMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
-                <div
-                  role="menu"
-                  style={{
-                    position: "absolute",
-                    top: "calc(100% + 8px)",
-                    insetInlineEnd: 0,
-                    zIndex: 41,
-                    minWidth: 210,
-                    background: "var(--gpa-card)",
-                    border: "1px solid var(--gpa-border)",
-                    borderRadius: 14,
-                    padding: 6,
-                    boxShadow: "var(--gpa-shadow)",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 2,
-                    animation: "gpa-menu-in 0.22s cubic-bezier(0.22,1,0.36,1) both",
-                    transformOrigin: "top right",
-                  }}
-                >
-                  {([
-                    { Icon: CalendarDays, label: ar ? "السجل" : "History", run: () => setModal("history") },
-                    { Icon: Percent, label: ar ? "محوّل النسبة" : "Percent converter", run: () => setModal("pct") },
-                    { Icon: Bell, label: ar ? "التذكيرات" : "Reminders", run: () => setModal("reminders") },
-                    { Icon: Share2, label: ar ? "مشاركة الإنجاز" : "Share achievement", run: () => setModal("share") },
-                    { Icon: Printer, label: ar ? "طباعة / PDF" : "Print / PDF", run: () => printPdf() },
-                    { Icon: Download, label: ar ? "تنزيل نسخة (JSON)" : "Export JSON", run: () => exportData() },
-                    { Icon: Upload, label: ar ? "استيراد نسخة" : "Import JSON", run: () => triggerImport() },
-                    { Icon: User, label: ar ? "حسابي" : "Account", run: () => navigate({ to: "/profile" }) },
-                  ] as const).map(({ Icon, label, run }) => (
-                    <button
-                      key={label}
-                      role="menuitem"
-                      onClick={() => { setMenuOpen(false); run(); }}
-                      style={menuItem}
-                    >
-                      <Icon size={17} style={{ flexShrink: 0 }} />
-                      <span>{label}</span>
-                    </button>
-                  ))}
-
-                  <div style={{ height: 1, background: "var(--gpa-border)", margin: "4px 2px" }} />
-
-                  <button
-                    role="menuitem"
-                    onClick={() => { setMenuOpen(false); onReset(); }}
-                    style={{ ...menuItem, color: "var(--gpa-danger)" }}
-                  >
-                    <RotateCcw size={17} style={{ flexShrink: 0 }} />
-                    <span>{ar ? "إعادة تعيين" : "Reset"}</span>
-                  </button>
-                  <button
-                    role="menuitem"
-                    onClick={() => { setMenuOpen(false); handleLogout(); }}
-                    style={{ ...menuItem, color: "var(--gpa-danger)" }}
-                  >
-                    <LogOut size={17} style={{ flexShrink: 0 }} />
-                    <span>{ar ? "تسجيل الخروج" : "Logout"}</span>
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 7, marginBottom: 8 }}>
-          {chip(ar ? "السابق" : "Prev", prevGpa.toFixed(3), gpaClr(prevGpa))}
-          {chip(ar ? "الفصل" : "Sem", semCr ? semGpa.toFixed(3) : "—", semCr ? gpaClr(semGpa) : "var(--gpa-text-faint)")}
-          {chip(ar ? "التراكمي" : "CGPA", cumGpa.toFixed(3), gpaClr(cumGpa))}
-        </div>
-
-        <div
-          style={{
-            padding: "6px 14px",
-            borderRadius: 8,
-            textAlign: "center",
-            background: `${stand.clr}12`,
-            border: `1px solid ${stand.clr}33`,
-            marginBottom: 8,
-          }}
-        >
-          <span style={{ fontSize: 12, fontWeight: 700, color: stand.clr }}>
-            {stand.emoji} {ar ? stand.label : stand.en}
-            {isBenha && honorOk.ok ? " 🏆 " + (ar ? "مرتبة الشرف" : "Honors") : ""}
-          </span>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7, marginBottom: 8 }}>
-          <div style={{ background: "var(--gpa-surface-alpha-06)", borderRadius: 8, padding: "7px 10px" }}>
-            <div style={{ fontSize: 9, color: "var(--gpa-text-faint)" }}>{ar ? "المستوى" : "Level"}</div>
-            <div style={{ fontSize: 11, color: lv.clr, fontWeight: 700, marginTop: 2 }}>
-              {ar ? lv.ar : lv.en}
-            </div>
-          </div>
-          <div style={{ background: "var(--gpa-surface-alpha-06)", borderRadius: 8, padding: "7px 10px" }}>
-            <div style={{ fontSize: 9, color: "var(--gpa-text-faint)" }}>{ar ? "الحد الأقصى" : "Max Load"}</div>
-            <div style={{ fontSize: 11, color: ld.clr, fontWeight: 700, marginTop: 2 }}>
-              ≤ {ld.max} {ar ? "ساعة" : "cr"}
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--gpa-text-faintest)", marginBottom: 3 }}>
-            <span>
-              {ar ? "مكتسب" : "Earned"}: {prevCr} + {semCr} = {newCr}
-            </span>
-            <span>
-              {remCr}
-              {ar ? "س متبقية" : "cr left"} / {totalReq}
-            </span>
-          </div>
-          <div style={{ height: 6, background: "var(--gpa-card-elevated)", borderRadius: 4, overflow: "hidden", display: "flex" }}>
-            <div
-              style={{
-                width: `${Math.min((prevCr / totalReq) * 100, 100)}%`,
-                background: "var(--gpa-text-faintest)",
-                transition: "width .5s",
-              }}
-            />
-            <div
-              style={{
-                width: `${Math.min((semCr / totalReq) * 100, 100 - (prevCr / totalReq) * 100)}%`,
-                background: gpaClr(cumGpa),
-                boxShadow: `0 0 8px ${gpaClr(cumGpa)}88`,
-                transition: "width .5s",
-              }}
-            />
-          </div>
-        </div>
-      </div>
 
       {/* SMART ALERTS */}
       {alerts.length > 0 && (
@@ -1658,50 +1516,6 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
           })}
         </div>
       )}
-
-      {/* TABS */}
-      <div
-        style={{
-          display: "flex",
-          background: "var(--gpa-bg-soft)",
-          borderBottom: "1px solid var(--gpa-border)",
-          overflowX: "auto",
-          scrollbarWidth: "none",
-          msOverflowStyle: "none",
-          padding: "0 4px",
-          gap: 2,
-        }}
-      >
-        {TABS.map(([id, label]) => {
-          const active = tab === id;
-          return (
-            <button
-              key={id}
-              onClick={() => setTab(id)}
-              style={{
-                flex: 1,
-                padding: "10px 4px 9px",
-                background: active
-                  ? "linear-gradient(180deg, var(--gpa-accent-12), transparent)"
-                  : "none",
-                border: "none",
-                borderBottom: active ? "2px solid var(--gpa-accent)" : "2px solid transparent",
-                borderRadius: "6px 6px 0 0",
-                color: active ? "var(--gpa-accent)" : "var(--gpa-text-faintest)",
-                fontSize: 10,
-                fontFamily: FONT,
-                fontWeight: active ? 700 : 500,
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-                transition: "all 0.2s ease",
-                minWidth: 60,
-              }}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
 
       <div key={tab} style={{ padding: "12px 13px 0", animation: "gpa-tab-in 0.28s cubic-bezier(0.22,1,0.36,1) both" }}>
         {/* MY RECORD — saved academic transcript */}
@@ -2822,15 +2636,10 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
         @keyframes gpa-slide-toast{from{opacity:0;transform:translateX(-50%) translateY(-16px) scale(0.92)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
         *{box-sizing:border-box}
         input[type=range]{width:100%}
-        ::-webkit-scrollbar{width:4px;height:4px}
-        ::-webkit-scrollbar-track{background:transparent}
-        ::-webkit-scrollbar-thumb{background:var(--gpa-border);border-radius:4px}
-        ::-webkit-scrollbar-thumb:hover{background:var(--gpa-accent-44)}
         select option{background:var(--gpa-card)}
         .gpa-tab-hide-scroll::-webkit-scrollbar{display:none}
-        button:hover{filter:brightness(1.08)}
       `}</style>
-    </div>
+    </TermlyAppShell>
   );
 }
 

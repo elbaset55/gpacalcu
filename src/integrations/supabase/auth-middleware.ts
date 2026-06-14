@@ -1,5 +1,5 @@
 import { createMiddleware } from "@tanstack/react-start";
-import { getWebRequest } from "@tanstack/react-start/server";
+import { getRequest as getWebRequest } from "@tanstack/react-start/server";
 import { query } from "@/integrations/replit/db";
 
 export interface ReplitUser {
