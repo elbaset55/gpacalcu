@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { streamText } from "ai";
 import { z } from "zod";
-import { createLovableAiGatewayProvider } from "./ai-gateway";
+import { getAiModel } from "./ai-gateway";
 
 const msgSchema = z.object({ role: z.enum(["user", "assistant"]), content: z.string().min(1).max(4000) });
 
@@ -16,10 +16,7 @@ export const chatWithAdvisor = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((i: unknown) => input.parse(i))
   .handler(async function* ({ data }) {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("LOVABLE_API_KEY missing");
-    const gateway = createLovableAiGatewayProvider(key);
-    const model = gateway("google/gemini-2.5-flash");
+    const model = getAiModel("google/gemini-2.5-flash");
     const ar = data.lang === "ar";
 
     const sys = ar

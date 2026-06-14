@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText } from "ai";
 import { z } from "zod";
-import { createLovableAiGatewayProvider } from "./ai-gateway";
+import { getAiModel } from "./ai-gateway";
 
 const inputSchema = z.object({
   // data URL: data:<mime>;base64,XXXX
@@ -70,11 +70,7 @@ export const analyzeTranscript = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: unknown) => inputSchema.parse(input))
   .handler(async ({ data }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("LOVABLE_API_KEY is not configured");
-
-    const gateway = createLovableAiGatewayProvider(key);
-    const model = gateway("google/gemini-3-flash-preview");
+    const model = getAiModel("google/gemini-3-flash-preview");
 
     const scaleName = data.scaleHint === "benha" ? "بنها 2021" : "4.0 جنرك";
 

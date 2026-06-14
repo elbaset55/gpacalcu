@@ -1,0 +1,347 @@
+You are a senior security engineer, full-stack architect, and production-grade code fixer.
+
+You are working on an existing production web application built with:
+
+- React + TypeScript
+- Supabase (Auth, Database, Storage, Edge Functions)
+- TanStack Router
+- React Query
+- AI endpoints (chat, transcript analysis, roadmap generation, academic advisor)
+- Serverless functions integrated with external AI providers (Gemini/OpenAI)
+
+IMPORTANT:
+
+You are NOT auditing the codebase.
+
+A previous security and architecture review has already identified REAL confirmed issues.
+
+Assume all findings below are valid and must be fixed.
+
+Your job is to:
+
+- Locate each vulnerable implementation
+- Understand surrounding architecture before changing code
+- Fix every issue safely
+- Preserve all existing application behavior
+- Avoid breaking backward compatibility
+- Refactor where needed
+- Use production-grade solutions only
+- Do not use temporary patches or hacky fixes
+- If one fix affects architecture, refactor dependent files too
+
+Do not question whether the issues exist.
+
+Treat them as confirmed bugs.
+
+For each issue:
+
+1. Find the vulnerable code
+2. Explain root cause
+3. Implement the safest fix
+4. Check for side effects elsewhere
+5. Update related files if architecture requires it
+6. Preserve UX consistency
+7. Keep TypeScript types strict
+8. Do not leave partial implementations
+
+----------------------------------------
+CRITICAL ISSUES
+----------------------------------------
+
+1) SSR AUTH BYPASS
+
+File:
+src/routes/_authenticated.tsx
+
+Current code:
+
+beforeLoad: async ({ location }) => {
+  if (typeof window === "undefined") return;
+}
+
+Problem:
+
+Authentication guard is completely skipped during SSR.
+
+Protected routes may render without validating JWT.
+
+Required fix:
+
+- Remove client-only auth guard logic
+- Validate session server-side
+- Use Supabase SSR session validation
+- Prevent protected content from rendering before auth verification
+
+----------------------------------------
+
+2) INCOMPLETE ACCOUNT DELETION (ZOMBIE ACCOUNT)
+
+File:
+src/routes/_authenticated/profile.tsx
+
+Current behavior:
+
+Deletes relational database data only.
+
+User remains inside Supabase Auth.
+
+Problem:
+
+- auth.users still contains account
+- user expects permanent deletion
+- identity remains active
+
+Required fix:
+
+- Move deletion flow to secure server-side function
+- Delete relational records
+- Then call:
+
+supabaseAdmin.auth.admin.deleteUser(userId)
+
+- Ensure atomic deletion workflow
+- Handle rollback on failure
+
+----------------------------------------
+
+3) RESET PASSWORD SESSION VALIDATION BUG
+
+File:
+src/routes/reset-password.tsx
+
+Current code:
+
+supabase.auth.getSession().then(({ data }) => {
+  if (data.session) setReady(true);
+})
+
+Problem:
+
+Any active session enables password reset page.
+
+Required fix:
+
+Allow password reset ONLY when auth event equals:
+
+PASSWORD_RECOVERY
+
+Implement proper auth state listener.
+
+----------------------------------------
+
+4) NO RATE LIMITING ON AI ENDPOINTS
+
+Files:
+
+advisor.functions.ts
+chat.functions.ts
+roadmap.functions.ts
+transcript.functions.ts
+
+Problem:
+
+Unlimited AI requests.
+
+Possible budget exhaustion attack.
+
+Required fix:
+
+Implement server-side rate limiting.
+
+Requirements:
+
+- Per user limit
+- Hourly quota
+- Daily quota
+- Store counters in Supabase table or Redis
+- Reject excessive requests
+- Return proper status codes
+
+----------------------------------------
+HIGH ISSUES
+----------------------------------------
+
+5) OPEN REDIRECT ON LOGIN
+
+File:
+src/routes/login.tsx
+
+Problem:
+
+redirect parameter accepts unsafe values.
+
+Example:
+
+/login?redirect=//evil.com
+
+Required fix:
+
+Only allow internal relative paths.
+
+Reject:
+
+- //
+- http://
+- https://
+
+Fallback:
+
+/app
+
+----------------------------------------
+
+6) JWT STORED IN LOCALSTORAGE
+
+File:
+src/integrations/supabase/client.ts
+
+Problem:
+
+XSS can steal auth token.
+
+Required fix:
+
+- Migrate to secure cookie-based auth
+- Prefer HttpOnly cookies
+- Implement Supabase SSR helpers
+- Minimize token exposure
+
+----------------------------------------
+
+7) ACCOUNT ENUMERATION IN FORGOT PASSWORD
+
+File:
+src/routes/forgot-password.tsx
+
+Problem:
+
+Different responses reveal whether email exists.
+
+Required fix:
+
+- Always return same UI response
+- Add constant response delay
+- Prevent email enumeration
+
+----------------------------------------
+DATA VALIDATION ISSUES
+----------------------------------------
+
+8) MIME TYPE VALIDATION TOO WEAK
+
+File:
+src/lib/transcript.functions.ts
+
+Current:
+
+mimeType: z.string()
+
+Required fix:
+
+Allow only:
+
+- application/pdf
+- image/jpeg
+- image/png
+- image/webp
+
+Reject all others.
+
+----------------------------------------
+
+9) DUPLICATE SEMESTERS RACE CONDITION
+
+File:
+src/lib/profile.functions.ts
+
+Current:
+
+.insert()
+
+Problem:
+
+Double click creates duplicates.
+
+Required fix:
+
+- Add unique database constraint:
+
+(user_id, label)
+
+- Use upsert or conflict handling
+- Prevent duplicate creation
+
+----------------------------------------
+
+10) INVALID CREDIT VALUE
+
+Problem:
+
+credits allows 0
+
+Current:
+
+min(0)
+
+Required fix:
+
+Change to:
+
+min(1)
+
+Recalculate GPA logic safely.
+
+----------------------------------------
+UX ISSUES
+----------------------------------------
+
+11) Translate Supabase backend errors to Arabic UI messages.
+
+12) Add file size validation before upload.
+
+13) Add autocomplete attributes for password fields.
+
+14) Add aria-label to icon buttons.
+
+15) Add skeleton loading states.
+
+16) Preserve AI streaming state when switching tabs.
+
+----------------------------------------
+PERFORMANCE ISSUES
+----------------------------------------
+
+17) Remove key={tab} remount behavior.
+
+18) Add React Query staleTime caching.
+
+19) Split GPAAdvisorApp.tsx into modular components.
+
+20) Optimize font loading.
+
+----------------------------------------
+CODE QUALITY
+----------------------------------------
+
+21) Remove unnecessary any casts.
+
+22) Add error boundaries around charts.
+
+23) Validate imported JSON before state assignment.
+
+24) Add streaming failure recovery logic.
+
+----------------------------------------
+
+RULES:
+
+- Fix code directly
+- Do not merely suggest fixes
+- Modify architecture if needed
+- Search for related hidden bugs in nearby files
+- If fixing one issue reveals deeper architectural flaws, fix those too
+- Produce production-ready code only
+- Never leave TODO comments
+- Never provide theoretical answers only
+
+Act as if this code will immediately deploy to production after your changes.
