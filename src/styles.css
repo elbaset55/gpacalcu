@@ -134,6 +134,8 @@
    ════════════════════════════════════════════════════ */
 [data-gpa-theme="dark"] {
   --gpa-bg: #05060f;
+  --gpa-dot-pattern: radial-gradient(circle, rgba(79,255,176,0.04) 1px, transparent 1px);
+  --gpa-dot-size: 28px 28px;
   --gpa-bg-soft: #080b18;
   --gpa-card: #0c0f1e;
   --gpa-card-elevated: #12172e;
@@ -196,6 +198,8 @@
 
 [data-gpa-theme="light"] {
   --gpa-bg: #f4f6fb;
+  --gpa-dot-pattern: radial-gradient(circle, rgba(32,84,224,0.045) 1px, transparent 1px);
+  --gpa-dot-size: 28px 28px;
   --gpa-bg-soft: #eaeefc;
   --gpa-card: #ffffff;
   --gpa-card-elevated: #f8faff;
@@ -258,6 +262,8 @@
 
 [data-gpa-theme="hc"] {
   --gpa-bg: #000000;
+  --gpa-dot-pattern: none;
+  --gpa-dot-size: auto;
   --gpa-bg-soft: #000000;
   --gpa-card: #000000;
   --gpa-card-elevated: #000000;
@@ -414,6 +420,26 @@
 @keyframes gpa-tab-slide {
   from { opacity: 0; transform: translateX(-8px); }
   to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes gpa-tab-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes gpa-menu-in {
+  from { opacity: 0; transform: scale(0.92) translateY(-12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes gpa-chip-in {
+  from { opacity: 0; transform: scale(0.88) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes gpa-modal-in {
+  from { opacity: 0; transform: scale(0.94) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 @keyframes fadeSlide {

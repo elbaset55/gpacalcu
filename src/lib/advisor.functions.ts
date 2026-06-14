@@ -34,7 +34,7 @@ const input = z.object({
 
 export const askAdvisor = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => input.parse(i))
+  .validator((i: unknown) => input.parse(i))
   .handler(async ({ data }) => {
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Error("LOVABLE_API_KEY missing");

@@ -7,6 +7,7 @@ import { ThemeSwitcher } from "@/components/gpa/ThemeSwitcher";
 import { LangSwitcher } from "@/components/gpa/LangSwitcher";
 import { useLang } from "@/lib/use-lang";
 import { Logo } from "@/components/gpa/Logo";
+import { AppBackground } from "@/components/gpa/AppBackground";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -102,59 +103,6 @@ function AppleIcon() {
   );
 }
 
-function FloatingOrbs({ theme }: { theme: string }) {
-  const isDark = theme === "dark";
-  if (theme === "hc") return null;
-  return (
-    <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
-      <div style={{
-        position: "absolute",
-        top: "-15%",
-        right: "-10%",
-        width: "55vw",
-        height: "55vw",
-        maxWidth: 600,
-        maxHeight: 600,
-        borderRadius: "50%",
-        background: isDark
-          ? "radial-gradient(circle, rgba(79,255,176,0.12) 0%, rgba(124,131,245,0.08) 40%, transparent 70%)"
-          : "radial-gradient(circle, rgba(32,84,224,0.10) 0%, rgba(91,96,232,0.06) 40%, transparent 70%)",
-        filter: "blur(40px)",
-        animation: "gpa-orb-drift 18s ease-in-out infinite",
-      }} />
-      <div style={{
-        position: "absolute",
-        bottom: "-20%",
-        left: "-15%",
-        width: "60vw",
-        height: "60vw",
-        maxWidth: 650,
-        maxHeight: 650,
-        borderRadius: "50%",
-        background: isDark
-          ? "radial-gradient(circle, rgba(168,85,247,0.10) 0%, rgba(56,217,245,0.06) 40%, transparent 70%)"
-          : "radial-gradient(circle, rgba(109,40,217,0.08) 0%, rgba(6,145,200,0.06) 40%, transparent 70%)",
-        filter: "blur(50px)",
-        animation: "gpa-orb-drift2 22s ease-in-out infinite",
-      }} />
-      <div style={{
-        position: "absolute",
-        top: "40%",
-        left: "30%",
-        width: "40vw",
-        height: "40vw",
-        maxWidth: 400,
-        maxHeight: 400,
-        borderRadius: "50%",
-        background: isDark
-          ? "radial-gradient(circle, rgba(124,131,245,0.07) 0%, transparent 60%)"
-          : "radial-gradient(circle, rgba(32,84,224,0.06) 0%, transparent 60%)",
-        filter: "blur(60px)",
-        animation: "gpa-orb-drift3 28s ease-in-out infinite",
-      }} />
-    </div>
-  );
-}
 
 function StatBadge({ value, label, color, delay }: { value: string; label: string; color: string; delay: string }) {
   return (
@@ -302,7 +250,7 @@ function LoginPage() {
 
   return (
     <div dir={dir} style={bgStyle}>
-      <FloatingOrbs theme={theme} />
+      <AppBackground theme={theme} variant="login" />
 
       <div style={{
         width: "100%",

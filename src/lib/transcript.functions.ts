@@ -68,7 +68,7 @@ function dataUrlToBase64(fileDataUrl: string, fallbackMime: string) {
 
 export const analyzeTranscript = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => inputSchema.parse(input))
+  .validator((input: unknown) => inputSchema.parse(input))
   .handler(async ({ data }) => {
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Error("LOVABLE_API_KEY is not configured");

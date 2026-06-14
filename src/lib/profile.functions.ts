@@ -33,7 +33,7 @@ export const getProfile = createServerFn({ method: "GET" })
 
 export const saveProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => profileSchema.parse(input))
+  .validator((input: unknown) => profileSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { error } = await supabase
@@ -73,7 +73,7 @@ const saveSemesterSchema = z.object({
 
 export const saveSemester = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => saveSemesterSchema.parse(input))
+  .validator((input: unknown) => saveSemesterSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { data: sem, error: e1 } = await supabase

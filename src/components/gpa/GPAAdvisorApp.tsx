@@ -1428,6 +1428,8 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
       style={{
         fontFamily: FONT,
         background: "var(--gpa-bg)",
+        backgroundImage: "var(--gpa-dot-pattern, none)",
+        backgroundSize: "var(--gpa-dot-size, 28px 28px)",
         minHeight: "100vh",
         color: "var(--gpa-text-strong)",
         paddingBottom: 70,
@@ -1505,6 +1507,8 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                     display: "flex",
                     flexDirection: "column",
                     gap: 2,
+                    animation: "gpa-menu-in 0.22s cubic-bezier(0.22,1,0.36,1) both",
+                    transformOrigin: "top right",
                   }}
                 >
                   {([
@@ -1694,7 +1698,7 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
         })}
       </div>
 
-      <div style={{ padding: "12px 13px 0" }}>
+      <div key={tab} style={{ padding: "12px 13px 0", animation: "gpa-tab-in 0.28s cubic-bezier(0.22,1,0.36,1) both" }}>
         {/* MY RECORD — saved academic transcript */}
         {tab === "record" && (
           <div>
@@ -2891,8 +2895,8 @@ export default function GPAAdvisorApp() {
 
   useEffect(() => {
     if (profileQ.error) {
-      // surfaced via React Query error
-      console.error(profileQ.error);
+      const msg = profileQ.error instanceof Error ? profileQ.error.message : String(profileQ.error);
+      if (msg && msg !== "[object Object]") console.error("Profile load error:", msg);
     }
   }, [profileQ.error]);
 

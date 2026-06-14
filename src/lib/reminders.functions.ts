@@ -31,7 +31,7 @@ export const listReminders = createServerFn({ method: "GET" })
 
 export const addReminder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => newReminderSchema.parse(input))
+  .validator((input: unknown) => newReminderSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { error } = await supabase.from("reminders" as any).insert({ ...data, user_id: userId });
@@ -41,7 +41,7 @@ export const addReminder = createServerFn({ method: "POST" })
 
 export const toggleReminder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ id: z.string().uuid(), done: z.boolean() }).parse(input))
+  .validator((input: unknown) => z.object({ id: z.string().uuid(), done: z.boolean() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { error } = await supabase
@@ -55,7 +55,7 @@ export const toggleReminder = createServerFn({ method: "POST" })
 
 export const deleteReminder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .validator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { error } = await supabase
