@@ -162,22 +162,33 @@ function Toast({ msg, ok }: { msg: string; ok: boolean }) {
     <div
       style={{
         position: "fixed",
-        top: 14,
+        top: 18,
         left: "50%",
         transform: "translateX(-50%)",
-        background: ok ? "var(--gpa-accent-15)" : "var(--gpa-danger-15)",
+        background: ok
+          ? "linear-gradient(135deg, var(--gpa-accent-20), var(--gpa-accent2-18))"
+          : "var(--gpa-danger-15)",
         border: `1px solid ${ok ? "var(--gpa-accent-55)" : "var(--gpa-danger-55)"}`,
         color: ok ? "var(--gpa-accent)" : "var(--gpa-danger)",
-        padding: "9px 24px",
-        borderRadius: 22,
+        padding: "10px 22px",
+        borderRadius: 999,
         fontSize: 13,
+        fontWeight: 600,
         zIndex: 9999,
         fontFamily: FONT,
-        boxShadow: "0 4px 24px #00000088",
-        animation: "fadeSlide .2s ease",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        boxShadow: ok
+          ? "0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px var(--gpa-accent-20)"
+          : "0 8px 32px rgba(0,0,0,0.5)",
+        animation: "gpa-slide-toast 0.3s cubic-bezier(0.22,1,0.36,1) both",
         whiteSpace: "nowrap",
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
       }}
     >
+      <span style={{ fontSize: 14 }}>{ok ? "✓" : "⚠"}</span>
       {msg}
     </div>
   );
@@ -1341,14 +1352,24 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
   const card: React.CSSProperties = {
     background: "var(--gpa-card)",
     border: "1px solid var(--gpa-border)",
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 12,
+    boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
   };
   const chip = (l: string, v: any, c: string) => (
-    <div style={{ background: "var(--gpa-surface-alpha-08)", borderRadius: 10, padding: "9px 6px", textAlign: "center" }}>
-      <div style={{ fontSize: 17, fontWeight: 800, color: c }}>{v}</div>
-      <div style={{ fontSize: 9, color: "var(--gpa-text-faint)", marginTop: 2 }}>{l}</div>
+    <div style={{
+      background: `linear-gradient(145deg, var(--gpa-surface-alpha-06), var(--gpa-surface-alpha-08))`,
+      border: `1px solid ${c}22`,
+      borderRadius: 12,
+      padding: "10px 6px",
+      textAlign: "center",
+      position: "relative",
+      overflow: "hidden",
+      boxShadow: `0 0 0 1px ${c}10`,
+    }}>
+      <div style={{ fontSize: 18, fontWeight: 900, color: c, letterSpacing: "-0.5px", lineHeight: 1 }}>{v}</div>
+      <div style={{ fontSize: 9, color: "var(--gpa-text-faint)", marginTop: 4, letterSpacing: "0.3px", textTransform: "uppercase" }}>{l}</div>
     </div>
   );
 
@@ -1436,9 +1457,11 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
       {/* HEADER */}
       <div
         style={{
-          background: "linear-gradient(160deg,var(--gpa-bg),var(--gpa-bg-soft),var(--gpa-bg))",
-          padding: "16px 14px 12px",
+          background: "linear-gradient(160deg, var(--gpa-bg) 0%, var(--gpa-bg-soft) 60%, var(--gpa-bg) 100%)",
+          padding: "16px 14px 14px",
           borderBottom: "1px solid var(--gpa-border)",
+          boxShadow: "0 1px 16px rgba(0,0,0,0.2)",
+          position: "relative",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
@@ -1634,28 +1657,41 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
           background: "var(--gpa-bg-soft)",
           borderBottom: "1px solid var(--gpa-border)",
           overflowX: "auto",
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+          padding: "0 4px",
+          gap: 2,
         }}
       >
-        {TABS.map(([id, label]) => (
-          <button
-            key={id}
-            onClick={() => setTab(id)}
-            style={{
-              flex: 1,
-              padding: "11px 3px",
-              background: "none",
-              border: "none",
-              borderBottom: tab === id ? "2px solid var(--gpa-accent)" : "2px solid transparent",
-              color: tab === id ? "var(--gpa-accent)" : "var(--gpa-text-faintest)",
-              fontSize: 10,
-              fontFamily: FONT,
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {label}
-          </button>
-        ))}
+        {TABS.map(([id, label]) => {
+          const active = tab === id;
+          return (
+            <button
+              key={id}
+              onClick={() => setTab(id)}
+              style={{
+                flex: 1,
+                padding: "10px 4px 9px",
+                background: active
+                  ? "linear-gradient(180deg, var(--gpa-accent-12), transparent)"
+                  : "none",
+                border: "none",
+                borderBottom: active ? "2px solid var(--gpa-accent)" : "2px solid transparent",
+                borderRadius: "6px 6px 0 0",
+                color: active ? "var(--gpa-accent)" : "var(--gpa-text-faintest)",
+                fontSize: 10,
+                fontFamily: FONT,
+                fontWeight: active ? 700 : 500,
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+                transition: "all 0.2s ease",
+                minWidth: 60,
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       <div style={{ padding: "12px 13px 0" }}>
@@ -2770,26 +2806,33 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
 
       <style>{`
         @keyframes fadeSlide{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+        @keyframes gpa-slide-toast{from{opacity:0;transform:translateX(-50%) translateY(-16px) scale(0.92)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
         *{box-sizing:border-box}
         input[type=range]{width:100%}
         ::-webkit-scrollbar{width:4px;height:4px}
-        ::-webkit-scrollbar-track{background:var(--gpa-bg-soft)}
-        ::-webkit-scrollbar-thumb{background:var(--gpa-border);border-radius:2px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:var(--gpa-border);border-radius:4px}
+        ::-webkit-scrollbar-thumb:hover{background:var(--gpa-accent-44)}
         select option{background:var(--gpa-card)}
+        .gpa-tab-hide-scroll::-webkit-scrollbar{display:none}
+        button:hover{filter:brightness(1.08)}
       `}</style>
     </div>
   );
 }
 
 const iconBtn: React.CSSProperties = {
-  background: "var(--gpa-surface-alpha-08)",
+  background: "linear-gradient(135deg, var(--gpa-surface-alpha-08), var(--gpa-surface-alpha-06))",
   border: "1px solid var(--gpa-border)",
-  borderRadius: 8,
-  color: "var(--gpa-text-muted-2)",
-  padding: "6px 9px",
+  borderRadius: 10,
+  color: "var(--gpa-text-soft)",
+  padding: "7px 12px",
   fontSize: 11,
   fontFamily: FONT,
   cursor: "pointer",
+  backdropFilter: "blur(8px)",
+  WebkitBackdropFilter: "blur(8px)",
+  transition: "all 0.2s ease",
 };
 
 const menuItem: React.CSSProperties = {
@@ -2799,14 +2842,15 @@ const menuItem: React.CSSProperties = {
   width: "100%",
   textAlign: "start",
   background: "transparent",
-  border: "none",
+  border: "1px solid transparent",
   borderRadius: 10,
   color: "var(--gpa-text-soft)",
-  padding: "10px 12px",
-  fontSize: 13.5,
+  padding: "9px 12px",
+  fontSize: 13,
   fontWeight: 600,
   fontFamily: FONT,
   cursor: "pointer",
+  transition: "all 0.15s ease",
 };
 
 /* ══════════════════════════════════════════════════════════
@@ -2858,14 +2902,48 @@ export default function GPAAdvisorApp() {
         style={{
           background: "var(--gpa-bg)",
           minHeight: "100vh",
-          color: "var(--gpa-text-muted-2)",
           fontFamily: FONT,
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
+          gap: 20,
         }}
       >
-        ⏳ ...
+        <div style={{ position: "relative" }}>
+          <Logo height={44} />
+          <div style={{
+            position: "absolute",
+            inset: -8,
+            borderRadius: "50%",
+            border: "2px solid var(--gpa-accent)",
+            borderTopColor: "transparent",
+            animation: "gpa-spin-load 0.9s linear infinite",
+          }} />
+        </div>
+        <div style={{
+          display: "flex",
+          gap: 6,
+          alignItems: "center",
+        }}>
+          {[0, 0.15, 0.3].map((delay, i) => (
+            <div key={i} style={{
+              width: 7,
+              height: 7,
+              borderRadius: "50%",
+              background: "var(--gpa-accent)",
+              opacity: 0.7,
+              animation: `gpa-dot-bounce 1.2s ease-in-out ${delay}s infinite`,
+            }} />
+          ))}
+        </div>
+        <style>{`
+          @keyframes gpa-spin-load { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+          @keyframes gpa-dot-bounce {
+            0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; }
+            40% { transform: scale(1.1); opacity: 1; }
+          }
+        `}</style>
       </div>
     );
   }

@@ -1,0 +1,1 @@
+- [Termly redesign approach](termly-design.md) — CSS variables drive all theming; surgical edits to GPAAdvisorApp.tsx safer than rewrite

@@ -4,20 +4,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/*
- * Design system definition.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
- */
-
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -144,120 +130,130 @@
 }
 
 /* ════════════════════════════════════════════════════
-   GPA Advisor — themed tokens (Dark / Light / HC AAA)
+   GPA Advisor — themed tokens
    ════════════════════════════════════════════════════ */
 [data-gpa-theme="dark"] {
-  --gpa-bg: #070712;
-  --gpa-bg-soft: #0a0a18;
-  --gpa-card: #0d0d1a;
-  --gpa-card-elevated: #161630;
-  --gpa-border: #1e1e3f;
-  --gpa-border-soft: #ffffff10;
+  --gpa-bg: #05060f;
+  --gpa-bg-soft: #080b18;
+  --gpa-card: #0c0f1e;
+  --gpa-card-elevated: #12172e;
+  --gpa-border: #1a1f3a;
+  --gpa-border-soft: rgba(255,255,255,0.06);
 
-  --gpa-text: #ffffff;
-  --gpa-text-strong: #e0e0ff;
-  --gpa-text-soft: #dddddd;
-  --gpa-text-muted: #888888;
-  --gpa-text-muted-2: #666666;
-  --gpa-text-faint: #555555;
-  --gpa-text-faintest: #444444;
-  --gpa-text-ghost: #333333;
+  --gpa-text: #f0f2ff;
+  --gpa-text-strong: #e8ecff;
+  --gpa-text-soft: #c8cfee;
+  --gpa-text-muted: #7880aa;
+  --gpa-text-muted-2: #5a6190;
+  --gpa-text-faint: #404870;
+  --gpa-text-faintest: #2e3558;
+  --gpa-text-ghost: #1e2440;
 
-  --gpa-accent: #00ff88;
-  --gpa-accent-2: #6366f1;
-  --gpa-accent-2-soft: #a5b4fc;
-  --gpa-info: #40c4ff;
+  --gpa-accent: #4fffb0;
+  --gpa-accent-2: #7c83f5;
+  --gpa-accent-2-soft: #b4b9ff;
+  --gpa-info: #38d9f5;
   --gpa-violet: #c084fc;
   --gpa-purple: #a855f7;
-  --gpa-danger: #ef5350;
+  --gpa-danger: #ff6b6b;
 
-  --gpa-accent-06: rgba(0,255,136,.06);
-  --gpa-accent-08: rgba(0,255,136,.08);
-  --gpa-accent-10: rgba(0,255,136,.10);
-  --gpa-accent-12: rgba(0,255,136,.07);
-  --gpa-accent-15: rgba(0,255,136,.09);
-  --gpa-accent-20: rgba(0,255,136,.13);
-  --gpa-accent-25: rgba(0,255,136,.16);
-  --gpa-accent-33: rgba(0,255,136,.20);
-  --gpa-accent-44: rgba(0,255,136,.27);
-  --gpa-accent-55: rgba(0,255,136,.33);
+  --gpa-accent-06: rgba(79,255,176,.05);
+  --gpa-accent-08: rgba(79,255,176,.07);
+  --gpa-accent-10: rgba(79,255,176,.09);
+  --gpa-accent-12: rgba(79,255,176,.07);
+  --gpa-accent-15: rgba(79,255,176,.10);
+  --gpa-accent-20: rgba(79,255,176,.14);
+  --gpa-accent-25: rgba(79,255,176,.17);
+  --gpa-accent-33: rgba(79,255,176,.22);
+  --gpa-accent-44: rgba(79,255,176,.30);
+  --gpa-accent-55: rgba(79,255,176,.38);
 
-  --gpa-accent2-18: rgba(99,102,241,.10);
-  --gpa-accent2-20: rgba(99,102,241,.13);
+  --gpa-accent2-18: rgba(124,131,245,.12);
+  --gpa-accent2-20: rgba(124,131,245,.15);
 
-  --gpa-danger-15: rgba(239,83,80,.08);
-  --gpa-danger-33: rgba(239,83,80,.20);
-  --gpa-danger-55: rgba(239,83,80,.33);
+  --gpa-danger-15: rgba(255,107,107,.08);
+  --gpa-danger-33: rgba(255,107,107,.22);
+  --gpa-danger-55: rgba(255,107,107,.36);
 
-  --gpa-surface-alpha-06: #ffffff06;
-  --gpa-surface-alpha-08: #ffffff08;
-  --gpa-shadow: 0 4px 24px #00000088;
+  --gpa-surface-alpha-06: rgba(255,255,255,0.04);
+  --gpa-surface-alpha-08: rgba(255,255,255,0.06);
+  --gpa-shadow: 0 8px 40px rgba(0,0,0,0.7), 0 2px 8px rgba(0,0,0,0.5);
+  --gpa-shadow-glow: 0 0 30px rgba(79,255,176,0.12), 0 8px 40px rgba(0,0,0,0.7);
 
-  --gpa-grade-a-plus: #00ff88;
+  --gpa-glass: rgba(255,255,255,0.04);
+  --gpa-glass-border: rgba(255,255,255,0.10);
+  --gpa-glass-highlight: rgba(255,255,255,0.08);
+
+  --gpa-grade-a-plus: #4fffb0;
   --gpa-grade-a: #00e676;
   --gpa-grade-b-plus: #69f0ae;
-  --gpa-grade-b: #ffee58;
-  --gpa-grade-b-minus: #ffd740;
-  --gpa-grade-c-plus: #ffab40;
+  --gpa-grade-b: #ffe066;
+  --gpa-grade-b-minus: #ffca28;
+  --gpa-grade-c-plus: #ffaa40;
   --gpa-grade-c: #ff7043;
-  --gpa-grade-f: #ef5350;
+  --gpa-grade-f: #ff6b6b;
 }
 
 [data-gpa-theme="light"] {
-  --gpa-bg: #f7f9fc;
-  --gpa-bg-soft: #eef2f8;
+  --gpa-bg: #f4f6fb;
+  --gpa-bg-soft: #eaeefc;
   --gpa-card: #ffffff;
-  --gpa-card-elevated: #f4f7fb;
-  --gpa-border: #e2e8f0;
-  --gpa-border-soft: #0f172a0f;
+  --gpa-card-elevated: #f8faff;
+  --gpa-border: #dde3f0;
+  --gpa-border-soft: rgba(15,23,66,0.08);
 
-  --gpa-text: #0f172a;
-  --gpa-text-strong: #0f172a;
-  --gpa-text-soft: #1e293b;
-  --gpa-text-muted: #475569;
-  --gpa-text-muted-2: #64748b;
-  --gpa-text-faint: #64748b;
-  --gpa-text-faintest: #94a3b8;
-  --gpa-text-ghost: #cbd5e1;
+  --gpa-text: #0d1240;
+  --gpa-text-strong: #0f1545;
+  --gpa-text-soft: #1e2a5e;
+  --gpa-text-muted: #4a5480;
+  --gpa-text-muted-2: #6070a0;
+  --gpa-text-faint: #7888b8;
+  --gpa-text-faintest: #a0aece;
+  --gpa-text-ghost: #c8d3e8;
 
-  --gpa-accent: #2563eb;
-  --gpa-accent-2: #6366f1;
-  --gpa-accent-2-soft: #818cf8;
-  --gpa-info: #0ea5e9;
-  --gpa-violet: #7c3aed;
-  --gpa-purple: #8b5cf6;
-  --gpa-danger: #dc2626;
+  --gpa-accent: #2054e0;
+  --gpa-accent-2: #5b60e8;
+  --gpa-accent-2-soft: #7b80f0;
+  --gpa-info: #0691c8;
+  --gpa-violet: #6d28d9;
+  --gpa-purple: #7c3aed;
+  --gpa-danger: #d42020;
 
-  --gpa-accent-06: rgba(37,99,235,.05);
-  --gpa-accent-08: rgba(37,99,235,.07);
-  --gpa-accent-10: rgba(37,99,235,.09);
-  --gpa-accent-12: rgba(37,99,235,.10);
-  --gpa-accent-15: rgba(37,99,235,.12);
-  --gpa-accent-20: rgba(37,99,235,.15);
-  --gpa-accent-25: rgba(37,99,235,.18);
-  --gpa-accent-33: rgba(37,99,235,.22);
-  --gpa-accent-44: rgba(37,99,235,.28);
-  --gpa-accent-55: rgba(37,99,235,.35);
+  --gpa-accent-06: rgba(32,84,224,.04);
+  --gpa-accent-08: rgba(32,84,224,.06);
+  --gpa-accent-10: rgba(32,84,224,.08);
+  --gpa-accent-12: rgba(32,84,224,.09);
+  --gpa-accent-15: rgba(32,84,224,.11);
+  --gpa-accent-20: rgba(32,84,224,.14);
+  --gpa-accent-25: rgba(32,84,224,.17);
+  --gpa-accent-33: rgba(32,84,224,.22);
+  --gpa-accent-44: rgba(32,84,224,.30);
+  --gpa-accent-55: rgba(32,84,224,.38);
 
-  --gpa-accent2-18: rgba(99,102,241,.10);
-  --gpa-accent2-20: rgba(99,102,241,.14);
+  --gpa-accent2-18: rgba(91,96,232,.10);
+  --gpa-accent2-20: rgba(91,96,232,.14);
 
-  --gpa-danger-15: rgba(220,38,38,.08);
-  --gpa-danger-33: rgba(220,38,38,.20);
-  --gpa-danger-55: rgba(220,38,38,.32);
+  --gpa-danger-15: rgba(212,32,32,.07);
+  --gpa-danger-33: rgba(212,32,32,.20);
+  --gpa-danger-55: rgba(212,32,32,.33);
 
-  --gpa-surface-alpha-06: #0f172a06;
-  --gpa-surface-alpha-08: #0f172a0a;
-  --gpa-shadow: 0 8px 30px -12px rgba(15,23,42,.18);
+  --gpa-surface-alpha-06: rgba(15,23,66,0.04);
+  --gpa-surface-alpha-08: rgba(15,23,66,0.07);
+  --gpa-shadow: 0 8px 32px -8px rgba(15,23,66,0.14), 0 2px 8px -2px rgba(15,23,66,0.08);
+  --gpa-shadow-glow: 0 0 24px rgba(32,84,224,0.12), 0 8px 32px rgba(15,23,66,0.14);
 
-  --gpa-grade-a-plus: #2563eb;
-  --gpa-grade-a: #0891b2;
-  --gpa-grade-b-plus: #059669;
-  --gpa-grade-b: #16a34a;
-  --gpa-grade-b-minus: #ca8a04;
-  --gpa-grade-c-plus: #ea580c;
-  --gpa-grade-c: #dc2626;
-  --gpa-grade-f: #991b1b;
+  --gpa-glass: rgba(255,255,255,0.72);
+  --gpa-glass-border: rgba(255,255,255,0.9);
+  --gpa-glass-highlight: rgba(255,255,255,0.95);
+
+  --gpa-grade-a-plus: #2054e0;
+  --gpa-grade-a: #0286b0;
+  --gpa-grade-b-plus: #047a60;
+  --gpa-grade-b: #127a30;
+  --gpa-grade-b-minus: #b57e04;
+  --gpa-grade-c-plus: #d45a0a;
+  --gpa-grade-c: #c42020;
+  --gpa-grade-f: #8b1818;
 }
 
 [data-gpa-theme="hc"] {
@@ -306,6 +302,11 @@
   --gpa-surface-alpha-06: #000000;
   --gpa-surface-alpha-08: #000000;
   --gpa-shadow: 0 0 0 2px #ffffff;
+  --gpa-shadow-glow: 0 0 0 2px #ffff00;
+
+  --gpa-glass: #000000;
+  --gpa-glass-border: #ffffff;
+  --gpa-glass-highlight: #ffffff;
 
   --gpa-grade-a-plus: #ffff00;
   --gpa-grade-a: #ffff00;
@@ -335,6 +336,148 @@
   outline: 3px solid #ffff00 !important;
   outline-offset: 2px;
 }
+
+/* ════════════════════════════════════════════════════
+   ANIMATION KEYFRAMES
+   ════════════════════════════════════════════════════ */
+
+@keyframes gpa-float {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-22px) scale(1.03); }
+}
+
+@keyframes gpa-float-alt {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-14px) rotate(3deg); }
+  66% { transform: translateY(-6px) rotate(-2deg); }
+}
+
+@keyframes gpa-orb-drift {
+  0%, 100% { transform: translate(0px, 0px) scale(1); opacity: 0.7; }
+  25% { transform: translate(30px, -40px) scale(1.12); opacity: 0.9; }
+  50% { transform: translate(-20px, -20px) scale(0.88); opacity: 0.6; }
+  75% { transform: translate(10px, 30px) scale(1.06); opacity: 0.85; }
+}
+
+@keyframes gpa-orb-drift2 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); opacity: 0.5; }
+  25% { transform: translate(-40px, 20px) scale(0.9); opacity: 0.7; }
+  50% { transform: translate(20px, 40px) scale(1.1); opacity: 0.4; }
+  75% { transform: translate(-10px, -30px) scale(0.95); opacity: 0.65; }
+}
+
+@keyframes gpa-orb-drift3 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); opacity: 0.4; }
+  33% { transform: translate(50px, -10px) scale(1.15); opacity: 0.7; }
+  66% { transform: translate(-30px, 40px) scale(0.85); opacity: 0.3; }
+}
+
+@keyframes gpa-fade-in-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes gpa-fade-in-scale {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes gpa-slide-toast {
+  from { opacity: 0; transform: translateX(-50%) translateY(-16px) scale(0.92); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+@keyframes gpa-shimmer {
+  0% { background-position: -400% center; }
+  100% { background-position: 400% center; }
+}
+
+@keyframes gpa-pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+@keyframes gpa-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes gpa-number-in {
+  from { opacity: 0; transform: scale(0.6) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes gpa-bar-grow {
+  from { width: 0%; }
+}
+
+@keyframes gpa-tab-slide {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ════════════════════════════════════════════════════
+   UTILITY CLASSES
+   ════════════════════════════════════════════════════ */
+
+.gpa-animate-in {
+  animation: gpa-fade-in-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.gpa-shimmer-text {
+  background: linear-gradient(
+    90deg,
+    var(--gpa-accent) 0%,
+    var(--gpa-accent-2) 30%,
+    var(--gpa-accent) 60%,
+    var(--gpa-accent-2) 100%
+  );
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gpa-shimmer 4s linear infinite;
+}
+
+.gpa-glass-card {
+  background: var(--gpa-glass);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid var(--gpa-glass-border);
+}
+
+/* ════════════════════════════════════════════════════
+   SCROLLBAR
+   ════════════════════════════════════════════════════ */
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--gpa-border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gpa-accent-44);
+}
+
+/* ════════════════════════════════════════════════════
+   INPUT FOCUS STYLES
+   ════════════════════════════════════════════════════ */
+
+.gpa-input:focus {
+  border-color: var(--gpa-accent-44) !important;
+  box-shadow: 0 0 0 3px var(--gpa-accent-10) !important;
+  outline: none !important;
+}
+
+/* ════════════════════════════════════════════════════
+   PRINT
+   ════════════════════════════════════════════════════ */
 
 @media print {
   [data-gpa-theme] { background: #fff !important; color: #000 !important; }

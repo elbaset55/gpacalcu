@@ -1,11 +1,9 @@
 import type { GpaTheme } from "./use-theme";
 
-const FONT = "'Cairo','Noto Sans Arabic',sans-serif";
-
 const OPTS: { id: GpaTheme; icon: string; label: string }[] = [
   { id: "dark", icon: "🌙", label: "داكن" },
   { id: "light", icon: "☀️", label: "فاتح" },
-  { id: "hc", icon: "🔲", label: "تباين" },
+  { id: "hc", icon: "⊞", label: "تباين" },
 ];
 
 export function ThemeSwitcher({
@@ -24,9 +22,11 @@ export function ThemeSwitcher({
         display: "inline-flex",
         gap: 2,
         padding: 3,
-        background: "var(--gpa-card)",
+        background: "var(--gpa-surface-alpha-06)",
         border: "1px solid var(--gpa-border)",
         borderRadius: 12,
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
       }}
     >
       {OPTS.map((o) => {
@@ -41,15 +41,18 @@ export function ThemeSwitcher({
             onClick={() => onChange(o.id)}
             style={{
               padding: "6px 10px",
-              fontSize: 14,
-              fontFamily: FONT,
+              fontSize: 13,
               cursor: "pointer",
-              background: active ? "var(--gpa-accent-20)" : "transparent",
-              color: active ? "var(--gpa-accent)" : "var(--gpa-text-muted)",
-              border: active ? "1px solid var(--gpa-accent-44)" : "1px solid transparent",
+              background: active
+                ? "linear-gradient(135deg, var(--gpa-accent-20), var(--gpa-accent2-18))"
+                : "transparent",
+              color: active ? "var(--gpa-accent)" : "var(--gpa-text-faint)",
+              border: active ? "1px solid var(--gpa-accent-33)" : "1px solid transparent",
               borderRadius: 9,
               fontWeight: 700,
-              minWidth: 36,
+              minWidth: 34,
+              transition: "all 0.2s cubic-bezier(0.22,1,0.36,1)",
+              boxShadow: active ? "0 1px 8px var(--gpa-accent-15)" : "none",
             }}
           >
             <span aria-hidden>{o.icon}</span>
