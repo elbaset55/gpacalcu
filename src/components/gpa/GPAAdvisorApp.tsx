@@ -17,6 +17,9 @@ import {
   User,
   LogOut,
   X as XIcon,
+  Sun,
+  Moon,
+  Monitor,
 } from "lucide-react";
 import { TermlyAppShell } from "./TermlyAppShell";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -225,8 +228,93 @@ export type ImportPayload = {
   }>;
 };
 
+/* ─── Premium Glassmorphism Theme Switcher for SetupScreen ─────────────── */
+const THEME_OPTS: { id: GpaTheme; Icon: React.FC<{ size: number; strokeWidth: number }>; labelAr: string; labelEn: string }[] = [
+  { id: "light", Icon: Sun as any,     labelAr: "فاتح",  labelEn: "Light"  },
+  { id: "dark",  Icon: Moon as any,    labelAr: "داكن",  labelEn: "Dark"   },
+  { id: "hc",    Icon: Monitor as any, labelAr: "تباين", labelEn: "System" },
+];
+
+function SetupThemeSwitcher({
+  theme,
+  onThemeChange,
+}: {
+  theme: GpaTheme;
+  onThemeChange: (t: GpaTheme) => void;
+}) {
+  const isDark = theme === "dark";
+  return (
+    <div
+      role="radiogroup"
+      aria-label="اختيار الثيم"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 2,
+        padding: 3,
+        borderRadius: 14,
+        background: isDark
+          ? "rgba(255,255,255,0.06)"
+          : "rgba(15,23,66,0.05)",
+        border: `1px solid ${isDark ? "rgba(255,255,255,0.11)" : "rgba(15,23,66,0.09)"}`,
+        backdropFilter: "blur(18px) saturate(1.4)",
+        WebkitBackdropFilter: "blur(18px) saturate(1.4)",
+        boxShadow: isDark
+          ? "0 2px 20px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.07)"
+          : "0 2px 14px rgba(15,23,66,0.09), inset 0 1px 0 rgba(255,255,255,0.90)",
+        transition: "background 0.3s, border-color 0.3s, box-shadow 0.3s",
+      }}
+    >
+      {THEME_OPTS.map(({ id, Icon }) => {
+        const active = theme === id;
+        return (
+          <button
+            key={id}
+            role="radio"
+            aria-checked={active}
+            onClick={() => onThemeChange(id)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 36,
+              height: 36,
+              border: "none",
+              borderRadius: 11,
+              cursor: "pointer",
+              fontFamily: FONT,
+              transition: "all 0.22s cubic-bezier(0.22,1,0.36,1)",
+              /* Active pill */
+              background: active
+                ? isDark
+                  ? "linear-gradient(135deg, rgba(79,255,176,0.20) 0%, rgba(124,131,245,0.16) 100%)"
+                  : "white"
+                : "transparent",
+              color: active
+                ? isDark ? "#4fffb0" : "#2054e0"
+                : isDark ? "rgba(255,255,255,0.32)" : "rgba(15,23,66,0.30)",
+              boxShadow: active
+                ? isDark
+                  ? "0 2px 12px rgba(79,255,176,0.18), 0 1px 0 rgba(255,255,255,0.06)"
+                  : "0 2px 10px rgba(32,84,224,0.14), 0 1px 0 rgba(255,255,255,1)"
+                : "none",
+              transform: active ? "scale(1.08)" : "scale(1)",
+            }}
+          >
+            <Icon
+              size={15}
+              strokeWidth={active ? 2.3 : 1.7}
+            />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+/* ──────────────────────────────────────────────────────────────────────── */
+
 function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => void | Promise<void> }) {
-  const { theme } = useGpaTheme();
+  const { theme, setTheme } = useGpaTheme();
   const { lang: globalLang, setLang: setGlobalLang } = useLang();
   const [step, setStep] = useState(0);
   const [lang, setLang] = useState<string>(globalLang);
@@ -830,13 +918,31 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
     >
       <AppBackground theme={theme} variant="login" />
       <div style={{ width: "100%", maxWidth: 480, position: "relative", zIndex: 1 }}>
-        <div style={{ textAlign: "center", marginBottom: 28 }}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
-            <Logo height={42} />
+
+        {/* ── Header: Logo (inline-start) + ThemeSwitcher (inline-end) ── */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 28,
+          animation: "gpa-fade-in-up 0.45s cubic-bezier(0.22,1,0.36,1) both",
+        }}>
+          {/* Logo + tagline — sits at inline-start (right in RTL) */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <Logo height={38} />
+            <p style={{
+              margin: 0,
+              fontSize: 11,
+              fontFamily: FONT,
+              color: theme === "dark" ? "rgba(200,210,240,0.38)" : "rgba(15,23,66,0.35)",
+              letterSpacing: "0.5px",
+            }}>
+              {ar ? "خطط · تتبع · تفوق" : "Plan · Track · Excel"}
+            </p>
           </div>
-          <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--gpa-text-faintest)" }}>
-            {ar ? "خطط · تتبع · تفوق" : "Plan · Track · Excel"}
-          </p>
+
+          {/* Premium glassmorphism theme switcher */}
+          <SetupThemeSwitcher theme={theme} onThemeChange={setTheme} />
         </div>
 
         <div style={{ display: "flex", gap: 4, marginBottom: 20 }}>
