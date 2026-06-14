@@ -1,0 +1,199 @@
+You are a world-class frontend engineer, motion designer, and modern UI architect.
+
+You are working on an academic web application focused on:
+
+- GPA calculation
+- semester tracking
+- academic progress analytics
+- transcript analysis
+- AI academic advisor
+- student productivity workflows
+
+Your task is NOT bug fixing.
+
+Your task is to completely elevate the UI/UX and visual quality of the existing application while preserving all business logic.
+
+The goal is to transform the product into a premium modern SaaS-quality web application.
+
+Design philosophy:
+
+Minimal
+Premium
+Futuristic
+Smooth
+Academic
+Professional
+Clean
+
+The interface should feel similar to:
+
+- Linear
+- Vercel
+- Notion
+- Raycast
+- Apple design language
+
+CORE REQUIREMENTS
+
+1. Add a permanent animated background across the entire website.
+
+The background must be:
+
+- always active
+- extremely subtle
+- minimal
+- non-distracting
+- lightweight
+- GPU optimized
+
+Preferred approaches:
+
+- slow floating blurred gradient orbs
+- aurora gradient movement
+- soft animated mesh gradients
+- subtle noise texture movement
+
+DO NOT USE:
+
+- particle effects
+- snow effects
+- star fields
+- matrix effects
+- aggressive parallax
+- flashy neon effects
+- anything visually noisy
+
+2. Implement glassmorphism throughout the UI.
+
+Apply to:
+
+- cards
+- modal windows
+- AI chat panels
+- dashboard widgets
+- semester cards
+
+Requirements:
+
+- backdrop blur
+- transparent layered surfaces
+- subtle borders
+- premium shadows
+
+3. Add smooth motion everywhere.
+
+Include:
+
+- page transitions
+- tab transitions
+- hover animations
+- button press animations
+- fade in transitions
+- scale animations
+- slide transitions
+
+Animations must feel natural and expensive.
+
+Never excessive.
+
+4. Improve dashboard UI.
+
+Enhance:
+
+- GPA cards
+- semester cards
+- progress widgets
+- analytics sections
+
+Add:
+
+- animated number counters
+- smooth chart entrance animations
+- better spacing
+- visual hierarchy improvements
+
+5. Improve forms.
+
+Apply to:
+
+- course creation
+- semester creation
+- login
+- signup
+- profile
+
+Add:
+
+- animated focus states
+- floating labels
+- smooth validation feedback
+- better spacing and alignment
+
+6. Improve AI chat interface.
+
+Add:
+
+- typing animation
+- streaming text animation
+- modern chat bubbles
+- animated loading state
+- thinking indicator
+
+7. Improve navigation.
+
+Enhance:
+
+- sidebar
+- mobile navigation
+- top navigation
+- active state indicators
+
+Add:
+
+- animated active indicators
+- smooth collapse animations
+- hover transitions
+
+8. Add premium loading states.
+
+Replace all loaders with:
+
+- shimmer skeletons
+- animated placeholders
+- progressive loading transitions
+
+9. Preserve performance.
+
+Strict requirements:
+
+- no unnecessary rerenders
+- use GPU accelerated transforms only
+- no heavy libraries
+- animations must be lightweight
+- avoid bundle bloat
+
+10. Preserve functionality.
+
+DO NOT:
+
+- break business logic
+- modify backend logic
+- change API architecture
+- break React Query logic
+- damage existing state management
+
+IMPORTANT:
+
+Do not redesign randomly.
+
+First understand the codebase.
+
+Study the current component architecture.
+
+Then improve the visual layer systematically.
+
+Treat this like a premium production SaaS product.
+
+Every UI improvement must feel intentional, elegant, and modern.
+
+Do not use cheap flashy effects.
