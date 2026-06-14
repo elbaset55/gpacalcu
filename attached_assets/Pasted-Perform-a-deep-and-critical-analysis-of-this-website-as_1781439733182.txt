@@ -1,0 +1,88 @@
+Perform a deep and critical analysis of this website as both:
+
+A regular end user interacting naturally with the platform
+A professional software engineer / product analyst / security-minded reviewer
+
+I want a comprehensive audit covering all possible weaknesses, flaws, and improvement opportunities.
+
+Analyze the website from the following perspectives:
+
+1. User Experience (UX)
+Confusing navigation flows
+Unclear buttons, labels, or actions
+Friction points during signup, login, checkout, or user journey
+Accessibility issues (poor contrast, missing keyboard navigation, screen reader problems)
+Mobile responsiveness problems
+Unnecessary steps causing user frustration
+2. UI and Frontend Logic
+Broken interactions
+Inconsistent design patterns
+Layout shifts or rendering bugs
+Forms with poor validation logic
+Missing loading states, skeleton loaders, or bad feedback mechanisms
+JavaScript errors affecting usability
+3. Backend / Functional Logic
+Business logic flaws
+Edge cases developers may have ignored
+Features that can be bypassed unexpectedly
+Improper session handling
+Race condition possibilities
+Data inconsistency risks
+Weak state management assumptions
+4. Security Review
+Authentication weaknesses
+Authorization flaws (horizontal / vertical privilege escalation)
+IDOR vulnerabilities
+Insecure API exposure
+Sensitive data leakage
+Poor input sanitization
+XSS possibilities
+CSRF risks
+Rate limit weaknesses
+Account enumeration risks
+5. Performance Analysis
+Slow API responses
+Unoptimized assets
+Excessive JavaScript bundles
+Memory leaks
+Bad caching strategy
+Unnecessary network requests
+Poor lazy loading implementation
+6. Product Logic Review
+
+Think like a malicious user and ask:
+
+Can the platform be abused in unintended ways?
+Can pricing/payment logic be manipulated?
+Can restrictions be bypassed?
+Can users exploit referral systems, rewards, subscriptions, or account creation flows?
+7. Developer Quality Audit
+Poor architecture decisions
+Over-engineered systems
+Missing fallback handling
+Bad error handling patterns
+Weak API design decisions
+Technical debt indicators
+8. Hidden Bugs / Edge Cases
+
+Test unusual scenarios:
+
+Extremely long input values
+Special characters and malformed requests
+Rapid repeated actions
+Network interruption during actions
+Browser refresh during transactions
+Multiple tabs opened simultaneously
+Invalid URL parameter manipulation
+Output Format:
+
+For every issue found provide:
+
+Issue description
+Severity (Low / Medium / High / Critical)
+Reproduction steps
+Why it happens technically
+Possible impact on users/business
+Recommended fix
+
+Be extremely critical. Assume the developers missed things. Think like a QA engineer, penetration tester, product manager, and an advanced user simultaneously. Do not be polite in the review.
