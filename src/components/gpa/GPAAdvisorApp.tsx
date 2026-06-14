@@ -49,6 +49,7 @@ import { chatWithAdvisor } from "@/lib/chat.functions";
 import { generateRoadmap } from "@/lib/roadmap.functions";
 import { useLang } from "@/lib/use-lang";
 import { useGpaTheme } from "./use-theme";
+import { AppBackground } from "./AppBackground";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { LangSwitcher } from "./LangSwitcher";
 import { RemindersPanel } from "./RemindersPanel";
@@ -225,6 +226,7 @@ export type ImportPayload = {
 };
 
 function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => void | Promise<void> }) {
+  const { theme } = useGpaTheme();
   const { lang: globalLang, setLang: setGlobalLang } = useLang();
   const [step, setStep] = useState(0);
   const [lang, setLang] = useState<string>(globalLang);
@@ -822,11 +824,12 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
         alignItems: "center",
         justifyContent: "center",
         padding: 16,
-        backgroundImage:
-          "radial-gradient(ellipse at 20% 20%,var(--gpa-accent-08),transparent 50%),radial-gradient(ellipse at 80% 80%,#6366f108,transparent 50%)",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
-      <div style={{ width: "100%", maxWidth: 480 }}>
+      <AppBackground theme={theme} variant="login" />
+      <div style={{ width: "100%", maxWidth: 480, position: "relative", zIndex: 1 }}>
         <div style={{ textAlign: "center", marginBottom: 28 }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
             <Logo height={42} />
