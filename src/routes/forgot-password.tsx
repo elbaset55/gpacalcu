@@ -15,23 +15,21 @@ const FONT = "'Cairo','Noto Sans Arabic',sans-serif";
 const T = {
   ar: {
     title: "نسيت كلمة المرور؟",
-    sub: "أدخل بريدك وسنرسل لك رابط إعادة التعيين",
+    sub: "أدخل بريدك وسنرسل لك رابط إعادة التعيين إن كان مسجلاً لدينا",
     email: "البريد الإلكتروني",
     submit: "إرسال الرابط",
     loading: "جاري الإرسال...",
-    sent: "✓ تم إرسال الرابط — افحص بريدك (وملف السبام)",
+    sent: "✓ إذا كان البريد مسجلاً، ستصلك رسالة — افحص بريدك وملف السبام",
     back: "← العودة لتسجيل الدخول",
-    err: "حدث خطأ",
   },
   en: {
     title: "Forgot password?",
-    sub: "Enter your email and we'll send you a reset link",
+    sub: "Enter your email and we'll send a reset link if an account exists",
     email: "Email address",
     submit: "Send reset link",
     loading: "Sending...",
-    sent: "✓ Link sent — check your email (and spam folder)",
+    sent: "✓ If that email is registered, a link is on its way — check your inbox and spam folder",
     back: "← Back to sign in",
-    err: "An error occurred",
   },
 } as const;
 
@@ -43,22 +41,19 @@ function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
-  const [err, setErr] = useState("");
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    setErr("");
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
-      if (error) throw error;
-      setDone(true);
-    } catch (e: any) {
-      setErr(e.message || t.err);
+    } catch {
+      // Intentionally swallow all errors to prevent account enumeration
     } finally {
       setLoading(false);
+      setDone(true);
     }
   };
 
@@ -87,11 +82,6 @@ function ForgotPasswordPage() {
                 placeholder={t.email}
                 style={{ background: "var(--gpa-card)", border: "1px solid var(--gpa-border)", borderRadius: 10, color: "var(--gpa-text-strong)", padding: "12px 14px", fontSize: 14, fontFamily: FONT, width: "100%", boxSizing: "border-box" }}
               />
-              {err && (
-                <div style={{ background: "var(--gpa-danger-15)", border: "1px solid var(--gpa-danger-33)", borderRadius: 8, padding: "8px 12px", fontSize: 12, color: "var(--gpa-danger)" }}>
-                  ⚠️ {err}
-                </div>
-              )}
               <button type="submit" disabled={loading} style={{ padding: 13, background: "linear-gradient(135deg,var(--gpa-accent-25),var(--gpa-accent2-20))", border: "1px solid var(--gpa-accent-55)", borderRadius: 12, color: "var(--gpa-accent)", fontSize: 14, fontWeight: 700, fontFamily: FONT, cursor: loading ? "wait" : "pointer", opacity: loading ? 0.6 : 1 }}>
                 {loading ? t.loading : t.submit}
               </button>

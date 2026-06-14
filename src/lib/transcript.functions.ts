@@ -3,11 +3,26 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText } from "ai";
 import { z } from "zod";
 import { getAiModel } from "./ai-gateway";
+import { checkRateLimit } from "./rate-limit";
+
+const ALLOWED_MIME_TYPES = new Set([
+  "application/pdf",
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
 
 const inputSchema = z.object({
-  // data URL: data:<mime>;base64,XXXX
   fileDataUrl: z.string().min(50).max(15_000_000),
-  mimeType: z.string().max(80),
+  mimeType: z
+    .string()
+    .max(80)
+    .refine(
+      (m) => ALLOWED_MIME_TYPES.has(m.split(";")[0].trim().toLowerCase()),
+      { message: "Unsupported file type. Use PDF, JPEG, PNG, or WebP." },
+    ),
   scaleHint: z.enum(["benha", "generic"]).default("benha"),
   lang: z.enum(["ar", "en"]).default("ar"),
 });
@@ -48,7 +63,6 @@ const outputSchema = z.object({
 
 export type TranscriptResult = z.infer<typeof outputSchema>;
 
-// Pull the first {...} JSON object out of a model response (handles ```json fences).
 function extractJson(text: string): unknown {
   const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
   const candidate = fenced ? fenced[1] : text;
@@ -69,13 +83,22 @@ function dataUrlToBase64(fileDataUrl: string, fallbackMime: string) {
 export const analyzeTranscript = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: unknown) => inputSchema.parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+
+    const rl = checkRateLimit(`transcript:${userId}`, 5, 60_000);
+    if (!rl.allowed) {
+      throw new Error(
+        data.lang === "ar"
+          ? `تجاوزت الحد المسموح. حاول بعد ${Math.ceil(rl.retryAfterMs / 1000)} ثانية.`
+          : `Rate limit exceeded. Try again in ${Math.ceil(rl.retryAfterMs / 1000)}s.`,
+      );
+    }
+
     const model = getAiModel("google/gemini-3-flash-preview");
 
     const scaleName = data.scaleHint === "benha" ? "بنها 2021" : "4.0 جنرك";
 
-    // Benha 2021 letter ↔ points ↔ percentage reference, embedded so the model
-    // can resolve a grade from ANY column present (letter, points, or %).
     const benhaTable =
       data.scaleHint === "benha"
         ? `جدول التقديرات (لائحة بنها 2021):
@@ -88,6 +111,8 @@ export const analyzeTranscript = createServerFn({ method: "POST" })
 ج / C = 2.00 (60-64%)
 ر / F = 0.00 (راسب، أقل من 60%)`
         : `4.0 generic scale: A+=4.0, A=3.7, A-=3.3, B+=3.0, B=2.7, B-=2.3, C+=2.0, C=1.7, D=1.0, F=0.0`;
+
+    void scaleName;
 
     const sys =
       data.lang === "ar"
@@ -167,13 +192,15 @@ Return ONLY JSON (no prose outside the JSON) in exactly this shape:
     });
 
     if (finishReason === "length") {
-      throw new Error(data.lang === "ar" ? "رد التحليل اتقطع. جرّب PDF أصغر أو أوضح." : "Analysis response was truncated. Try a smaller or clearer PDF.");
+      throw new Error(
+        data.lang === "ar"
+          ? "رد التحليل اتقطع. جرّب PDF أصغر أو أوضح."
+          : "Analysis response was truncated. Try a smaller or clearer PDF.",
+      );
     }
 
     const parsed = extractJson(text);
-    // Lenient parse: coerce types, drop bad rows instead of failing the whole call.
     const result = outputSchema.parse(parsed);
-    // Keep only courses with a usable name.
     result.courses = result.courses.filter((c) => c.name && c.name.trim().length > 0);
     return result;
   });

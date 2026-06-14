@@ -9,15 +9,22 @@ import { useLang } from "@/lib/use-lang";
 import { Logo } from "@/components/gpa/Logo";
 import { AppBackground } from "@/components/gpa/AppBackground";
 
+function sanitizeRedirect(raw: unknown): string {
+  const s = typeof raw === "string" ? raw : "/app";
+  // Only allow same-origin relative paths (must start with / and not //)
+  if (/^\/(?!\/)/.test(s)) return s;
+  return "/app";
+}
+
 export const Route = createFileRoute("/login")({
   validateSearch: (search: Record<string, unknown>) => ({
-    redirect: (search.redirect as string) || "/app",
+    redirect: sanitizeRedirect(search.redirect),
   }),
   beforeLoad: async ({ search }) => {
     if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getUser();
     if (data.user) {
-      throw redirect({ to: search.redirect as "/app" });
+      throw redirect({ to: sanitizeRedirect(search.redirect) as "/app" });
     }
   },
   component: LoginPage,
@@ -185,7 +192,7 @@ function LoginPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
-      navigate({ to: redirectTo as "/app" });
+      navigate({ to: sanitizeRedirect(redirectTo) as "/app" });
     } catch (e: any) {
       setErr(e.message || t.err);
     } finally {
@@ -203,7 +210,7 @@ function LoginPage() {
       return;
     }
     if (result.redirected) return;
-    navigate({ to: redirectTo as "/app" });
+    navigate({ to: sanitizeRedirect(redirectTo) as "/app" });
   };
 
   const bgStyle: React.CSSProperties = {

@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText } from "ai";
 import { z } from "zod";
 import { getAiModel } from "./ai-gateway";
+import { checkRateLimit } from "./rate-limit";
 
 const input = z.object({
   lang: z.enum(["ar", "en"]).default("ar"),
@@ -35,7 +36,18 @@ const input = z.object({
 export const askAdvisor = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((i: unknown) => input.parse(i))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+
+    const rl = checkRateLimit(`advisor:${userId}`, 10, 60_000);
+    if (!rl.allowed) {
+      throw new Error(
+        data.lang === "ar"
+          ? `تجاوزت الحد المسموح. حاول بعد ${Math.ceil(rl.retryAfterMs / 1000)} ثانية.`
+          : `Rate limit exceeded. Try again in ${Math.ceil(rl.retryAfterMs / 1000)}s.`,
+      );
+    }
+
     const model = getAiModel("google/gemini-2.5-flash");
 
     const ar = data.lang === "ar";

@@ -55,18 +55,15 @@ function ResetPasswordPage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // Supabase auto-parses the recovery hash into a session
     const sub = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true);
-    });
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setReady(true);
+      if (event === "PASSWORD_RECOVERY") setReady(true);
     });
     return () => sub.data.subscription.unsubscribe();
   }, []);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!ready) return;
     setErr("");
     if (pw !== pw2) {
       setErr(t.mismatch);
@@ -77,7 +74,8 @@ function ResetPasswordPage() {
       const { error } = await supabase.auth.updateUser({ password: pw });
       if (error) throw error;
       setDone(true);
-      setTimeout(() => navigate({ to: "/app" }), 1200);
+      await supabase.auth.signOut();
+      setTimeout(() => navigate({ to: "/login", search: { redirect: "/app" } }), 1200);
     } catch (e: any) {
       setErr(e.message || t.err);
     } finally {

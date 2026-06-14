@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { deleteAccount } from "@/lib/profile.functions";
 import { useLang } from "@/lib/use-lang";
 import { useGpaTheme } from "@/components/gpa/use-theme";
 import { ThemeSwitcher } from "@/components/gpa/ThemeSwitcher";
@@ -63,6 +65,7 @@ const T = {
 
 function ProfilePage() {
   const navigate = useNavigate();
+  const deleteAccountFn = useServerFn(deleteAccount);
   const { theme, setTheme } = useGpaTheme();
   const { lang, setLang } = useLang();
   const t = T[lang];
@@ -112,13 +115,8 @@ function ProfilePage() {
     if (confirm !== "DELETE") return;
     setLoading("delete");
     try {
-      const { data } = await supabase.auth.getUser();
-      const uid = data.user?.id;
-      if (!uid) throw new Error("no user");
-      // Delete user data (RLS allows own-row deletes)
-      await supabase.from("courses").delete().eq("user_id", uid);
-      await supabase.from("semesters").delete().eq("user_id", uid);
-      await supabase.from("academic_profiles").delete().eq("user_id", uid);
+      // Server function deletes all DB rows + the Supabase Auth user record
+      await deleteAccountFn();
       await supabase.auth.signOut();
       flash(t.deleted);
       setTimeout(() => navigate({ to: "/login", search: { redirect: "/app" } }), 800);

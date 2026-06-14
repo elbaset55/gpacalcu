@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 const profileSchema = z.object({
@@ -53,6 +54,33 @@ export const deleteProfile = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const deleteAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+
+    // Delete all user data first
+    await supabase.from("courses").delete().eq("user_id", userId);
+    await supabase.from("semesters").delete().eq("user_id", userId);
+    await supabase.from("reminders" as any).delete().eq("user_id", userId);
+    await supabase.from("academic_profiles").delete().eq("user_id", userId);
+
+    // Delete the auth user using service role if available
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseUrl = process.env.SUPABASE_URL;
+    if (serviceRoleKey && supabaseUrl) {
+      const admin = createClient(supabaseUrl, serviceRoleKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+      const { error } = await admin.auth.admin.deleteUser(userId);
+      if (error) {
+        console.error("[deleteAccount] admin.deleteUser failed:", error.message);
+      }
+    }
+
+    return { ok: true };
+  });
+
 const saveSemesterSchema = z.object({
   label: z.string().min(1).max(80),
   sem_type: z.string().max(16),
@@ -76,6 +104,21 @@ export const saveSemester = createServerFn({ method: "POST" })
   .validator((input: unknown) => saveSemesterSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+
+    // Guard against duplicate semester labels for this user (race-condition safe)
+    const { data: existing } = await supabase
+      .from("semesters")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("label", data.label)
+      .maybeSingle();
+
+    if (existing) {
+      throw new Error(
+        `A semester named "${data.label}" already exists. Please use a different name.`,
+      );
+    }
+
     const { data: sem, error: e1 } = await supabase
       .from("semesters")
       .insert({
@@ -98,7 +141,12 @@ export const saveSemester = createServerFn({ method: "POST" })
       grade_pts: c.grade_pts ?? null,
     }));
     const { error: e2 } = await supabase.from("courses").insert(rows);
-    if (e2) throw new Error(e2.message);
+    if (e2) {
+      // Roll back the semester if course insert fails
+      await supabase.from("semesters").delete().eq("id", sem.id);
+      throw new Error(e2.message);
+    }
+
     return { ok: true, semesterId: sem.id };
   });
 

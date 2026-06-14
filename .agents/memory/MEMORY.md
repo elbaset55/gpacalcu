@@ -1,1 +1,2 @@
 - [Termly redesign approach](termly-design.md) — CSS variables drive all theming; surgical edits to GPAAdvisorApp.tsx safer than rewrite
+- [Security fixes applied](security-fixes.md) — 13 confirmed vulns patched; SUPABASE_SERVICE_ROLE_KEY still needed for full auth-user deletion
