@@ -1,65 +1,59 @@
-import { createMiddleware } from '@tanstack/react-start'
-import { getRequest } from '@tanstack/react-start/server'
-import { createClient } from '@supabase/supabase-js'
-import type { Database } from './types'
+import { createMiddleware } from "@tanstack/react-start";
+import { getWebRequest } from "@tanstack/react-start/server";
+import { query } from "@/integrations/replit/db";
 
-export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server(
+export interface ReplitUser {
+  id: string;
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  profileImageUrl: string | null;
+}
+
+function getSessionId(request: Request): string | null {
+  const cookie = request.headers.get("cookie") ?? "";
+  const match = cookie.match(/(?:^|;\s*)termly_sid=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+async function getUserFromSession(sessionId: string): Promise<ReplitUser | null> {
+  const { rows } = await query(
+    `SELECT sess FROM sessions WHERE sid = $1 AND expire > NOW()`,
+    [sessionId],
+  );
+  if (!rows[0]) return null;
+  const sess = rows[0].sess as { userId?: string };
+  if (!sess?.userId) return null;
+  const { rows: userRows } = await query(
+    `SELECT id, email, first_name, last_name, profile_image_url FROM replit_users WHERE id = $1`,
+    [sess.userId],
+  );
+  if (!userRows[0]) return null;
+  const u = userRows[0] as Record<string, string | null>;
+  return {
+    id: u.id as string,
+    email: u.email,
+    firstName: u.first_name,
+    lastName: u.last_name,
+    profileImageUrl: u.profile_image_url,
+  };
+}
+
+export const requireSupabaseAuth = createMiddleware({ type: "function" }).server(
   async ({ next }) => {
-    const SUPABASE_URL = process.env.SUPABASE_URL;
-    const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
+    const request = getWebRequest();
+    if (!request?.headers) throw new Error("Unauthorized");
 
-    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-      throw new Error('Supabase is not configured. Contact support.');
-    }
+    const sessionId = getSessionId(request);
+    if (!sessionId) throw new Error("Unauthorized");
 
-    const request = getRequest();
-
-    if (!request?.headers) {
-      throw new Error('Unauthorized');
-    }
-
-    const authHeader = request.headers.get('authorization');
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new Error('Unauthorized');
-    }
-
-    const token = authHeader.slice(7);
-    if (!token) {
-      throw new Error('Unauthorized');
-    }
-
-    // Create a per-request Supabase client scoped to this token
-    const supabase = createClient<Database>(
-      SUPABASE_URL,
-      SUPABASE_PUBLISHABLE_KEY,
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-        auth: {
-          storage: undefined,
-          persistSession: false,
-          autoRefreshToken: false,
-        },
-      }
-    );
-
-    // Validate the JWT — getUser() verifies signature server-side
-    // We pass the token explicitly to avoid any cached session state
-    const { data, error } = await supabase.auth.getUser(token);
-    if (error || !data?.user?.id) {
-      // Do NOT leak token or error details to the caller
-      throw new Error('Unauthorized');
-    }
+    const user = await getUserFromSession(sessionId);
+    if (!user) throw new Error("Unauthorized");
 
     return next({
       context: {
-        supabase,
-        userId: data.user.id,
-        user: data.user,
+        userId: user.id,
+        user,
       },
     });
   },

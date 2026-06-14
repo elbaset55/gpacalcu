@@ -35,7 +35,6 @@ import {
   YAxis,
 } from "recharts";
 
-import { supabase } from "@/integrations/supabase/client";
 import {
   deleteProfile,
   getProfile,
@@ -1345,8 +1344,8 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  const handleLogout = () => {
+    window.location.href = "/api/auth/logout";
   };
 
   const card: React.CSSProperties = {

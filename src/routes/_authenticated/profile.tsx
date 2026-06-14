@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { deleteAccount } from "@/lib/profile.functions";
 import { useLang } from "@/lib/use-lang";
@@ -19,14 +18,6 @@ const T = {
     title: "حسابي",
     back: "← العودة للتطبيق",
     email: "البريد الإلكتروني",
-    changeEmail: "تغيير البريد",
-    newEmail: "البريد الجديد",
-    sendChange: "إرسال رابط التأكيد",
-    emailSent: "✓ تم إرسال رابط التأكيد للبريد الجديد",
-    changePw: "تغيير كلمة المرور",
-    newPw: "كلمة المرور الجديدة (٦ أحرف على الأقل)",
-    savePw: "حفظ كلمة المرور",
-    pwSaved: "✓ تم تحديث كلمة المرور",
     logout: "تسجيل الخروج",
     danger: "منطقة خطر",
     deleteAcc: "حذف الحساب نهائياً",
@@ -36,20 +27,12 @@ const T = {
     deleted: "✓ تم حذف الحساب",
     err: "حدث خطأ",
     loading: "جاري...",
-    save: "حفظ",
+    managedByReplit: "يُدار حسابك عبر Replit. لتغيير بريدك أو كلمة مرورك، افتح إعدادات Replit.",
   },
   en: {
     title: "My Account",
     back: "← Back to app",
     email: "Email",
-    changeEmail: "Change email",
-    newEmail: "New email",
-    sendChange: "Send confirmation",
-    emailSent: "✓ Confirmation link sent to new email",
-    changePw: "Change password",
-    newPw: "New password (min. 6 chars)",
-    savePw: "Save password",
-    pwSaved: "✓ Password updated",
     logout: "Sign out",
     danger: "Danger zone",
     deleteAcc: "Permanently delete account",
@@ -59,7 +42,7 @@ const T = {
     deleted: "✓ Account deleted",
     err: "An error occurred",
     loading: "Loading...",
-    save: "Save",
+    managedByReplit: "Your account is managed via Replit. To change your email or password, visit Replit settings.",
   },
 } as const;
 
@@ -70,56 +53,26 @@ function ProfilePage() {
   const { lang, setLang } = useLang();
   const t = T[lang];
   const dir = lang === "ar" ? "rtl" : "ltr";
-  const [email, setEmail] = useState("");
-  const [newEmail, setNewEmail] = useState("");
-  const [newPw, setNewPw] = useState("");
   const [confirm, setConfirm] = useState("");
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email || ""));
-  }, []);
 
   const flash = (text: string, kind: "ok" | "err" = "ok") => {
     setMsg({ kind, text });
     setTimeout(() => setMsg(null), 4000);
   };
 
-  const handleEmail = async (e: FormEvent) => {
-    e.preventDefault();
-    setLoading("email");
-    const { error } = await supabase.auth.updateUser({ email: newEmail });
-    setLoading(null);
-    if (error) return flash(error.message, "err");
-    flash(t.emailSent);
-    setNewEmail("");
-  };
-
-  const handlePw = async (e: FormEvent) => {
-    e.preventDefault();
-    setLoading("pw");
-    const { error } = await supabase.auth.updateUser({ password: newPw });
-    setLoading(null);
-    if (error) return flash(error.message, "err");
-    flash(t.pwSaved);
-    setNewPw("");
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate({ to: "/login", search: { redirect: "/app" } });
+  const handleLogout = () => {
+    window.location.href = "/api/auth/logout";
   };
 
   const handleDelete = async () => {
     if (confirm !== "DELETE") return;
     setLoading("delete");
     try {
-      // Server function deletes all DB rows + the Supabase Auth user record
       await deleteAccountFn();
-      await supabase.auth.signOut();
       flash(t.deleted);
-      setTimeout(() => navigate({ to: "/login", search: { redirect: "/app" } }), 800);
+      setTimeout(() => { window.location.href = "/api/auth/logout"; }, 800);
     } catch (e: any) {
       flash(e.message || t.err, "err");
     } finally {
@@ -184,20 +137,9 @@ function ProfilePage() {
         )}
 
         <div style={card}>
-          <div style={{ fontSize: 11, color: "var(--gpa-text-faint)", marginBottom: 4 }}>{t.email}</div>
-          <div style={{ fontSize: 15, color: "var(--gpa-text-strong)", fontWeight: 700, marginBottom: 14 }}>{email || "—"}</div>
-          <form onSubmit={handleEmail} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <input type="email" required placeholder={t.newEmail} value={newEmail} onChange={(e) => setNewEmail(e.target.value)} style={{ ...inp, flex: "1 1 200px" }} />
-            <button type="submit" disabled={loading === "email"} style={btn}>{loading === "email" ? t.loading : t.sendChange}</button>
-          </form>
-        </div>
-
-        <div style={card}>
-          <h2 style={{ margin: "0 0 12px", fontSize: 16, color: "var(--gpa-text)" }}>{t.changePw}</h2>
-          <form onSubmit={handlePw} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <input type="password" required minLength={6} placeholder={t.newPw} value={newPw} onChange={(e) => setNewPw(e.target.value)} style={{ ...inp, flex: "1 1 200px" }} />
-            <button type="submit" disabled={loading === "pw"} style={btn}>{loading === "pw" ? t.loading : t.savePw}</button>
-          </form>
+          <p style={{ margin: 0, fontSize: 13, color: "var(--gpa-text-faint)", lineHeight: 1.6 }}>
+            ℹ️ {t.managedByReplit}
+          </p>
         </div>
 
         <div style={card}>

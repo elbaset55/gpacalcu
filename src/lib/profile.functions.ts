@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { createClient } from "@supabase/supabase-js";
+import { query } from "@/integrations/replit/db";
 import { z } from "zod";
 
 const profileSchema = z.object({
@@ -22,62 +22,59 @@ const profileSchema = z.object({
 export const getProfile = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
-    const { data, error } = await supabase
-      .from("academic_profiles")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    return data;
+    const { userId } = context;
+    const { rows } = await query(
+      `SELECT * FROM academic_profiles WHERE user_id = $1`,
+      [userId],
+    );
+    return rows[0] ?? null;
   });
 
 export const saveProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: unknown) => profileSchema.parse(input))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const { error } = await supabase
-      .from("academic_profiles")
-      .upsert({ ...data, user_id: userId }, { onConflict: "user_id" });
-    if (error) throw new Error(error.message);
+    const { userId } = context;
+    await query(
+      `INSERT INTO academic_profiles
+         (user_id, lang, scale_id, is_benha, total_req, uni_name, major, prev_gpa, prev_cr,
+          semester, has_failed, min_prev_sem_gpa, grad_target, current_level, updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,NOW())
+       ON CONFLICT (user_id) DO UPDATE SET
+         lang=EXCLUDED.lang, scale_id=EXCLUDED.scale_id, is_benha=EXCLUDED.is_benha,
+         total_req=EXCLUDED.total_req, uni_name=EXCLUDED.uni_name, major=EXCLUDED.major,
+         prev_gpa=EXCLUDED.prev_gpa, prev_cr=EXCLUDED.prev_cr, semester=EXCLUDED.semester,
+         has_failed=EXCLUDED.has_failed, min_prev_sem_gpa=EXCLUDED.min_prev_sem_gpa,
+         grad_target=EXCLUDED.grad_target, current_level=EXCLUDED.current_level,
+         updated_at=NOW()`,
+      [
+        userId, data.lang, data.scale_id, data.is_benha, data.total_req,
+        data.uni_name, data.major, data.prev_gpa, data.prev_cr, data.semester,
+        data.has_failed, data.min_prev_sem_gpa, data.grad_target, data.current_level,
+      ],
+    );
     return { ok: true };
   });
 
 export const deleteProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
-    await supabase.from("courses").delete().eq("user_id", userId);
-    await supabase.from("semesters").delete().eq("user_id", userId);
-    await supabase.from("academic_profiles").delete().eq("user_id", userId);
+    const { userId } = context;
+    await query(`DELETE FROM courses WHERE user_id = $1`, [userId]);
+    await query(`DELETE FROM semesters WHERE user_id = $1`, [userId]);
+    await query(`DELETE FROM academic_profiles WHERE user_id = $1`, [userId]);
     return { ok: true };
   });
 
 export const deleteAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
-
-    // Delete all user data first
-    await supabase.from("courses").delete().eq("user_id", userId);
-    await supabase.from("semesters").delete().eq("user_id", userId);
-    await supabase.from("reminders" as any).delete().eq("user_id", userId);
-    await supabase.from("academic_profiles").delete().eq("user_id", userId);
-
-    // Delete the auth user using service role if available
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const supabaseUrl = process.env.SUPABASE_URL;
-    if (serviceRoleKey && supabaseUrl) {
-      const admin = createClient(supabaseUrl, serviceRoleKey, {
-        auth: { autoRefreshToken: false, persistSession: false },
-      });
-      const { error } = await admin.auth.admin.deleteUser(userId);
-      if (error) {
-        console.error("[deleteAccount] admin.deleteUser failed:", error.message);
-      }
-    }
-
+    const { userId } = context;
+    await query(`DELETE FROM courses WHERE user_id = $1`, [userId]);
+    await query(`DELETE FROM semesters WHERE user_id = $1`, [userId]);
+    await query(`DELETE FROM reminders WHERE user_id = $1`, [userId]);
+    await query(`DELETE FROM academic_profiles WHERE user_id = $1`, [userId]);
+    await query(`DELETE FROM replit_users WHERE id = $1`, [userId]);
     return { ok: true };
   });
 
@@ -103,70 +100,67 @@ export const saveSemester = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: unknown) => saveSemesterSchema.parse(input))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { userId } = context;
 
-    // Guard against duplicate semester labels for this user (race-condition safe)
-    const { data: existing } = await supabase
-      .from("semesters")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("label", data.label)
-      .maybeSingle();
-
-    if (existing) {
+    const existing = await query(
+      `SELECT id FROM semesters WHERE user_id = $1 AND label = $2`,
+      [userId, data.label],
+    );
+    if (existing.rows[0]) {
       throw new Error(
         `A semester named "${data.label}" already exists. Please use a different name.`,
       );
     }
 
-    const { data: sem, error: e1 } = await supabase
-      .from("semesters")
-      .insert({
-        user_id: userId,
-        label: data.label,
-        sem_type: data.sem_type,
-        year: data.year ?? null,
-      })
-      .select()
-      .single();
-    if (e1 || !sem) throw new Error(e1?.message ?? "Failed to save semester");
+    const semResult = await query(
+      `INSERT INTO semesters (user_id, label, sem_type, year)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id`,
+      [userId, data.label, data.sem_type, data.year ?? null],
+    );
+    const semId = semResult.rows[0].id as string;
 
-    const rows = data.courses.map((c) => ({
-      user_id: userId,
-      semester_id: sem.id,
-      name: c.name || "—",
-      code: c.code ?? "",
-      credits: c.credits,
-      grade_letter: c.grade_letter ?? null,
-      grade_pts: c.grade_pts ?? null,
-    }));
-    const { error: e2 } = await supabase.from("courses").insert(rows);
-    if (e2) {
-      // Roll back the semester if course insert fails
-      await supabase.from("semesters").delete().eq("id", sem.id);
-      throw new Error(e2.message);
+    const courseValues = data.courses
+      .map((_, i) => {
+        const base = i * 7;
+        return `($${base + 1},$${base + 2},$${base + 3},$${base + 4},$${base + 5},$${base + 6},$${base + 7})`;
+      })
+      .join(",");
+    const courseParams = data.courses.flatMap((c) => [
+      userId,
+      semId,
+      c.name || "—",
+      c.code ?? "",
+      c.credits,
+      c.grade_letter ?? null,
+      c.grade_pts ?? null,
+    ]);
+
+    try {
+      await query(
+        `INSERT INTO courses (user_id, semester_id, name, code, credits, grade_letter, grade_pts)
+         VALUES ${courseValues}`,
+        courseParams,
+      );
+    } catch (e) {
+      await query(`DELETE FROM semesters WHERE id = $1`, [semId]);
+      throw e;
     }
 
-    return { ok: true, semesterId: sem.id };
+    return { ok: true, semesterId: semId };
   });
 
 export const listSemesters = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
-    const { data: semesters, error: e1 } = await supabase
-      .from("semesters")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: true });
-    if (e1) throw new Error(e1.message);
-    const { data: courses, error: e2 } = await supabase
-      .from("courses")
-      .select("*")
-      .eq("user_id", userId);
-    if (e2) throw new Error(e2.message);
-    return {
-      semesters: semesters ?? [],
-      courses: courses ?? [],
-    };
+    const { userId } = context;
+    const { rows: semesters } = await query(
+      `SELECT * FROM semesters WHERE user_id = $1 ORDER BY created_at ASC`,
+      [userId],
+    );
+    const { rows: courses } = await query(
+      `SELECT * FROM courses WHERE user_id = $1`,
+      [userId],
+    );
+    return { semesters, courses };
   });

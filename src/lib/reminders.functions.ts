@@ -1,25 +1,25 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { query } from "@/integrations/replit/db";
 import { z } from "zod";
 
 const newReminderSchema = z.object({
   title: z.string().min(1).max(200),
   body: z.string().max(2000).default(""),
   kind: z.string().max(40).default("general"),
-  due_at: z.string(), // ISO
+  due_at: z.string(),
 });
 
 export const listReminders = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
-    const { data, error } = await supabase
-      .from("reminders" as any)
-      .select("*")
-      .eq("user_id", userId)
-      .order("due_at", { ascending: true });
-    if (error) throw new Error(error.message);
-    return ((data ?? []) as unknown) as Array<{
+    const { userId } = context;
+    const { rows } = await query(
+      `SELECT id, title, body, kind, due_at, done FROM reminders
+       WHERE user_id = $1 ORDER BY due_at ASC`,
+      [userId],
+    );
+    return rows as Array<{
       id: string;
       title: string;
       body: string;
@@ -33,36 +33,39 @@ export const addReminder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: unknown) => newReminderSchema.parse(input))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const { error } = await supabase.from("reminders" as any).insert({ ...data, user_id: userId });
-    if (error) throw new Error(error.message);
+    const { userId } = context;
+    await query(
+      `INSERT INTO reminders (user_id, title, body, kind, due_at)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [userId, data.title, data.body, data.kind, data.due_at],
+    );
     return { ok: true };
   });
 
 export const toggleReminder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((input: unknown) => z.object({ id: z.string().uuid(), done: z.boolean() }).parse(input))
+  .validator((input: unknown) =>
+    z.object({ id: z.string().uuid(), done: z.boolean() }).parse(input),
+  )
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const { error } = await supabase
-      .from("reminders" as any)
-      .update({ done: data.done })
-      .eq("id", data.id)
-      .eq("user_id", userId);
-    if (error) throw new Error(error.message);
+    const { userId } = context;
+    await query(
+      `UPDATE reminders SET done = $1 WHERE id = $2 AND user_id = $3`,
+      [data.done, data.id, userId],
+    );
     return { ok: true };
   });
 
 export const deleteReminder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .validator((input: unknown) =>
+    z.object({ id: z.string().uuid() }).parse(input),
+  )
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const { error } = await supabase
-      .from("reminders" as any)
-      .delete()
-      .eq("id", data.id)
-      .eq("user_id", userId);
-    if (error) throw new Error(error.message);
+    const { userId } = context;
+    await query(
+      `DELETE FROM reminders WHERE id = $1 AND user_id = $2`,
+      [data.id, userId],
+    );
     return { ok: true };
   });
