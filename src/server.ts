@@ -155,6 +155,52 @@ async function handleAuthLogout(request: Request): Promise<Response> {
   return response;
 }
 
+async function handleEmailRegister(request: Request): Promise<Response> {
+  try {
+    const body = await request.json().catch(() => null) as { email?: string; password?: string; displayName?: string } | null;
+    if (!body?.email || !body?.password) {
+      return Response.json({ error: "Email and password required" }, { status: 400 });
+    }
+    const { registerEmailUser } = await import("./lib/email-auth");
+    const result = await registerEmailUser(body.email, body.password, body.displayName);
+    if ("error" in result) return Response.json({ error: result.error }, { status: 400 });
+    const { saveSession } = await import("./integrations/replit/auth");
+    const sessionId = crypto.randomUUID();
+    await saveSession(sessionId, result.userId);
+    const isProd = process.env.NODE_ENV === "production";
+    const secure = isProd ? "; Secure" : "";
+    const res = Response.json({ ok: true });
+    res.headers.append("Set-Cookie", `termly_sid=${encodeURIComponent(sessionId)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800${secure}`);
+    return res;
+  } catch (e) {
+    console.error("[email register]", e);
+    return Response.json({ error: "Registration failed" }, { status: 500 });
+  }
+}
+
+async function handleEmailLogin(request: Request): Promise<Response> {
+  try {
+    const body = await request.json().catch(() => null) as { email?: string; password?: string } | null;
+    if (!body?.email || !body?.password) {
+      return Response.json({ error: "Email and password required" }, { status: 400 });
+    }
+    const { loginEmailUser } = await import("./lib/email-auth");
+    const result = await loginEmailUser(body.email, body.password);
+    if ("error" in result) return Response.json({ error: result.error }, { status: 401 });
+    const { saveSession } = await import("./integrations/replit/auth");
+    const sessionId = crypto.randomUUID();
+    await saveSession(sessionId, result.userId);
+    const isProd = process.env.NODE_ENV === "production";
+    const secure = isProd ? "; Secure" : "";
+    const res = Response.json({ ok: true });
+    res.headers.append("Set-Cookie", `termly_sid=${encodeURIComponent(sessionId)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800${secure}`);
+    return res;
+  } catch (e) {
+    console.error("[email login]", e);
+    return Response.json({ error: "Login failed" }, { status: 500 });
+  }
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
@@ -164,6 +210,8 @@ export default {
       if (path === "/api/auth/login") return await handleAuthLogin(request);
       if (path === "/api/auth/callback") return await handleAuthCallback(request);
       if (path === "/api/auth/logout") return await handleAuthLogout(request);
+      if (path === "/api/auth/email/register" && request.method === "POST") return await handleEmailRegister(request);
+      if (path === "/api/auth/email/login" && request.method === "POST") return await handleEmailLogin(request);
 
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);

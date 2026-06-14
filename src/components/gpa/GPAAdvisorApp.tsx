@@ -1107,7 +1107,7 @@ function HistoryPanel({ history, grades, lang, onClose }: any) {
 ══════════════════════════════════════════════════════════ */
 type Course = { id: string; name: string; cr: number; grade: number; retake?: boolean };
 
-function Planner({ profile, onReset, history, onImport }: { profile: Profile; onReset: () => void; history: any[]; onImport: (payload: ImportPayload) => Promise<void> }) {
+function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveSemGuest }: { profile: Profile; onReset: () => void; history: any[]; onImport: (payload: ImportPayload) => Promise<void>; isGuest?: boolean; onSaveSemGuest?: (data: any) => void }) {
   const { theme, setTheme } = useGpaTheme();
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -1283,20 +1283,26 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
       showToast(ar ? "لا توجد مواد لحفظها" : "No courses to save", false);
       return;
     }
-    saveSemMut.mutate({
-      data: {
-        label: `${semLabel} (${ar ? "فصل" : "sem"} ${history.length + 1})`,
-        sem_type: semester,
-        year: new Date().getFullYear(),
-        courses: courses.map((c) => ({
-          name: c.name || "—",
-          code: "",
-          credits: c.cr,
-          grade_letter: ga(c.grade, grades),
-          grade_pts: c.grade,
-        })),
-      },
-    });
+    const semData = {
+      label: `${semLabel} (${ar ? "فصل" : "sem"} ${history.length + 1})`,
+      sem_type: semester,
+      year: new Date().getFullYear(),
+      courses: courses.map((c) => ({
+        name: c.name || "—",
+        code: "",
+        credits: c.cr,
+        grade_letter: ga(c.grade, grades),
+        grade_pts: c.grade,
+      })),
+    };
+    if (isGuest && onSaveSemGuest) {
+      onSaveSemGuest(semData);
+      showToast(ar ? "تم الحفظ مؤقتاً ✅" : "Saved locally ✅");
+      setCourses([{ id: newId("c"), name: "", cr: 3, grade: grades[2]?.pts ?? 3.333 }]);
+      setModal(null);
+      return;
+    }
+    saveSemMut.mutate({ data: semData });
   };
 
   const exportData = () => {
@@ -2566,7 +2572,8 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                 : "Analyzes your academic data and gives actionable advice."}
             </p>
             <button
-              onClick={() =>
+              onClick={() => {
+                if (isGuest) { showToast(ar ? "سجّل دخولك لاستخدام الذكاء الاصطناعي 🔒" : "Sign in to use AI features 🔒", false); return; }
                 advisorMut.mutate({
                   data: {
                     lang: lang as "ar" | "en",
@@ -2589,8 +2596,8 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
                       history: history.map((h: any) => ({ label: h.label, gpa: h.cumGpa, cr: h.cumCr ?? newCr })),
                     },
                   },
-                })
-              }
+                });
+              }}
               disabled={advisorMut.isPending}
               style={{
                 width: "100%",
@@ -2750,17 +2757,20 @@ function Planner({ profile, onReset, history, onImport }: { profile: Profile; on
               {ar ? "خطة فصلية ذكية بناءً على مستواك ومعدلك للوصول لهدف التخرج." : "Smart semester-by-semester plan based on your level and GPA."}
             </p>
             <button
-              onClick={() => roadmapMut.mutate({ data: {
-                lang: lang as "ar" | "en",
-                uniName: uniName || "",
-                major: major || "",
-                currentLevel,
-                prevGpa: cumGpa,
-                newCr,
-                totalReq,
-                gradTarget,
-                hasFailed,
-              } })}
+              onClick={() => {
+                if (isGuest) { showToast(ar ? "سجّل دخولك لاستخدام الذكاء الاصطناعي 🔒" : "Sign in to use AI features 🔒", false); return; }
+                roadmapMut.mutate({ data: {
+                  lang: lang as "ar" | "en",
+                  uniName: uniName || "",
+                  major: major || "",
+                  currentLevel,
+                  prevGpa: cumGpa,
+                  newCr,
+                  totalReq,
+                  gradTarget,
+                  hasFailed,
+                } });
+              }}
               disabled={roadmapMut.isPending}
               style={{ width: "100%", padding: 12, background: roadmapMut.isPending ? "var(--gpa-card-elevated)" : "linear-gradient(135deg,var(--gpa-accent),var(--gpa-accent-2))", color: "var(--gpa-bg)", border: "none", borderRadius: 10, fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: roadmapMut.isPending ? "wait" : "pointer" }}
             >
@@ -2857,9 +2867,58 @@ const menuItem: React.CSSProperties = {
 };
 
 /* ══════════════════════════════════════════════════════════
+   GUEST BANNER
+══════════════════════════════════════════════════════════ */
+function GuestBanner({ lang }: { lang: string }) {
+  const ar = lang === "ar";
+  return (
+    <div
+      aria-live="polite"
+      style={{
+        position: "fixed",
+        top: 0, left: 0, right: 0,
+        zIndex: 9000,
+        background: "rgba(8,11,22,0.94)",
+        backdropFilter: "blur(20px) saturate(1.4)",
+        WebkitBackdropFilter: "blur(20px) saturate(1.4)",
+        borderBottom: "1px solid rgba(79,255,176,0.14)",
+        padding: "7px 20px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 14,
+        fontFamily: FONT,
+        animation: "gpa-fade-in-up 0.4s cubic-bezier(0.22,1,0.36,1) both",
+      }}
+    >
+      <span style={{ fontSize: 11.5, color: "rgba(200,210,240,0.65)", display: "flex", alignItems: "center", gap: 5 }}>
+        <span>🔓</span>
+        {ar ? "وضع الزائر — البيانات محفوظة في هذا المتصفح فقط" : "Guest mode — data is saved only in this browser"}
+      </span>
+      <a
+        href="/login"
+        style={{
+          fontSize: 11,
+          fontWeight: 700,
+          color: "var(--gpa-accent)",
+          textDecoration: "none",
+          border: "1px solid rgba(79,255,176,0.28)",
+          borderRadius: 20,
+          padding: "2px 11px",
+          letterSpacing: "0.3px",
+          transition: "all 0.2s ease",
+        }}
+      >
+        {ar ? "تسجيل الدخول ←" : "Sign in →"}
+      </a>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════
    ROOT
 ══════════════════════════════════════════════════════════ */
-export default function GPAAdvisorApp() {
+export default function GPAAdvisorApp({ isGuest = false }: { isGuest?: boolean } = {}) {
   const navigate = useNavigate();
   const getProfileFn = useServerFn(getProfile);
   const listSemestersFn = useServerFn(listSemesters);
@@ -2870,14 +2929,25 @@ export default function GPAAdvisorApp() {
   // Initialise theme attribute on mount
   useGpaTheme();
 
+  // Guest mode: localStorage-backed state
+  const [guestRawProfile, setGuestRawProfile] = useState<any>(() => {
+    if (!isGuest || typeof window === "undefined") return undefined;
+    try { return JSON.parse(localStorage.getItem("termly_guest_profile") ?? "null"); } catch { return null; }
+  });
+  const [guestSemsData, setGuestSemsData] = useState<{ semesters: any[]; courses: any[] }>(() => {
+    if (typeof window === "undefined") return { semesters: [], courses: [] };
+    try { return JSON.parse(localStorage.getItem("termly_guest_sems") ?? "null") ?? { semesters: [], courses: [] }; } catch { return { semesters: [], courses: [] }; }
+  });
+
   const profileQ = useQuery({
     queryKey: ["profile"],
     queryFn: () => getProfileFn(),
+    enabled: !isGuest,
   });
   const semestersQ = useQuery({
     queryKey: ["semesters"],
     queryFn: () => listSemestersFn(),
-    enabled: !!profileQ.data,
+    enabled: !isGuest && !!profileQ.data,
   });
 
   const saveProfileMut = useMutation({
@@ -2899,7 +2969,7 @@ export default function GPAAdvisorApp() {
     }
   }, [profileQ.error]);
 
-  if (profileQ.isLoading) {
+  if (!isGuest && profileQ.isLoading) {
     return (
       <div
         style={{
@@ -2951,12 +3021,40 @@ export default function GPAAdvisorApp() {
     );
   }
 
-  const dbProfile = profileQ.data;
+  const dbProfile = isGuest ? guestRawProfile : profileQ.data;
+
+  const guestSaveSem = (semData: any) => {
+    const semId = crypto.randomUUID();
+    const newSem = { id: semId, label: semData.label, sem_type: semData.sem_type, year: semData.year ?? null, user_id: "guest", created_at: new Date().toISOString(), sort_order: guestSemsData.semesters.length };
+    const newCourses = (semData.courses || []).map((c: any) => ({ id: crypto.randomUUID(), semester_id: semId, user_id: "guest", name: c.name, code: c.code ?? "", credits: c.credits, grade_letter: c.grade_letter ?? null, grade_pts: c.grade_pts ?? null, created_at: new Date().toISOString(), is_failed: false, percentage: null, retake_of: null }));
+    const updated = { semesters: [...guestSemsData.semesters, newSem], courses: [...guestSemsData.courses, ...newCourses] };
+    localStorage.setItem("termly_guest_sems", JSON.stringify(updated));
+    setGuestSemsData(updated);
+  };
 
   if (!dbProfile) {
     return (
       <SetupScreen
         onDone={async (p, sems) => {
+          if (isGuest) {
+            const rawProfile = { lang: p.lang, scale_id: p.scaleId, is_benha: p.isBenha, total_req: p.totalReq, uni_name: p.uniName, major: p.major, prev_gpa: p.prevGpa, prev_cr: p.prevCr, semester: p.semester, has_failed: p.hasFailed, min_prev_sem_gpa: p.minPrevSemGpa, grad_target: p.gradTarget, current_level: p.currentLevel };
+            let newSemsData: { semesters: any[]; courses: any[] } = { semesters: [], courses: [] };
+            if (sems?.length) {
+              for (const s of sems) {
+                if (!s.courses?.length) continue;
+                const semId = crypto.randomUUID();
+                newSemsData.semesters.push({ id: semId, label: s.label, sem_type: s.sem_type || "1", year: s.year ?? null, user_id: "guest", created_at: new Date().toISOString(), sort_order: newSemsData.semesters.length });
+                for (const c of s.courses) {
+                  newSemsData.courses.push({ id: crypto.randomUUID(), semester_id: semId, user_id: "guest", name: c.name || "—", code: c.code ?? "", credits: c.credits, grade_letter: c.grade_letter ?? null, grade_pts: c.grade_pts ?? null, created_at: new Date().toISOString(), is_failed: false, percentage: null, retake_of: null });
+                }
+              }
+            }
+            localStorage.setItem("termly_guest_profile", JSON.stringify(rawProfile));
+            localStorage.setItem("termly_guest_sems", JSON.stringify(newSemsData));
+            setGuestRawProfile(rawProfile);
+            setGuestSemsData(newSemsData);
+            return;
+          }
           // Save semesters/courses FIRST so they exist before the profile
           // query invalidation swaps this screen out for the Planner.
           if (sems?.length) {
@@ -3022,8 +3120,8 @@ export default function GPAAdvisorApp() {
     currentLevel: (dbProfile as any).current_level ?? 1,
   };
 
-  // Build history from DB
-  const semsData = semestersQ.data;
+  // Build history from DB or localStorage (guest)
+  const semsData = isGuest ? guestSemsData : semestersQ.data;
   const history: any[] = [];
   if (semsData) {
     const baseCr = profile.prevCr;
@@ -3048,53 +3146,85 @@ export default function GPAAdvisorApp() {
   }
 
   return (
-    <Planner
-      profile={profile}
-      history={history}
-      onReset={async () => {
-        if (typeof window !== "undefined" && !window.confirm(profile.lang === "ar" ? "متأكد من إعادة التعيين؟" : "Reset?")) return;
-        await deleteProfileMut.mutateAsync({});
-      }}
-      onImport={async (payload) => {
-        await deleteProfileMut.mutateAsync({});
-        const p = payload.profile;
-        await saveProfileMut.mutateAsync({
-          data: {
-            lang: p.lang,
-            scale_id: p.scaleId,
-            is_benha: p.isBenha,
-            total_req: p.totalReq,
-            uni_name: p.uniName ?? "",
-            major: p.major ?? "",
-            prev_gpa: p.prevGpa,
-            prev_cr: p.prevCr,
-            semester: p.semester,
-            has_failed: p.hasFailed,
-            min_prev_sem_gpa: p.minPrevSemGpa,
-            grad_target: p.gradTarget,
-            current_level: (p as any).currentLevel ?? 1,
-          },
-        });
-        for (const sem of payload.semesters) {
-          if (!sem.courses?.length) continue;
-          await saveSemesterFn({
-            data: {
-              label: sem.label,
-              sem_type: sem.sem_type || "1",
-              year: sem.year ?? null,
-              courses: sem.courses.map((c) => ({
-                name: c.name || "—",
-                code: c.code ?? "",
-                credits: c.credits,
-                grade_letter: c.grade_letter ?? null,
-                grade_pts: c.grade_pts ?? null,
-              })),
-            },
-          });
-        }
-        queryClient.invalidateQueries({ queryKey: ["profile"] });
-        queryClient.invalidateQueries({ queryKey: ["semesters"] });
-      }}
-    />
+    <>
+      {isGuest && <GuestBanner lang={profile.lang} />}
+      <div style={isGuest ? { paddingTop: 38 } : undefined}>
+        <Planner
+          profile={profile}
+          history={history}
+          isGuest={isGuest}
+          onSaveSemGuest={isGuest ? guestSaveSem : undefined}
+          onReset={async () => {
+            if (typeof window !== "undefined" && !window.confirm(profile.lang === "ar" ? "متأكد من إعادة التعيين؟" : "Reset?")) return;
+            if (isGuest) {
+              localStorage.removeItem("termly_guest_profile");
+              localStorage.removeItem("termly_guest_sems");
+              setGuestRawProfile(null);
+              setGuestSemsData({ semesters: [], courses: [] });
+              return;
+            }
+            await deleteProfileMut.mutateAsync({});
+          }}
+          onImport={async (payload) => {
+            if (isGuest) {
+              const p = payload.profile;
+              const rawProfile = { lang: p.lang, scale_id: p.scaleId, is_benha: p.isBenha, total_req: p.totalReq, uni_name: p.uniName ?? "", major: p.major ?? "", prev_gpa: p.prevGpa, prev_cr: p.prevCr, semester: p.semester, has_failed: p.hasFailed, min_prev_sem_gpa: p.minPrevSemGpa, grad_target: p.gradTarget, current_level: (p as any).currentLevel ?? 1 };
+              const importedSems: { semesters: any[]; courses: any[] } = { semesters: [], courses: [] };
+              for (const sem of payload.semesters) {
+                if (!sem.courses?.length) continue;
+                const semId = crypto.randomUUID();
+                importedSems.semesters.push({ id: semId, label: sem.label, sem_type: sem.sem_type || "1", year: sem.year ?? null, user_id: "guest", created_at: new Date().toISOString(), sort_order: importedSems.semesters.length });
+                for (const c of sem.courses) {
+                  importedSems.courses.push({ id: crypto.randomUUID(), semester_id: semId, user_id: "guest", name: c.name || "—", code: c.code ?? "", credits: c.credits, grade_letter: c.grade_letter ?? null, grade_pts: c.grade_pts ?? null, created_at: new Date().toISOString(), is_failed: false, percentage: null, retake_of: null });
+                }
+              }
+              localStorage.setItem("termly_guest_profile", JSON.stringify(rawProfile));
+              localStorage.setItem("termly_guest_sems", JSON.stringify(importedSems));
+              setGuestRawProfile(rawProfile);
+              setGuestSemsData(importedSems);
+              return;
+            }
+            await deleteProfileMut.mutateAsync({});
+            const p = payload.profile;
+            await saveProfileMut.mutateAsync({
+              data: {
+                lang: p.lang,
+                scale_id: p.scaleId,
+                is_benha: p.isBenha,
+                total_req: p.totalReq,
+                uni_name: p.uniName ?? "",
+                major: p.major ?? "",
+                prev_gpa: p.prevGpa,
+                prev_cr: p.prevCr,
+                semester: p.semester,
+                has_failed: p.hasFailed,
+                min_prev_sem_gpa: p.minPrevSemGpa,
+                grad_target: p.gradTarget,
+                current_level: (p as any).currentLevel ?? 1,
+              },
+            });
+            for (const sem of payload.semesters) {
+              if (!sem.courses?.length) continue;
+              await saveSemesterFn({
+                data: {
+                  label: sem.label,
+                  sem_type: sem.sem_type || "1",
+                  year: sem.year ?? null,
+                  courses: sem.courses.map((c) => ({
+                    name: c.name || "—",
+                    code: c.code ?? "",
+                    credits: c.credits,
+                    grade_letter: c.grade_letter ?? null,
+                    grade_pts: c.grade_pts ?? null,
+                  })),
+                },
+              });
+            }
+            queryClient.invalidateQueries({ queryKey: ["profile"] });
+            queryClient.invalidateQueries({ queryKey: ["semesters"] });
+          }}
+        />
+      </div>
+    </>
   );
 }
