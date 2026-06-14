@@ -1,0 +1,42 @@
+Act as an Elite Brand Identity Designer and Master Frontend Architect (React + Tailwind CSS).
+Your mission is to build the premium SaaS dashboard for "Termly" (ترملي), an AI-powered academic and GPA tracking platform. Do not just build a generic UI; you must establish and implement a strict, bespoke visual identity.
+
+### 1. BRANDING & VISUAL IDENTITY (THE TERMLY DESIGN SYSTEM):
+- Brand Vibe: "Academic Precision meets Next-Gen AI". It should feel like the intersection of a highly structured university transcript and a futuristic command center.
+- Custom Color Palette (Termly Aurora):
+  * Base Background: "Space Obsidian" (`#050914`) - an ultra-deep, rich midnight blue/black.
+  * Primary Brand: "Termly Electric" (Gradient from `#2563EB` to `#06B6D4`) - used for primary accents and the logo.
+  * AI/Tech Accent: "Quantum Cyan" (`#22D3EE`) - used for glowing data points, AI text, and charts.
+  * Success/Growth Metric: "GPA Emerald" (`#10B981` with a glow effect).
+  * Surface/Cards: "Frosted Graphite" (`rgba(255,255,255,0.02)` to `0.04`).
+- Visual Motif (The Academic Grid): The background MUST feature a highly subtle, microscopic dotted or grid pattern (`bg-grid-white/[0.02]`) overlaid on the 'Space Obsidian' background. Behind the main cards, place 2 heavily blurred, slow-pulsing radial gradients (Termly Electric and Quantum Cyan) to create a cinematic backlight effect.
+
+### 2. CORE ARCHITECTURE & LAYOUT:
+- Direction: Strict RTL (dir="rtl") for Arabic content.
+- Layout: A highly structured, asymmetric 3D Bento Grid.
+- Glassmorphic DNA: Every card must use `backdrop-blur-xl`, a `border-[0.5px] border-white/10`, and a custom inner shadow (`inset 0 1px 1px rgba(255,255,255,0.05)`).
+
+### 3. COMPONENT SPECIFICATIONS:
+
+A. The Brand Header & Sidebar (Right Side):
+   - Create a CSS-only Termly Logo: A stylized, modern letter "T" intertwined with an upward chart arrow or an AI spark, next to the word "Termly" in a bold, gradient font.
+   - Navigation: Clean sidebar with Lucide icons (لوحة التحكم، السجل، المواد، المستشار الذكي، الأهداف). Active state should have a glowing left border and a subtle white/5 background.
+
+B. The Hero Section (The Command Center):
+   - Greeting: "مرحبًا عبدالباسط 👋" in a crisp, elegant Arabic font.
+   - The Main Metric: Display the GPA "3.000" not just as text, but as a massive, glowing typographic centerpiece.
+   - The Progress Node: A futuristic, animated progress bar (88 out of 136 hours) with an illuminated "Termly Electric" gradient fill and a glowing dot at the leading edge.
+
+C. 3D Tactical Stats Grid:
+   - 4 glass cards. Give them a 3D perspective hover effect (rotateX/rotateY on hover using Tailwind peer/group or custom CSS).
+   - Use vibrant glowing icons nested in subtle glass circles for each stat (GPA, Credits, Level, Courses).
+
+D. The Intelligence Split (Bottom Section):
+   - Left (60%): "مسار الأداء - Termly Insights" - A beautifully mocked spline line chart. The line must be Quantum Cyan, dropping a soft, glowing gradient to the floor of the chart.
+   - Right (40%): "Termly AI Copilot" - A card styled like a sleek terminal. Include a pulsing "AI is thinking..." indicator (3 bouncing glowing dots) and a highly styled text recommendation about raising the GPA. Add an animated gradient border to this specific card to highlight its AI nature.
+
+### 4. ANIMATION & EXECUTION:
+- Implement Framer Motion (or advanced Tailwind transitions) for staggered entrance animations. The grid should feel like it's assembling itself dynamically when the page loads.
+- Ensure perfect typographic hierarchy using a premium Arabic font (e.g., Cairo, IBM Plex Sans Arabic).
+
+Generate the fully responsive, production-ready React/Tailwind component implementing this exact brand identity and layout.
