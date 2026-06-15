@@ -3,3 +3,4 @@
 - [Termly Replit migration](termly-replit-migration.md) — TanStack Start + pg auth route wiring, key lessons from migration
 - [Termly email auth + guest mode](termly-email-guest.md) — email_users table, bcryptjs, POST /api/auth/email/* in server.ts, isGuest prop on GPAAdvisorApp
 - [Termly shell graduation](termly-shell-graduation.md) — TermlyAppShell.tsx wraps Planner; getRequest alias fix; TABS typed as string[][] not [string,string][]
+- [Termly Replit Auth System](termly-replit-auth.md) — supabase/lovable clients are stubs; real auth is Replit OAuth + termly_sid cookie + pg; pg must be installed

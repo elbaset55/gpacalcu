@@ -2871,71 +2871,34 @@ export default function GPAAdvisorApp({ isGuest = false }: { isGuest?: boolean }
   };
 
   if (!dbProfile) {
+    // Authenticated users → dedicated onboarding wizard
+    if (!isGuest) {
+      navigate({ to: "/onboarding" });
+      return null;
+    }
+
+    // Guest users → inline setup screen (no server account)
     return (
       <SetupScreen
         onDone={async (p, sems) => {
-          if (isGuest) {
-            const rawProfile = { lang: p.lang, scale_id: p.scaleId, is_benha: p.isBenha, total_req: p.totalReq, uni_name: p.uniName, major: p.major, prev_gpa: p.prevGpa, prev_cr: p.prevCr, semester: p.semester, has_failed: p.hasFailed, min_prev_sem_gpa: p.minPrevSemGpa, grad_target: p.gradTarget, current_level: p.currentLevel };
-            let newSemsData: { semesters: any[]; courses: any[] } = { semesters: [], courses: [] };
-            if (sems?.length) {
-              for (const s of sems) {
-                if (!s.courses?.length) continue;
-                const semId = crypto.randomUUID();
-                newSemsData.semesters.push({ id: semId, label: s.label, sem_type: s.sem_type || "1", year: s.year ?? null, user_id: "guest", created_at: new Date().toISOString(), sort_order: newSemsData.semesters.length });
-                for (const c of s.courses) {
-                  newSemsData.courses.push({ id: crypto.randomUUID(), semester_id: semId, user_id: "guest", name: c.name || "—", code: c.code ?? "", credits: c.credits, grade_letter: c.grade_letter ?? null, grade_pts: c.grade_pts ?? null, created_at: new Date().toISOString(), is_failed: false, percentage: null, retake_of: null });
-                }
-              }
-            }
-            localStorage.setItem("termly_guest_profile", JSON.stringify(rawProfile));
-            localStorage.setItem("termly_guest_sems", JSON.stringify(newSemsData));
-            setGuestRawProfile(rawProfile);
-            setGuestSemsData(newSemsData);
-            return;
-          }
-          // Save semesters/courses FIRST so they exist before the profile
-          // query invalidation swaps this screen out for the Planner.
+          const rawProfile = { lang: p.lang, scale_id: p.scaleId, is_benha: p.isBenha, total_req: p.totalReq, uni_name: p.uniName, major: p.major, prev_gpa: p.prevGpa, prev_cr: p.prevCr, semester: p.semester, has_failed: p.hasFailed, min_prev_sem_gpa: p.minPrevSemGpa, grad_target: p.gradTarget, current_level: p.currentLevel };
+          let newSemsData: { semesters: any[]; courses: any[] } = { semesters: [], courses: [] };
           if (sems?.length) {
             for (const s of sems) {
               if (!s.courses?.length) continue;
-              await saveSemesterFn({
-                data: {
-                  label: (s.label || "فصل").slice(0, 80),
-                  sem_type: s.sem_type || "1",
-                  year: s.year ?? null,
-                  courses: s.courses.slice(0, 20).map((c) => ({
-                    name: (c.name || "—").slice(0, 120),
-                    code: (c.code ?? "").slice(0, 40),
-                    credits: Math.max(0, Math.min(12, Math.round(c.credits || 0))),
-                    grade_letter: c.grade_letter ? c.grade_letter.slice(0, 8) : null,
-                    grade_pts:
-                      c.grade_pts == null ? null : Math.max(0, Math.min(4, Number(c.grade_pts))),
-                  })),
-                },
-              });
+              const semId = crypto.randomUUID();
+              newSemsData.semesters.push({ id: semId, label: s.label, sem_type: s.sem_type || "1", year: s.year ?? null, user_id: "guest", created_at: new Date().toISOString(), sort_order: newSemsData.semesters.length });
+              for (const c of s.courses) {
+                newSemsData.courses.push({ id: crypto.randomUUID(), semester_id: semId, user_id: "guest", name: c.name || "—", code: c.code ?? "", credits: c.credits, grade_letter: c.grade_letter ?? null, grade_pts: c.grade_pts ?? null, created_at: new Date().toISOString(), is_failed: false, percentage: null, retake_of: null });
+              }
             }
           }
-          await saveProfileMut.mutateAsync({
-            data: {
-              lang: p.lang,
-              scale_id: p.scaleId,
-              is_benha: p.isBenha,
-              total_req: p.totalReq,
-              uni_name: p.uniName,
-              major: p.major,
-              prev_gpa: p.prevGpa,
-              prev_cr: p.prevCr,
-              semester: p.semester,
-              has_failed: p.hasFailed,
-              min_prev_sem_gpa: p.minPrevSemGpa,
-              grad_target: p.gradTarget,
-              current_level: p.currentLevel,
-            },
-          });
-          queryClient.invalidateQueries({ queryKey: ["semesters"] });
+          localStorage.setItem("termly_guest_profile", JSON.stringify(rawProfile));
+          localStorage.setItem("termly_guest_sems", JSON.stringify(newSemsData));
+          setGuestRawProfile(rawProfile);
+          setGuestSemsData(newSemsData);
         }}
       />
-
     );
   }
 
