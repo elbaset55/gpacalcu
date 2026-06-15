@@ -1,7 +1,6 @@
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useGpaTheme } from "@/components/gpa/use-theme";
-import { PremiumControlsBar } from "@/components/gpa/PremiumControls";
 import { useLang } from "@/lib/use-lang";
 import { Logo } from "@/components/gpa/Logo";
 import { AppBackground } from "@/components/gpa/AppBackground";
@@ -25,42 +24,65 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
-const FONT = "'Plus Jakarta Sans','Manrope','Cairo','Noto Sans Arabic',sans-serif";
+const FONT = "'Cairo','Manrope','Noto Sans Arabic',sans-serif";
+const FONT_EN = "'Manrope','Cairo',sans-serif";
 
 const T = {
   ar: {
-    taglineSub: "مستشارك الأكاديمي الذكي",
-    loginWith: "تسجيل الدخول بـ",
-    replit: "Replit",
-    orContinue: "أو تابع بـ",
+    tagline: "مستشارك الأكاديمي الذكي",
+    heroTitle: "وصّل مسيرتك\nالأكاديمية",
+    heroSub: "تتبّع معدلاتك، خطّط لفصولك، واحصل على توصيات ذكية مخصصة لك",
+    feature1: "حساب المعدل الفوري",
+    feature1Desc: "احسب GPA بدقة عالية مع دعم أنظمة التقدير المختلفة",
+    feature2: "تحليل الأداء الأكاديمي",
+    feature2Desc: "رسوم بيانية وتقارير تفصيلية لمسيرتك الجامعية",
+    feature3: "خطة تخرج ذكية",
+    feature3Desc: "تنبؤات دقيقة وأهداف قابلة للتحقيق لكل فصل",
+    authTitle: "ابدأ الآن",
+    authSub: "اختر طريقة تسجيل الدخول المناسبة لك",
+    withGoogle: "متابعة بـ Google",
+    withReplit: "متابعة بـ Replit",
+    orEmail: "أو عبر البريد الإلكتروني",
     email: "البريد الإلكتروني",
     password: "كلمة المرور",
     confirmPassword: "تأكيد كلمة المرور",
     signIn: "تسجيل الدخول",
-    register: "إنشاء حساب",
+    register: "إنشاء حساب جديد",
     noAccount: "ليس لديك حساب؟",
     hasAccount: "لديك حساب بالفعل؟",
-    createOne: "أنشئ واحداً",
-    signInHere: "سجّل دخولك هنا",
-    guest: "تصفح كزائر",
-    guestDesc: "بدون تسجيل — البيانات في هذا المتصفح فقط",
+    createOne: "أنشئ واحداً الآن",
+    signInHere: "سجّل دخولك",
+    forgotPassword: "نسيت كلمة المرور؟",
+    guest: "تصفح كزائر بدون تسجيل",
+    guestDesc: "البيانات تُحفظ في المتصفح فقط",
     footer: "بياناتك الأكاديمية محفوظة بأمان",
     loading: "جاري...",
-    emailPlaceholder: "you@example.com",
-    passwordPlaceholder: "••••••••",
+    emailPH: "you@example.com",
+    passPH: "8 أحرف على الأقل",
     passMatch: "كلمتا المرور غير متطابقتين",
-    minPass: "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
-    googleBtn: "تسجيل الدخول بـ Google",
-    orSeparator: "أو",
-    forgotPassword: "نسيت كلمة المرور؟",
+    minPass: "كلمة المرور يجب أن تكون 8 أحرف على الأقل",
     googleError: "فشل تسجيل الدخول بـ Google. حاول مجدداً.",
-    googleUnavailable: "تسجيل الدخول بـ Google غير مفعّل بعد. أضف GOOGLE_CLIENT_ID و GOOGLE_CLIENT_SECRET في الإعدادات.",
+    googleUnavailable: "Google غير مفعّل بعد. أضف GOOGLE_CLIENT_ID و GOOGLE_CLIENT_SECRET.",
+    showPass: "إظهار",
+    hidePass: "إخفاء",
+    langBtn: "EN",
+    switchLang: "Switch to English",
   },
   en: {
-    taglineSub: "Your Smart Academic Advisor",
-    loginWith: "Continue with",
-    replit: "Replit",
-    orContinue: "or continue with",
+    tagline: "Your Smart Academic Advisor",
+    heroTitle: "Level Up Your\nAcademic Journey",
+    heroSub: "Track your GPA, plan your semesters, and get AI-powered recommendations tailored to your goals",
+    feature1: "Instant GPA Calculation",
+    feature1Desc: "Accurate calculations with support for multiple grading systems",
+    feature2: "Academic Performance Insights",
+    feature2Desc: "Detailed charts and reports tracking your university journey",
+    feature3: "Smart Graduation Plan",
+    feature3Desc: "Precise forecasts and achievable goals for every semester",
+    authTitle: "Get Started",
+    authSub: "Choose how you'd like to sign in",
+    withGoogle: "Continue with Google",
+    withReplit: "Continue with Replit",
+    orEmail: "or use your email",
     email: "Email",
     password: "Password",
     confirmPassword: "Confirm password",
@@ -70,23 +92,24 @@ const T = {
     hasAccount: "Already have one?",
     createOne: "Create one",
     signInHere: "Sign in here",
-    guest: "Browse as Guest",
-    guestDesc: "No sign-up — data stays in this browser only",
+    forgotPassword: "Forgot password?",
+    guest: "Browse as Guest — no sign-up needed",
+    guestDesc: "Data stays in this browser only",
     footer: "Your academic data is securely encrypted",
     loading: "Loading...",
-    emailPlaceholder: "you@example.com",
-    passwordPlaceholder: "••••••••",
+    emailPH: "you@example.com",
+    passPH: "Min. 8 characters",
     passMatch: "Passwords don't match",
     minPass: "Password must be at least 8 characters",
-    googleBtn: "Continue with Google",
-    orSeparator: "or",
-    forgotPassword: "Forgot password?",
     googleError: "Google sign-in failed. Please try again.",
-    googleUnavailable: "Google sign-in is not configured yet. Add GOOGLE_CLIENT_ID & GOOGLE_CLIENT_SECRET in Secrets.",
+    googleUnavailable: "Google sign-in is not configured. Add GOOGLE_CLIENT_ID & GOOGLE_CLIENT_SECRET.",
+    showPass: "Show",
+    hidePass: "Hide",
+    langBtn: "عربي",
+    switchLang: "التبديل للعربية",
   },
 } as const;
 
-type AuthMode = "replit" | "email";
 type EmailMode = "login" | "register";
 
 function LoginPage() {
@@ -95,22 +118,25 @@ function LoginPage() {
   const t = T[lang];
   const dir = lang === "ar" ? "rtl" : "ltr";
   const isDark = theme === "dark";
+  const isHC = theme === "hc";
+  const ar = lang === "ar";
 
   const { error: urlError } = Route.useSearch();
 
-  const [authMode, setAuthMode] = useState<AuthMode>("replit");
   const [emailMode, setEmailMode] = useState<EmailMode>("login");
+  const [showEmailForm, setShowEmailForm] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Show URL error (from Google OAuth redirect) once on mount
   useEffect(() => {
     if (urlError === "google_failed") setError(t.googleError);
     else if (urlError === "google_unavailable") setError(t.googleUnavailable);
-  }, [urlError]);
+  }, [urlError, t.googleError, t.googleUnavailable]);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,9 +147,7 @@ function LoginPage() {
     }
     setLoading(true);
     try {
-      const endpoint = emailMode === "login"
-        ? "/api/auth/email/login"
-        : "/api/auth/email/register";
+      const endpoint = emailMode === "login" ? "/api/auth/email/login" : "/api/auth/email/register";
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -142,417 +166,586 @@ function LoginPage() {
     }
   };
 
-  const bg: React.CSSProperties = {
-    fontFamily: FONT,
-    minHeight: "100vh",
-    background: isDark
-      ? "linear-gradient(135deg, #03040d 0%, #07091a 40%, #0b0a1f 70%, #050612 100%)"
-      : "linear-gradient(135deg, #f0f3ff 0%, #e8eeff 40%, #f4f2ff 70%, #eef1ff 100%)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "20px 16px",
-    position: "relative",
-    overflow: "hidden",
-  };
+  /* ── Palette ── */
+  const BG = isDark
+    ? "linear-gradient(135deg,#03040d 0%,#07091a 45%,#0b0a1f 100%)"
+    : isHC
+    ? "#fff"
+    : "linear-gradient(135deg,#eef1ff 0%,#e8edff 50%,#f0f3ff 100%)";
 
-  const card: React.CSSProperties = {
-    background: isDark
-      ? "linear-gradient(145deg, rgba(12,15,30,0.96) 0%, rgba(18,23,46,0.92) 100%)"
-      : "rgba(255,255,255,0.94)",
-    backdropFilter: "blur(28px) saturate(1.6)",
-    WebkitBackdropFilter: "blur(28px) saturate(1.6)",
-    border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.92)"}`,
-    borderRadius: 22,
-    padding: "28px 24px",
-    boxShadow: isDark
-      ? "0 28px 80px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.06)"
-      : "0 28px 60px rgba(15,23,66,0.12), inset 0 1px 0 rgba(255,255,255,1)",
-  };
+  const ACCENT = isDark ? "#4fffb0" : isHC ? "#1a35c1" : "#2054e0";
+  const ACCENT2 = isDark ? "#7c83f5" : isHC ? "#2054e0" : "#5b60e8";
+  const TEXT = isDark ? "#e8ecff" : "#0f1545";
+  const MUTED = isDark ? "rgba(200,210,240,0.45)" : "rgba(15,23,66,0.45)";
+  const CARD = isDark
+    ? "linear-gradient(145deg,rgba(12,15,30,0.97),rgba(18,23,46,0.93))"
+    : isHC
+    ? "#fff"
+    : "rgba(255,255,255,0.95)";
+  const CARD_BORDER = isDark ? "rgba(255,255,255,0.08)" : isHC ? "#1a35c1" : "rgba(255,255,255,0.9)";
+  const PANEL_BG = isDark
+    ? "linear-gradient(145deg,rgba(15,20,50,0.97),rgba(20,28,70,0.95))"
+    : isHC
+    ? "#1a35c1"
+    : "linear-gradient(145deg,#1d3fba 0%,#2563eb 60%,#3b71f5 100%)";
+  const INP_BG = isDark ? "rgba(255,255,255,0.05)" : "rgba(15,23,66,0.04)";
+  const INP_BORDER = isDark ? "rgba(255,255,255,0.11)" : "rgba(15,23,66,0.13)";
 
-  const tabBtn = (active: boolean): React.CSSProperties => ({
-    flex: 1,
-    padding: "9px 0",
-    fontFamily: FONT,
-    fontSize: 13,
-    fontWeight: 700,
-    cursor: "pointer",
-    border: "none",
-    borderRadius: 11,
-    transition: "all 0.22s cubic-bezier(0.22,1,0.36,1)",
-    background: active
-      ? isDark
-        ? "linear-gradient(135deg, rgba(79,255,176,0.15), rgba(124,131,245,0.12))"
-        : "white"
-      : "transparent",
-    color: active
-      ? isDark ? "#4fffb0" : "#2054e0"
-      : isDark ? "rgba(255,255,255,0.35)" : "rgba(15,23,66,0.35)",
-    boxShadow: active
-      ? isDark
-        ? "0 2px 12px rgba(79,255,176,0.12), 0 1px 0 rgba(255,255,255,0.06)"
-        : "0 2px 10px rgba(15,23,66,0.10)"
-      : "none",
-  });
-
-  const inp: React.CSSProperties = {
-    width: "100%",
-    padding: "11px 14px",
-    fontFamily: FONT,
-    fontSize: 14,
-    background: isDark ? "rgba(255,255,255,0.045)" : "rgba(15,23,66,0.04)",
-    border: `1px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(15,23,66,0.12)"}`,
-    borderRadius: 11,
-    color: isDark ? "#e8ecff" : "#0f1545",
-    outline: "none",
-    boxSizing: "border-box" as const,
-    transition: "border-color 0.2s, box-shadow 0.2s",
-  };
-
-  const primaryBtn: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    width: "100%",
-    padding: "13px 20px",
-    background: isDark
-      ? "linear-gradient(135deg, #4fffb0 0%, #7c83f5 100%)"
-      : "linear-gradient(135deg, #2054e0 0%, #5b60e8 100%)",
-    border: "none",
-    borderRadius: 13,
-    color: isDark ? "#04060e" : "white",
-    fontSize: 14,
-    fontWeight: 800,
-    fontFamily: FONT,
-    cursor: loading ? "wait" : "pointer",
-    boxShadow: isDark
-      ? "0 4px 24px rgba(79,255,176,0.25), 0 2px 8px rgba(0,0,0,0.4)"
-      : "0 4px 20px rgba(32,84,224,0.30), 0 2px 8px rgba(32,84,224,0.15)",
-    letterSpacing: "0.2px",
-    transition: "all 0.25s ease",
-    opacity: loading ? 0.75 : 1,
-    textDecoration: "none",
-  };
+  const features = [
+    { emoji: "📊", title: t.feature1, desc: t.feature1Desc },
+    { emoji: "📈", title: t.feature2, desc: t.feature2Desc },
+    { emoji: "🎓", title: t.feature3, desc: t.feature3Desc },
+  ];
 
   return (
-    <div dir={dir} style={bg}>
+    <div dir={dir} style={{
+      fontFamily: ar ? FONT : FONT_EN,
+      minHeight: "100vh",
+      background: BG,
+      display: "flex",
+      position: "relative",
+      overflow: "hidden",
+    }}>
       <AppBackground theme={theme} variant="login" />
 
-      <div style={{
-        width: "100%",
-        maxWidth: 420,
-        position: "relative",
-        zIndex: 1,
-        animation: "gpa-fade-in-scale 0.5s cubic-bezier(0.22,1,0.36,1) both",
-      }}>
-        {/* Header row: Logo inline-start ←→ Controls inline-end (mirrors SetupScreen) */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 28,
-          animation: "gpa-fade-in-up 0.5s cubic-bezier(0.22,1,0.36,1) 0.05s both",
-        }}>
-          {/* Logo + tagline */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <Logo height={36} />
-            <p style={{
-              margin: 0,
-              fontSize: 11,
-              fontFamily: FONT,
-              color: isDark ? "rgba(200,210,240,0.38)" : "rgba(15,23,66,0.35)",
-              letterSpacing: "0.5px",
-              paddingInlineStart: 2,
-            }}>{t.taglineSub}</p>
-          </div>
-
-          {/* Controls: [🌐 عربي|EN] [☀️🌙🖥] */}
-          <PremiumControlsBar
-            lang={lang}
-            onLangChange={setLang}
-            theme={theme}
-            onThemeChange={setTheme}
-          />
-        </div>
-
-        {/* Auth card */}
-        <div style={card}>
-          {/* Top-level error banner (Google OAuth errors, etc.) */}
-          {error && authMode !== "email" && (
-            <div style={{
-              padding: "9px 12px",
-              background: isDark ? "rgba(255,107,107,0.10)" : "rgba(212,32,32,0.07)",
-              border: `1px solid ${isDark ? "rgba(255,107,107,0.28)" : "rgba(212,32,32,0.20)"}`,
-              borderRadius: 9,
-              fontSize: 12.5,
-              color: isDark ? "#ff8080" : "#c42020",
-              fontFamily: FONT,
-              animation: "gpa-fade-in-up 0.25s ease both",
-              marginBottom: 14,
-            }}>
-              ⚠️ {error}
-            </div>
-          )}
-          {/* Google Sign-in button */}
-          <a
-            href="/api/auth/google"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 10,
-              width: "100%",
-              padding: "12px 16px",
-              background: isDark ? "rgba(255,255,255,0.07)" : "white",
-              border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(15,23,66,0.15)"}`,
-              borderRadius: 13,
-              color: isDark ? "rgba(255,255,255,0.90)" : "rgba(15,23,66,0.85)",
-              fontSize: 14,
-              fontWeight: 700,
-              fontFamily: FONT,
-              textDecoration: "none",
-              boxShadow: isDark ? "0 2px 12px rgba(0,0,0,0.25)" : "0 2px 8px rgba(15,23,66,0.10)",
-              transition: "all 0.22s ease",
-              marginBottom: 16,
-            }}
-          >
-            <GoogleIcon size={18} />
-            {t.googleBtn}
-          </a>
-
-          {/* Separator */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-            <div style={{ flex: 1, height: 1, background: isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,66,0.09)" }} />
-            <span style={{ fontSize: 11, color: isDark ? "rgba(200,210,240,0.35)" : "rgba(15,23,66,0.35)", fontFamily: FONT, whiteSpace: "nowrap" }}>{t.orSeparator}</span>
-            <div style={{ flex: 1, height: 1, background: isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,66,0.09)" }} />
-          </div>
-
-          {/* Mode tabs */}
-          <div style={{
-            display: "flex",
-            gap: 4,
-            background: isDark ? "rgba(255,255,255,0.04)" : "rgba(15,23,66,0.05)",
-            borderRadius: 14,
-            padding: 4,
-            marginBottom: 22,
-          }}>
-            <button style={tabBtn(authMode === "replit")} onClick={() => setAuthMode("replit")}>
-              <ReplitIcon size={13} /> Replit
-            </button>
-            <button style={tabBtn(authMode === "email")} onClick={() => setAuthMode("email")}>
-              ✉️ {t.email}
-            </button>
-          </div>
-
-          {/* Replit OAuth */}
-          {authMode === "replit" && (
-            <div style={{ animation: "gpa-tab-in 0.3s cubic-bezier(0.22,1,0.36,1) both" }}>
-              <p style={{
-                margin: "0 0 18px",
-                fontSize: 12.5,
-                color: isDark ? "rgba(200,210,240,0.5)" : "rgba(15,23,66,0.45)",
-                fontFamily: FONT,
-                textAlign: "center",
-              }}>
-                {lang === "ar"
-                  ? "سجّل دخولك عبر حسابك على Replit"
-                  : "Sign in using your Replit account"}
-              </p>
-              <a href="/api/auth/login" style={primaryBtn}>
-                <ReplitIcon size={17} />
-                {t.loginWith} {t.replit}
-              </a>
-            </div>
-          )}
-
-          {/* Email/Password */}
-          {authMode === "email" && (
-            <form
-              onSubmit={handleEmailSubmit}
-              style={{ animation: "gpa-tab-in 0.3s cubic-bezier(0.22,1,0.36,1) both", display: "flex", flexDirection: "column", gap: 12 }}
-            >
-              <div>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 600, marginBottom: 5, color: isDark ? "rgba(200,210,240,0.55)" : "rgba(15,23,66,0.5)", letterSpacing: "0.4px" }}>
-                  {t.email}
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t.emailPlaceholder}
-                  required
-                  autoComplete="email"
-                  style={inp}
-                  onFocus={(e) => { e.currentTarget.style.borderColor = isDark ? "rgba(79,255,176,0.4)" : "rgba(32,84,224,0.4)"; e.currentTarget.style.boxShadow = isDark ? "0 0 0 3px rgba(79,255,176,0.08)" : "0 0 0 3px rgba(32,84,224,0.08)"; }}
-                  onBlur={(e) => { e.currentTarget.style.borderColor = isDark ? "rgba(255,255,255,0.10)" : "rgba(15,23,66,0.12)"; e.currentTarget.style.boxShadow = "none"; }}
-                />
-              </div>
-              <div>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 600, marginBottom: 5, color: isDark ? "rgba(200,210,240,0.55)" : "rgba(15,23,66,0.5)", letterSpacing: "0.4px" }}>
-                  {t.password}
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={t.passwordPlaceholder}
-                  required
-                  autoComplete={emailMode === "login" ? "current-password" : "new-password"}
-                  style={inp}
-                  onFocus={(e) => { e.currentTarget.style.borderColor = isDark ? "rgba(79,255,176,0.4)" : "rgba(32,84,224,0.4)"; e.currentTarget.style.boxShadow = isDark ? "0 0 0 3px rgba(79,255,176,0.08)" : "0 0 0 3px rgba(32,84,224,0.08)"; }}
-                  onBlur={(e) => { e.currentTarget.style.borderColor = isDark ? "rgba(255,255,255,0.10)" : "rgba(15,23,66,0.12)"; e.currentTarget.style.boxShadow = "none"; }}
-                />
-              </div>
-              {emailMode === "register" && (
-                <div style={{ animation: "gpa-fade-in-up 0.25s cubic-bezier(0.22,1,0.36,1) both" }}>
-                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, marginBottom: 5, color: isDark ? "rgba(200,210,240,0.55)" : "rgba(15,23,66,0.5)", letterSpacing: "0.4px" }}>
-                    {t.confirmPassword}
-                  </label>
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder={t.passwordPlaceholder}
-                    required
-                    autoComplete="new-password"
-                    style={inp}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = isDark ? "rgba(79,255,176,0.4)" : "rgba(32,84,224,0.4)"; e.currentTarget.style.boxShadow = isDark ? "0 0 0 3px rgba(79,255,176,0.08)" : "0 0 0 3px rgba(32,84,224,0.08)"; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = isDark ? "rgba(255,255,255,0.10)" : "rgba(15,23,66,0.12)"; e.currentTarget.style.boxShadow = "none"; }}
-                  />
-                </div>
-              )}
-
-              {error && (
-                <div style={{
-                  padding: "9px 12px",
-                  background: isDark ? "rgba(255,107,107,0.10)" : "rgba(212,32,32,0.07)",
-                  border: `1px solid ${isDark ? "rgba(255,107,107,0.28)" : "rgba(212,32,32,0.20)"}`,
-                  borderRadius: 9,
-                  fontSize: 12.5,
-                  color: isDark ? "#ff8080" : "#c42020",
-                  fontFamily: FONT,
-                  animation: "gpa-fade-in-up 0.25s ease both",
-                }}>
-                  ⚠️ {error}
-                </div>
-              )}
-
-              <button type="submit" disabled={loading} style={primaryBtn}>
-                {loading ? t.loading : emailMode === "login" ? t.signIn : t.register}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => { setEmailMode(emailMode === "login" ? "register" : "login"); setError(""); setConfirmPassword(""); }}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: 12,
-                  color: isDark ? "rgba(79,255,176,0.75)" : "rgba(32,84,224,0.75)",
-                  fontFamily: FONT,
-                  fontWeight: 600,
-                  textAlign: "center",
-                  padding: "4px 0 0",
-                  letterSpacing: "0.1px",
-                }}
-              >
-                {emailMode === "login" ? `${t.noAccount} ${t.createOne}` : `${t.hasAccount} ${t.signInHere}`}
-              </button>
-
-              {emailMode === "login" && (
-                <Link
-                  to="/forgot-password"
-                  style={{
-                    fontSize: 11.5,
-                    color: isDark ? "rgba(200,210,240,0.38)" : "rgba(15,23,66,0.38)",
-                    textDecoration: "none",
-                    fontFamily: FONT,
-                    textAlign: "center",
-                    display: "block",
-                    marginTop: 2,
-                  }}
-                >
-                  {t.forgotPassword}
-                </Link>
-              )}
-            </form>
-          )}
-        </div>
-
-        {/* Guest mode */}
-        <div style={{
-          marginTop: 14,
-          animation: "gpa-fade-in-up 0.5s cubic-bezier(0.22,1,0.36,1) 0.25s both",
-        }}>
-          <a
-            href="/guest"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-              width: "100%",
-              padding: "11px 16px",
-              background: isDark ? "rgba(255,255,255,0.04)" : "rgba(15,23,66,0.04)",
-              border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,66,0.10)"}`,
-              borderRadius: 13,
-              color: isDark ? "rgba(200,210,240,0.55)" : "rgba(15,23,66,0.5)",
-              fontSize: 13,
-              fontWeight: 600,
-              fontFamily: FONT,
-              textDecoration: "none",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
-              transition: "all 0.22s ease",
-              cursor: "pointer",
-            }}
-          >
-            <span style={{ fontSize: 15 }}>👤</span>
-            {t.guest}
-          </a>
-          <p style={{
-            margin: "6px 0 0",
-            fontSize: 11,
-            color: isDark ? "rgba(200,210,240,0.3)" : "rgba(15,23,66,0.3)",
-            fontFamily: FONT,
-            textAlign: "center",
-          }}>
-            {t.guestDesc}
-          </p>
-        </div>
-
-        {/* Footer */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 5,
-          marginTop: 18,
-          animation: "gpa-fade-in-up 0.5s cubic-bezier(0.22,1,0.36,1) 0.35s both",
-        }}>
-          <span style={{ fontSize: 11, color: isDark ? "rgba(79,255,176,0.4)" : "rgba(32,84,224,0.35)" }}>🔒</span>
-          <p style={{ margin: 0, fontSize: 10.5, color: isDark ? "rgba(200,210,240,0.28)" : "rgba(15,23,66,0.28)", fontFamily: FONT }}>
-            {t.footer}
-          </p>
-        </div>
-      </div>
-
       <style>{`
-        @keyframes gpa-fade-in-up {
-          from { opacity: 0; transform: translateY(16px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes gpa-fade-in-scale {
-          from { opacity: 0; transform: scale(0.96); }
-          to { opacity: 1; transform: scale(1); }
-        }
-        @keyframes gpa-tab-in {
-          from { opacity: 0; transform: translateY(8px) scale(0.99); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
+        @keyframes lp-in { from { opacity:0; transform:translateY(22px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+        @keyframes lp-left { from { opacity:0; transform:translateX(${ar ? "30px" : "-30px"}); } to { opacity:1; transform:translateX(0); } }
+        @keyframes lp-right { from { opacity:0; transform:translateX(${ar ? "-30px" : "30px"}); } to { opacity:1; transform:translateX(0); } }
+        @keyframes lp-feat { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes lp-slide { from { opacity:0; max-height:0; } to { opacity:1; max-height:600px; } }
+        @keyframes lp-spin { to { transform:rotate(360deg); } }
+        .lp-google-btn:hover { box-shadow: 0 6px 24px rgba(66,133,244,0.25) !important; transform:translateY(-1px); }
+        .lp-replit-btn:hover { box-shadow: 0 6px 24px rgba(124,131,245,0.25) !important; transform:translateY(-1px); }
+        .lp-email-btn:hover { background: ${isDark ? "rgba(79,255,176,0.08)" : "rgba(32,84,224,0.06)"} !important; }
+        .lp-guest-btn:hover { background: ${isDark ? "rgba(255,255,255,0.07)" : "rgba(15,23,66,0.07)"} !important; }
+        .lp-inp:focus { border-color: ${ACCENT} !important; box-shadow: 0 0 0 3px ${isDark ? "rgba(79,255,176,0.1)" : "rgba(32,84,224,0.1)"} !important; outline:none; }
+        .lp-submit:hover { opacity:0.92; transform:translateY(-1px); }
+        .lp-toggle:hover { opacity:0.8; }
+        .lp-feat-card:hover { background: ${isDark ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.2)"} !important; transform:translateX(${ar ? "-3px" : "3px"}); }
+        @media (max-width:768px) {
+          .lp-panel { display:none !important; }
+          .lp-right-col { border-radius:0 !important; min-height:100vh !important; }
         }
       `}</style>
+
+      <div style={{
+        display: "flex",
+        width: "100%",
+        minHeight: "100vh",
+        position: "relative",
+        zIndex: 1,
+      }}>
+
+        {/* ── LEFT BRANDING PANEL ── */}
+        <div className="lp-panel" style={{
+          flex: "0 0 44%",
+          background: PANEL_BG,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          padding: "48px 44px",
+          position: "relative",
+          overflow: "hidden",
+          animation: "lp-left 0.6s cubic-bezier(0.22,1,0.36,1) both",
+        }}>
+          {/* Decorative orbs */}
+          <div style={{ position:"absolute", top:"-15%", insetInlineEnd:"-10%", width:320, height:320, borderRadius:"50%", background:"radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 70%)", pointerEvents:"none" }} />
+          <div style={{ position:"absolute", bottom:"-10%", insetInlineStart:"-5%", width:260, height:260, borderRadius:"50%", background:"radial-gradient(circle,rgba(79,255,176,0.10) 0%,transparent 70%)", pointerEvents:"none" }} />
+          <div style={{ position:"absolute", top:"40%", insetInlineEnd:"10%", width:180, height:180, borderRadius:"50%", background:"radial-gradient(circle,rgba(255,255,255,0.05) 0%,transparent 70%)", pointerEvents:"none" }} />
+
+          {/* Logo */}
+          <div style={{ marginBottom: 36, animation: "lp-feat 0.5s 0.1s both" }}>
+            <Logo height={42} style={{ filter: "brightness(0) invert(1)" }} />
+            <p style={{ margin:"8px 0 0", fontSize:13, color:"rgba(255,255,255,0.6)", fontFamily: ar ? FONT : FONT_EN, letterSpacing:"0.3px" }}>
+              {t.tagline}
+            </p>
+          </div>
+
+          {/* Hero text */}
+          <div style={{ marginBottom: 40, animation: "lp-feat 0.5s 0.2s both" }}>
+            <h1 style={{
+              margin: 0,
+              fontSize: ar ? 32 : 30,
+              fontWeight: 800,
+              color: "#fff",
+              lineHeight: 1.3,
+              fontFamily: ar ? FONT : FONT_EN,
+              whiteSpace: "pre-line",
+            }}>
+              {t.heroTitle}
+            </h1>
+            <p style={{
+              margin: "14px 0 0",
+              fontSize: 14,
+              color: "rgba(255,255,255,0.65)",
+              lineHeight: 1.7,
+              fontFamily: ar ? FONT : FONT_EN,
+              maxWidth: 340,
+            }}>
+              {t.heroSub}
+            </p>
+          </div>
+
+          {/* Feature cards */}
+          <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+            {features.map((f, i) => (
+              <div key={i} className="lp-feat-card" style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 14,
+                padding: "14px 16px",
+                borderRadius: 14,
+                background: "rgba(255,255,255,0.07)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                backdropFilter: "blur(8px)",
+                transition: "all 0.22s ease",
+                animation: `lp-feat 0.5s ${0.3 + i * 0.1}s both`,
+                cursor: "default",
+              }}>
+                <div style={{
+                  width: 38, height: 38, borderRadius: 10,
+                  background: "rgba(255,255,255,0.12)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 18, flexShrink: 0,
+                }}>
+                  {f.emoji}
+                </div>
+                <div>
+                  <div style={{ fontSize:13, fontWeight:700, color:"#fff", fontFamily: ar ? FONT : FONT_EN, marginBottom:3 }}>{f.title}</div>
+                  <div style={{ fontSize:12, color:"rgba(255,255,255,0.55)", fontFamily: ar ? FONT : FONT_EN, lineHeight:1.5 }}>{f.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom label */}
+          <div style={{ marginTop:36, animation: "lp-feat 0.5s 0.65s both" }}>
+            <p style={{ margin:0, fontSize:11, color:"rgba(255,255,255,0.35)", fontFamily: ar ? FONT : FONT_EN }}>
+              🔒 {t.footer}
+            </p>
+          </div>
+        </div>
+
+        {/* ── RIGHT AUTH PANEL ── */}
+        <div className="lp-right-col" style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "32px 24px",
+          overflowY: "auto",
+          animation: "lp-right 0.6s cubic-bezier(0.22,1,0.36,1) both",
+        }}>
+          {/* Mobile logo (visible only on mobile) */}
+          <div style={{ display:"none" }} className="lp-mobile-logo">
+            <Logo height={36} />
+          </div>
+
+          {/* Top controls row */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            gap: 8,
+            width: "100%",
+            maxWidth: 440,
+            marginBottom: 24,
+          }}>
+            {/* Theme toggles */}
+            <div style={{
+              display: "flex",
+              gap: 2,
+              background: isDark ? "rgba(255,255,255,0.05)" : "rgba(15,23,66,0.06)",
+              borderRadius: 10,
+              padding: 3,
+            }}>
+              {([
+                { v:"light" as const, icon:"☀️" },
+                { v:"dark" as const, icon:"🌙" },
+                { v:"hc" as const, icon:"🖥" },
+              ]).map(({ v, icon }) => (
+                <button key={v} onClick={() => setTheme(v)}
+                  style={{
+                    background: theme === v ? (isDark ? "rgba(79,255,176,0.15)" : "rgba(255,255,255,0.9)") : "transparent",
+                    border: "none", cursor:"pointer",
+                    borderRadius: 7, padding: "5px 8px", fontSize: 13,
+                    boxShadow: theme === v && !isDark ? "0 1px 4px rgba(15,23,66,0.12)" : "none",
+                    transition: "all 0.18s",
+                  }}>
+                  {icon}
+                </button>
+              ))}
+            </div>
+            {/* Lang toggle */}
+            <button
+              onClick={() => setLang(lang === "ar" ? "en" : "ar")}
+              style={{
+                background: isDark ? "rgba(255,255,255,0.07)" : "rgba(15,23,66,0.06)",
+                border: `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(15,23,66,0.12)"}`,
+                borderRadius: 9, cursor:"pointer",
+                padding: "5px 12px", fontSize: 12, fontWeight: 700,
+                color: TEXT, fontFamily: ar ? FONT : FONT_EN,
+                transition: "all 0.18s",
+              }}
+              title={t.switchLang}
+            >
+              {t.langBtn}
+            </button>
+          </div>
+
+          {/* Auth card */}
+          <div style={{
+            width: "100%",
+            maxWidth: 440,
+            background: CARD,
+            backdropFilter: "blur(28px) saturate(1.6)",
+            WebkitBackdropFilter: "blur(28px) saturate(1.6)",
+            border: `1px solid ${CARD_BORDER}`,
+            borderRadius: 24,
+            padding: "32px 28px",
+            boxShadow: isDark
+              ? "0 32px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06)"
+              : "0 24px 60px rgba(15,23,66,0.13), inset 0 1px 0 rgba(255,255,255,1)",
+            animation: "lp-in 0.55s 0.15s cubic-bezier(0.22,1,0.36,1) both",
+          }}>
+            {/* Heading */}
+            <div style={{ marginBottom: 24, textAlign: "center" }}>
+              <h2 style={{ margin:0, fontSize: ar ? 22 : 20, fontWeight:800, color:TEXT, fontFamily: ar ? FONT : FONT_EN }}>
+                {t.authTitle}
+              </h2>
+              <p style={{ margin:"6px 0 0", fontSize:13, color:MUTED, fontFamily: ar ? FONT : FONT_EN }}>
+                {t.authSub}
+              </p>
+            </div>
+
+            {/* Error banner */}
+            {error && !showEmailForm && (
+              <div style={{
+                padding:"10px 14px", borderRadius:10, marginBottom:16,
+                background: isDark ? "rgba(255,107,107,0.11)" : "rgba(212,32,32,0.07)",
+                border: `1px solid ${isDark ? "rgba(255,107,107,0.3)" : "rgba(212,32,32,0.2)"}`,
+                fontSize:12.5, color: isDark ? "#ff8080" : "#c42020",
+                fontFamily: ar ? FONT : FONT_EN,
+              }}>
+                ⚠️ {error}
+              </div>
+            )}
+
+            {/* ── Google ── */}
+            <a href="/api/auth/google" className="lp-google-btn" style={{
+              display:"flex", alignItems:"center", justifyContent:"center", gap:10,
+              width:"100%", padding:"13px 16px",
+              background: isDark ? "rgba(255,255,255,0.07)" : "#fff",
+              border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(15,23,66,0.16)"}`,
+              borderRadius:14, textDecoration:"none",
+              color: isDark ? "rgba(255,255,255,0.9)" : "#0f1545",
+              fontSize:14, fontWeight:700,
+              fontFamily: ar ? FONT : FONT_EN,
+              boxShadow: isDark ? "0 2px 12px rgba(0,0,0,0.25)" : "0 2px 8px rgba(15,23,66,0.09)",
+              transition:"all 0.22s ease",
+              marginBottom:10,
+            }}>
+              <GoogleIcon size={18} />
+              {t.withGoogle}
+            </a>
+
+            {/* ── Replit ── */}
+            <a href="/api/auth/login" className="lp-replit-btn" style={{
+              display:"flex", alignItems:"center", justifyContent:"center", gap:10,
+              width:"100%", padding:"13px 16px",
+              background: isDark
+                ? "linear-gradient(135deg,rgba(79,255,176,0.12),rgba(124,131,245,0.10))"
+                : "linear-gradient(135deg,rgba(32,84,224,0.08),rgba(91,96,232,0.07))",
+              border: `1px solid ${isDark ? "rgba(79,255,176,0.22)" : "rgba(32,84,224,0.2)"}`,
+              borderRadius:14, textDecoration:"none",
+              color: isDark ? "#4fffb0" : ACCENT,
+              fontSize:14, fontWeight:700,
+              fontFamily: ar ? FONT : FONT_EN,
+              boxShadow: isDark ? "0 2px 12px rgba(79,255,176,0.08)" : "0 2px 8px rgba(32,84,224,0.09)",
+              transition:"all 0.22s ease",
+              marginBottom:18,
+            }}>
+              <ReplitIcon size={17} />
+              {t.withReplit}
+            </a>
+
+            {/* ── Separator ── */}
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:18 }}>
+              <div style={{ flex:1, height:1, background: isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,66,0.09)" }} />
+              <span style={{ fontSize:11, color:MUTED, fontFamily: ar ? FONT : FONT_EN, whiteSpace:"nowrap" }}>{t.orEmail}</span>
+              <div style={{ flex:1, height:1, background: isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,66,0.09)" }} />
+            </div>
+
+            {/* ── Email expand toggle ── */}
+            {!showEmailForm && (
+              <button className="lp-email-btn" onClick={() => setShowEmailForm(true)} style={{
+                display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+                width:"100%", padding:"12px 16px",
+                background:"transparent",
+                border: `1px dashed ${isDark ? "rgba(255,255,255,0.18)" : "rgba(15,23,66,0.18)"}`,
+                borderRadius:14, cursor:"pointer",
+                color:MUTED, fontSize:13, fontWeight:600,
+                fontFamily: ar ? FONT : FONT_EN,
+                transition:"all 0.22s ease",
+              }}>
+                ✉️ {t.email}
+              </button>
+            )}
+
+            {/* ── Email Form ── */}
+            {showEmailForm && (
+              <div style={{ animation:"lp-in 0.3s cubic-bezier(0.22,1,0.36,1) both" }}>
+                {/* Login / Register tabs */}
+                <div style={{
+                  display:"flex", gap:4,
+                  background: isDark ? "rgba(255,255,255,0.04)" : "rgba(15,23,66,0.05)",
+                  borderRadius:12, padding:4, marginBottom:18,
+                }}>
+                  {(["login","register"] as const).map(mode => (
+                    <button key={mode}
+                      onClick={() => { setEmailMode(mode); setError(""); setConfirmPassword(""); }}
+                      style={{
+                        flex:1, padding:"8px 0",
+                        fontFamily: ar ? FONT : FONT_EN,
+                        fontSize:13, fontWeight:700, cursor:"pointer",
+                        border:"none", borderRadius:9,
+                        transition:"all 0.22s ease",
+                        background: emailMode === mode
+                          ? isDark ? "linear-gradient(135deg,rgba(79,255,176,0.15),rgba(124,131,245,0.12))" : "#fff"
+                          : "transparent",
+                        color: emailMode === mode
+                          ? isDark ? "#4fffb0" : ACCENT
+                          : MUTED,
+                        boxShadow: emailMode === mode && !isDark ? "0 2px 10px rgba(15,23,66,0.10)" : "none",
+                      }}>
+                      {mode === "login" ? (ar ? "دخول" : "Sign in") : (ar ? "حساب جديد" : "Sign up")}
+                    </button>
+                  ))}
+                </div>
+
+                <form onSubmit={handleEmailSubmit} style={{ display:"flex", flexDirection:"column", gap:13 }}>
+                  {/* Email */}
+                  <div>
+                    <label style={{ display:"block", fontSize:11, fontWeight:600, marginBottom:5, color:MUTED, letterSpacing:"0.4px", fontFamily: ar ? FONT : FONT_EN }}>
+                      {t.email}
+                    </label>
+                    <input
+                      type="email" value={email} onChange={e => setEmail(e.target.value)}
+                      placeholder={t.emailPH} required autoComplete="email"
+                      className="lp-inp"
+                      style={{
+                        width:"100%", padding:"11px 14px",
+                        fontFamily: ar ? FONT : FONT_EN, fontSize:14,
+                        background:INP_BG, border:`1px solid ${INP_BORDER}`,
+                        borderRadius:11, color:TEXT, boxSizing:"border-box",
+                        transition:"border-color 0.2s, box-shadow 0.2s",
+                      }}
+                    />
+                  </div>
+
+                  {/* Password */}
+                  <div>
+                    <label style={{ display:"block", fontSize:11, fontWeight:600, marginBottom:5, color:MUTED, letterSpacing:"0.4px", fontFamily: ar ? FONT : FONT_EN }}>
+                      {t.password}
+                    </label>
+                    <div style={{ position:"relative" }}>
+                      <input
+                        type={showPass ? "text" : "password"}
+                        value={password} onChange={e => setPassword(e.target.value)}
+                        placeholder={t.passPH} required
+                        autoComplete={emailMode === "login" ? "current-password" : "new-password"}
+                        className="lp-inp"
+                        style={{
+                          width:"100%", padding:`11px ${ar ? "14px" : "52px"} 11px ${ar ? "52px" : "14px"}`,
+                          fontFamily: ar ? FONT : FONT_EN, fontSize:14,
+                          background:INP_BG, border:`1px solid ${INP_BORDER}`,
+                          borderRadius:11, color:TEXT, boxSizing:"border-box",
+                          transition:"border-color 0.2s, box-shadow 0.2s",
+                        }}
+                      />
+                      <button type="button" className="lp-toggle"
+                        onClick={() => setShowPass(!showPass)}
+                        style={{
+                          position:"absolute", top:"50%", transform:"translateY(-50%)",
+                          [ar ? "insetInlineStart" : "insetInlineEnd"]: "12px",
+                          background:"none", border:"none", cursor:"pointer",
+                          fontSize:11, fontWeight:600, color:MUTED,
+                          fontFamily: ar ? FONT : FONT_EN, padding:0,
+                          transition:"opacity 0.18s",
+                        }}>
+                        {showPass ? t.hidePass : t.showPass}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Confirm password (register only) */}
+                  {emailMode === "register" && (
+                    <div style={{ animation:"lp-in 0.25s cubic-bezier(0.22,1,0.36,1) both" }}>
+                      <label style={{ display:"block", fontSize:11, fontWeight:600, marginBottom:5, color:MUTED, letterSpacing:"0.4px", fontFamily: ar ? FONT : FONT_EN }}>
+                        {t.confirmPassword}
+                      </label>
+                      <div style={{ position:"relative" }}>
+                        <input
+                          type={showConfirmPass ? "text" : "password"}
+                          value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
+                          placeholder={t.passPH} required autoComplete="new-password"
+                          className="lp-inp"
+                          style={{
+                            width:"100%", padding:`11px ${ar ? "14px" : "52px"} 11px ${ar ? "52px" : "14px"}`,
+                            fontFamily: ar ? FONT : FONT_EN, fontSize:14,
+                            background:INP_BG, border:`1px solid ${INP_BORDER}`,
+                            borderRadius:11, color:TEXT, boxSizing:"border-box",
+                            transition:"border-color 0.2s, box-shadow 0.2s",
+                          }}
+                        />
+                        <button type="button" className="lp-toggle"
+                          onClick={() => setShowConfirmPass(!showConfirmPass)}
+                          style={{
+                            position:"absolute", top:"50%", transform:"translateY(-50%)",
+                            [ar ? "insetInlineStart" : "insetInlineEnd"]: "12px",
+                            background:"none", border:"none", cursor:"pointer",
+                            fontSize:11, fontWeight:600, color:MUTED,
+                            fontFamily: ar ? FONT : FONT_EN, padding:0,
+                            transition:"opacity 0.18s",
+                          }}>
+                          {showConfirmPass ? t.hidePass : t.showPass}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Inline error */}
+                  {error && (
+                    <div style={{
+                      padding:"9px 13px", borderRadius:9,
+                      background: isDark ? "rgba(255,107,107,0.10)" : "rgba(212,32,32,0.07)",
+                      border: `1px solid ${isDark ? "rgba(255,107,107,0.28)" : "rgba(212,32,32,0.20)"}`,
+                      fontSize:12.5, color: isDark ? "#ff8080" : "#c42020",
+                      fontFamily: ar ? FONT : FONT_EN,
+                    }}>
+                      ⚠️ {error}
+                    </div>
+                  )}
+
+                  {/* Submit */}
+                  <button type="submit" disabled={loading} className="lp-submit" style={{
+                    display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+                    width:"100%", padding:"13px 20px",
+                    background: `linear-gradient(135deg,${ACCENT} 0%,${ACCENT2} 100%)`,
+                    border:"none", borderRadius:13,
+                    color: isDark ? "#04060e" : "#fff",
+                    fontSize:14, fontWeight:800,
+                    fontFamily: ar ? FONT : FONT_EN,
+                    cursor: loading ? "wait" : "pointer",
+                    boxShadow: isDark
+                      ? "0 4px 24px rgba(79,255,176,0.28)"
+                      : "0 4px 20px rgba(32,84,224,0.32)",
+                    transition:"all 0.22s ease",
+                    opacity: loading ? 0.75 : 1,
+                    letterSpacing:"0.2px",
+                  }}>
+                    {loading ? (
+                      <>
+                        <span style={{
+                          width:14, height:14, border:"2px solid currentColor",
+                          borderTopColor:"transparent", borderRadius:"50%",
+                          animation:"lp-spin 0.7s linear infinite",
+                          display:"inline-block",
+                        }} />
+                        {t.loading}
+                      </>
+                    ) : emailMode === "login" ? t.signIn : t.register}
+                  </button>
+
+                  {/* Switch login/register */}
+                  <div style={{ textAlign:"center" }}>
+                    <button type="button"
+                      onClick={() => { setEmailMode(emailMode === "login" ? "register" : "login"); setError(""); setConfirmPassword(""); }}
+                      style={{
+                        background:"none", border:"none", cursor:"pointer",
+                        fontSize:12.5, fontWeight:600,
+                        color: isDark ? "rgba(79,255,176,0.75)" : "rgba(32,84,224,0.75)",
+                        fontFamily: ar ? FONT : FONT_EN,
+                        padding:"2px 0",
+                      }}>
+                      {emailMode === "login"
+                        ? `${t.noAccount} ${t.createOne}`
+                        : `${t.hasAccount} ${t.signInHere}`}
+                    </button>
+                  </div>
+
+                  {/* Forgot password */}
+                  {emailMode === "login" && (
+                    <div style={{ textAlign:"center" }}>
+                      <Link to="/forgot-password" style={{
+                        fontSize:12, color:MUTED, textDecoration:"none",
+                        fontFamily: ar ? FONT : FONT_EN,
+                      }}>
+                        {t.forgotPassword}
+                      </Link>
+                    </div>
+                  )}
+                </form>
+
+                {/* Collapse email form */}
+                <button type="button"
+                  onClick={() => { setShowEmailForm(false); setError(""); setEmail(""); setPassword(""); setConfirmPassword(""); }}
+                  style={{
+                    display:"block", margin:"14px auto 0",
+                    background:"none", border:"none", cursor:"pointer",
+                    fontSize:11.5, color:MUTED,
+                    fontFamily: ar ? FONT : FONT_EN,
+                    padding:0, textDecoration:"underline",
+                    textDecorationColor: isDark ? "rgba(255,255,255,0.15)" : "rgba(15,23,66,0.2)",
+                  }}>
+                  {ar ? "← إخفاء نموذج البريد الإلكتروني" : "← Hide email form"}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* ── Guest mode ── */}
+          <div style={{
+            width:"100%", maxWidth:440, marginTop:12,
+            animation:"lp-in 0.55s 0.3s cubic-bezier(0.22,1,0.36,1) both",
+          }}>
+            <a href="/guest" className="lp-guest-btn" style={{
+              display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+              width:"100%", padding:"11px 16px",
+              background: isDark ? "rgba(255,255,255,0.04)" : "rgba(15,23,66,0.04)",
+              border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,66,0.09)"}`,
+              borderRadius:13, textDecoration:"none",
+              color:MUTED, fontSize:13, fontWeight:600,
+              fontFamily: ar ? FONT : FONT_EN,
+              backdropFilter:"blur(12px)", WebkitBackdropFilter:"blur(12px)",
+              transition:"all 0.22s ease",
+            }}>
+              <span style={{ fontSize:16 }}>👤</span>
+              {t.guest}
+            </a>
+            <p style={{
+              margin:"6px 0 0", fontSize:11, color: isDark ? "rgba(200,210,240,0.28)" : "rgba(15,23,66,0.28)",
+              fontFamily: ar ? FONT : FONT_EN, textAlign:"center",
+            }}>
+              {t.guestDesc}
+            </p>
+          </div>
+
+          {/* Footer */}
+          <div style={{
+            marginTop:20,
+            animation:"lp-in 0.55s 0.4s cubic-bezier(0.22,1,0.36,1) both",
+            display:"flex", alignItems:"center", gap:5,
+          }}>
+            <span style={{ fontSize:12, color: isDark ? "rgba(79,255,176,0.4)" : "rgba(32,84,224,0.35)" }}>🔒</span>
+            <p style={{ margin:0, fontSize:11, color: isDark ? "rgba(200,210,240,0.28)" : "rgba(15,23,66,0.28)", fontFamily: ar ? FONT : FONT_EN }}>
+              {t.footer}
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
