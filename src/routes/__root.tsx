@@ -112,8 +112,8 @@ function RootShell({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ar" dir="rtl" data-gpa-theme="light" suppressHydrationWarning>
       <head>
-        {/* Blocking theme-detection — must run before any CSS applies */}
-        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('gpa-theme');if(t==='dark'||t==='light'||t==='hc'){document.documentElement.setAttribute('data-gpa-theme',t);}else if(window.matchMedia('(prefers-contrast: more)').matches){document.documentElement.setAttribute('data-gpa-theme','hc');}else if(window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.setAttribute('data-gpa-theme','dark');}}catch(e){}})();` }} />
+        {/* Blocking theme + lang detection — runs before CSS, eliminates hydration flicker */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('gpa-theme');if(t==='dark'||t==='light'||t==='hc'){document.documentElement.setAttribute('data-gpa-theme',t);}else if(window.matchMedia('(prefers-contrast: more)').matches){document.documentElement.setAttribute('data-gpa-theme','hc');}else if(window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.setAttribute('data-gpa-theme','dark');}var l=localStorage.getItem('gpa-lang');if(l==='en'){document.documentElement.dir='ltr';document.documentElement.lang='en';}else{document.documentElement.dir='rtl';document.documentElement.lang='ar';}}catch(e){}})();` }} />
         <HeadContent />
       </head>
       <body>

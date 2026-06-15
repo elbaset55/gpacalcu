@@ -20,6 +20,7 @@ import {
   Sun,
   Moon,
   Monitor,
+  Globe,
 } from "lucide-react";
 import { TermlyAppShell } from "./TermlyAppShell";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -227,6 +228,118 @@ export type ImportPayload = {
     courses: Array<{ name: string; code?: string; credits: number; grade_letter?: string | null; grade_pts?: number | null }>;
   }>;
 };
+
+/* ─── Premium Glassmorphism Language Switcher for SetupScreen ──────────── */
+function SetupLangSwitcher({
+  lang,
+  onLangChange,
+  isDark,
+}: {
+  lang: Lang;
+  onLangChange: (l: Lang) => void;
+  isDark: boolean;
+}) {
+  const isAr = lang === "ar";
+  // pill always renders LTR so the sliding animation is direction-agnostic
+  const pillTranslate = isAr ? "0%" : "100%";
+
+  return (
+    <div
+      dir="ltr"
+      role="group"
+      aria-label="Language / اللغة"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 4,
+        padding: 3,
+        borderRadius: 14,
+        background: isDark ? "rgba(255,255,255,0.06)" : "rgba(15,23,66,0.05)",
+        border: `1px solid ${isDark ? "rgba(255,255,255,0.11)" : "rgba(15,23,66,0.09)"}`,
+        backdropFilter: "blur(18px) saturate(1.4)",
+        WebkitBackdropFilter: "blur(18px) saturate(1.4)",
+        boxShadow: isDark
+          ? "0 2px 20px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.07)"
+          : "0 2px 14px rgba(15,23,66,0.09), inset 0 1px 0 rgba(255,255,255,0.90)",
+        transition: "background 0.3s, border-color 0.3s, box-shadow 0.3s",
+      }}
+    >
+      {/* Globe icon */}
+      <Globe
+        size={13}
+        strokeWidth={1.8}
+        style={{
+          marginLeft: 6,
+          color: isDark ? "rgba(255,255,255,0.32)" : "rgba(15,23,66,0.28)",
+          flexShrink: 0,
+          transition: "color 0.3s",
+        }}
+      />
+
+      {/* Sliding pill + buttons */}
+      <div style={{ position: "relative", display: "flex" }}>
+        {/* ─ sliding indicator ─ */}
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "50%",
+            height: "100%",
+            borderRadius: 11,
+            background: isDark
+              ? "linear-gradient(135deg, rgba(79,255,176,0.22) 0%, rgba(124,131,245,0.17) 100%)"
+              : "white",
+            boxShadow: isDark
+              ? "0 2px 12px rgba(79,255,176,0.20), 0 1px 0 rgba(255,255,255,0.07)"
+              : "0 2px 10px rgba(32,84,224,0.15), 0 1px 0 rgba(255,255,255,1)",
+            transform: `translateX(${pillTranslate})`,
+            transition: "transform 0.30s cubic-bezier(0.34,1.56,0.64,1), background 0.3s, box-shadow 0.3s",
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        />
+
+        {([ { id: "ar" as Lang, label: "عربي", fs: 12.5 }, { id: "en" as Lang, label: "EN", fs: 11.5 } ] as const).map(({ id, label, fs }) => {
+          const active = lang === id;
+          return (
+            <button
+              key={id}
+              onClick={() => onLangChange(id)}
+              aria-pressed={active}
+              style={{
+                position: "relative",
+                zIndex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "8px 13px",
+                border: "none",
+                borderRadius: 11,
+                cursor: "pointer",
+                background: "transparent",
+                fontFamily: FONT,
+                fontSize: fs,
+                fontWeight: 700,
+                letterSpacing: id === "en" ? "0.4px" : "0",
+                color: active
+                  ? isDark ? "#4fffb0" : "#2054e0"
+                  : isDark ? "rgba(255,255,255,0.30)" : "rgba(15,23,66,0.28)",
+                transition: "color 0.22s ease",
+                whiteSpace: "nowrap",
+                minWidth: id === "ar" ? 44 : 34,
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+/* ──────────────────────────────────────────────────────────────────────── */
 
 /* ─── Premium Glassmorphism Theme Switcher for SetupScreen ─────────────── */
 const THEME_OPTS: { id: GpaTheme; Icon: React.FC<{ size: number; strokeWidth: number }>; labelAr: string; labelEn: string }[] = [
@@ -941,8 +1054,15 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
             </p>
           </div>
 
-          {/* Premium glassmorphism theme switcher */}
-          <SetupThemeSwitcher theme={theme} onThemeChange={setTheme} />
+          {/* Controls row: Lang + Theme — sits at inline-end (left in RTL) */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <SetupLangSwitcher
+              lang={globalLang}
+              onLangChange={(l) => { setGlobalLang(l); }}
+              isDark={theme === "dark"}
+            />
+            <SetupThemeSwitcher theme={theme} onThemeChange={setTheme} />
+          </div>
         </div>
 
         <div style={{ display: "flex", gap: 4, marginBottom: 20 }}>
