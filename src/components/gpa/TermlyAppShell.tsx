@@ -4,7 +4,7 @@ import {
   Zap, MessageSquare, Map, Calculator, GraduationCap,
   Sun, Moon, Monitor, User, LogOut, RotateCcw, Bell,
   CalendarDays, Percent, Share2, Download, Upload, Printer,
-  Menu, X, ChevronLeft, ChevronRight,
+  Menu, X, ChevronLeft, ChevronRight, ShieldCheck,
 } from "lucide-react";
 import type { GpaTheme } from "./use-theme";
 
@@ -430,6 +430,10 @@ export function TermlyAppShell({
             <button onClick={onNavigateProfile} title={ar ? "الملف الشخصي" : "Profile"}
               style={{ background: "none", border: "none", cursor: "pointer", color: MUTED, padding: 3, borderRadius: 6 }}>
               <User size={13} />
+            </button>
+            <button onClick={() => { window.location.href = "/admin"; }} title={ar ? "لوحة الإدارة" : "Admin"}
+              style={{ background: "none", border: "none", cursor: "pointer", color: MUTED, padding: 3, borderRadius: 6 }}>
+              <ShieldCheck size={13} />
             </button>
             <button onClick={onLogout} title={ar ? "خروج" : "Logout"}
               style={{ background: "none", border: "none", cursor: "pointer", color: MUTED, padding: 3, borderRadius: 6 }}>
