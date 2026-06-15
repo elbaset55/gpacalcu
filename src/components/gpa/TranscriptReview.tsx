@@ -63,14 +63,14 @@ export function TranscriptReview({
 
   const card: React.CSSProperties = {
     background: "var(--gpa-card)",
-    border: "1px solid #1e1e3f",
+    border: "1px solid var(--gpa-border)",
     borderRadius: 12,
     padding: 12,
     marginBottom: 12,
   };
   const inp: React.CSSProperties = {
     background: "var(--gpa-surface-alpha-06)",
-    border: "1px solid #1e1e3f",
+    border: "1px solid var(--gpa-border)",
     borderRadius: 8,
     color: "var(--gpa-text-strong)",
     padding: "7px 9px",
@@ -88,7 +88,7 @@ export function TranscriptReview({
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(5,5,18,.86)",
+        background: "var(--gpa-overlay-bg, rgba(5,5,18,.86))",
         zIndex: 9998,
         overflowY: "auto",
         padding: "20px 12px",
@@ -165,7 +165,7 @@ export function TranscriptReview({
                 <input
                   value={c.name}
                   onChange={(e) => mutate(s.id, c.id, { name: e.target.value })}
-                  style={{ ...inp, borderColor: c.retake ? "var(--gpa-accent2-44, #6366f166)" : "#1e1e3f" }}
+                  style={{ ...inp, borderColor: c.retake ? "var(--gpa-accent2-44, #6366f166)" : "var(--gpa-border)" }}
                   title={c.retake ? (ar ? "مادة معادة ♻" : "Retake ♻") : ""}
                 />
                 <input
@@ -208,7 +208,7 @@ export function TranscriptReview({
               flex: 1,
               padding: "12px",
               background: "var(--gpa-surface-alpha-06)",
-              border: "1px solid #1e1e3f",
+              border: "1px solid var(--gpa-border)",
               borderRadius: 10,
               color: "var(--gpa-text-muted)",
               fontSize: 13,

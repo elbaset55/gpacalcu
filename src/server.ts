@@ -201,6 +201,98 @@ async function handleEmailLogin(request: Request): Promise<Response> {
   }
 }
 
+/* ── Google OAuth ─────────────────────────────────────────────────────── */
+async function handleGoogleLogin(request: Request): Promise<Response> {
+  try {
+    const { getGoogleOAuthUrl } = await import("./lib/google-auth");
+    const origin = new URL(request.url).origin;
+    const callbackUrl = `${origin}/api/auth/google/callback`;
+    const { url, state } = getGoogleOAuthUrl(callbackUrl);
+
+    const isProd = process.env.NODE_ENV === "production";
+    const secure = isProd ? "; Secure" : "";
+    const res = new Response(null, { status: 302, headers: { Location: url } });
+    res.headers.append(
+      "Set-Cookie",
+      `termly_google_state=${encodeURIComponent(state)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=600${secure}`,
+    );
+    return res;
+  } catch (e) {
+    console.error("[google login]", e);
+    return new Response(null, { status: 302, headers: { Location: "/login?error=google_unavailable" } });
+  }
+}
+
+async function handleGoogleCallback(request: Request): Promise<Response> {
+  try {
+    const { handleGoogleCode, findOrCreateGoogleUser } = await import("./lib/google-auth");
+    const { saveSession } = await import("./integrations/replit/auth");
+
+    const url = new URL(request.url);
+    const code = url.searchParams.get("code");
+    const state = url.searchParams.get("state");
+    const cookieHeader = request.headers.get("cookie");
+    const savedState = getCookie(cookieHeader, "termly_google_state");
+
+    if (!code || !state || state !== savedState) {
+      return new Response(null, { status: 302, headers: { Location: "/login?error=google_failed" } });
+    }
+
+    const callbackUrl = `${url.origin}/api/auth/google/callback`;
+    const googleUser = await handleGoogleCode(code, callbackUrl);
+    const { userId } = await findOrCreateGoogleUser(googleUser);
+
+    const sessionId = crypto.randomUUID();
+    await saveSession(sessionId, userId);
+
+    const isProd = process.env.NODE_ENV === "production";
+    const secure = isProd ? "; Secure" : "";
+    const res = new Response(null, { status: 302, headers: { Location: "/app" } });
+    res.headers.append(
+      "Set-Cookie",
+      `termly_sid=${encodeURIComponent(sessionId)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800${secure}`,
+    );
+    res.headers.append("Set-Cookie", `termly_google_state=; Path=/; HttpOnly; Max-Age=0`);
+    return res;
+  } catch (e) {
+    console.error("[google callback]", e);
+    return new Response(null, { status: 302, headers: { Location: "/login?error=google_failed" } });
+  }
+}
+
+/* ── Email Password Reset ─────────────────────────────────────────────── */
+async function handleEmailResetRequest(request: Request): Promise<Response> {
+  try {
+    const body = await request.json().catch(() => null) as { email?: string } | null;
+    if (!body?.email) return Response.json({ error: "Email required" }, { status: 400 });
+    const { createPasswordResetToken } = await import("./lib/email-auth");
+    const result = await createPasswordResetToken(body.email);
+    // Always return ok:true to prevent email enumeration;
+    // only include token if the email was found
+    if ("error" in result) return Response.json({ ok: true, token: null });
+    return Response.json({ ok: true, token: result.token });
+  } catch (e) {
+    console.error("[reset request]", e);
+    return Response.json({ error: "Request failed" }, { status: 500 });
+  }
+}
+
+async function handleEmailReset(request: Request): Promise<Response> {
+  try {
+    const body = await request.json().catch(() => null) as { token?: string; password?: string } | null;
+    if (!body?.token || !body?.password) {
+      return Response.json({ error: "Token and password required" }, { status: 400 });
+    }
+    const { resetPasswordWithToken } = await import("./lib/email-auth");
+    const result = await resetPasswordWithToken(body.token, body.password);
+    if ("error" in result) return Response.json({ error: result.error }, { status: 400 });
+    return Response.json({ ok: true });
+  } catch (e) {
+    console.error("[reset password]", e);
+    return Response.json({ error: "Reset failed" }, { status: 500 });
+  }
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
@@ -212,6 +304,10 @@ export default {
       if (path === "/api/auth/logout") return await handleAuthLogout(request);
       if (path === "/api/auth/email/register" && request.method === "POST") return await handleEmailRegister(request);
       if (path === "/api/auth/email/login" && request.method === "POST") return await handleEmailLogin(request);
+      if (path === "/api/auth/google") return await handleGoogleLogin(request);
+      if (path === "/api/auth/google/callback") return await handleGoogleCallback(request);
+      if (path === "/api/auth/email/reset-request" && request.method === "POST") return await handleEmailResetRequest(request);
+      if (path === "/api/auth/email/reset" && request.method === "POST") return await handleEmailReset(request);
 
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);

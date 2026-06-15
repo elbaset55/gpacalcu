@@ -1,5 +1,5 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, redirect, Link } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { useGpaTheme } from "@/components/gpa/use-theme";
 import { PremiumControlsBar } from "@/components/gpa/PremiumControls";
 import { useLang } from "@/lib/use-lang";
@@ -15,6 +15,7 @@ function sanitizeRedirect(raw: unknown): string {
 export const Route = createFileRoute("/login")({
   validateSearch: (search: Record<string, unknown>) => ({
     redirect: sanitizeRedirect(search.redirect),
+    error: typeof search.error === "string" ? search.error : undefined,
   }),
   beforeLoad: async () => {
     if (typeof window === "undefined") return;
@@ -49,6 +50,11 @@ const T = {
     passwordPlaceholder: "••••••••",
     passMatch: "كلمتا المرور غير متطابقتين",
     minPass: "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
+    googleBtn: "تسجيل الدخول بـ Google",
+    orSeparator: "أو",
+    forgotPassword: "نسيت كلمة المرور؟",
+    googleError: "فشل تسجيل الدخول بـ Google. حاول مجدداً.",
+    googleUnavailable: "تسجيل الدخول بـ Google غير مفعّل بعد. أضف GOOGLE_CLIENT_ID و GOOGLE_CLIENT_SECRET في الإعدادات.",
   },
   en: {
     taglineSub: "Your Smart Academic Advisor",
@@ -72,6 +78,11 @@ const T = {
     passwordPlaceholder: "••••••••",
     passMatch: "Passwords don't match",
     minPass: "Password must be at least 8 characters",
+    googleBtn: "Continue with Google",
+    orSeparator: "or",
+    forgotPassword: "Forgot password?",
+    googleError: "Google sign-in failed. Please try again.",
+    googleUnavailable: "Google sign-in is not configured yet. Add GOOGLE_CLIENT_ID & GOOGLE_CLIENT_SECRET in Secrets.",
   },
 } as const;
 
@@ -85,6 +96,8 @@ function LoginPage() {
   const dir = lang === "ar" ? "rtl" : "ltr";
   const isDark = theme === "dark";
 
+  const { error: urlError } = Route.useSearch();
+
   const [authMode, setAuthMode] = useState<AuthMode>("replit");
   const [emailMode, setEmailMode] = useState<EmailMode>("login");
   const [email, setEmail] = useState("");
@@ -92,6 +105,12 @@ function LoginPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Show URL error (from Google OAuth redirect) once on mount
+  useEffect(() => {
+    if (urlError === "google_failed") setError(t.googleError);
+    else if (urlError === "google_unavailable") setError(t.googleUnavailable);
+  }, [urlError]);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -259,6 +278,56 @@ function LoginPage() {
 
         {/* Auth card */}
         <div style={card}>
+          {/* Top-level error banner (Google OAuth errors, etc.) */}
+          {error && authMode !== "email" && (
+            <div style={{
+              padding: "9px 12px",
+              background: isDark ? "rgba(255,107,107,0.10)" : "rgba(212,32,32,0.07)",
+              border: `1px solid ${isDark ? "rgba(255,107,107,0.28)" : "rgba(212,32,32,0.20)"}`,
+              borderRadius: 9,
+              fontSize: 12.5,
+              color: isDark ? "#ff8080" : "#c42020",
+              fontFamily: FONT,
+              animation: "gpa-fade-in-up 0.25s ease both",
+              marginBottom: 14,
+            }}>
+              ⚠️ {error}
+            </div>
+          )}
+          {/* Google Sign-in button */}
+          <a
+            href="/api/auth/google"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 10,
+              width: "100%",
+              padding: "12px 16px",
+              background: isDark ? "rgba(255,255,255,0.07)" : "white",
+              border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(15,23,66,0.15)"}`,
+              borderRadius: 13,
+              color: isDark ? "rgba(255,255,255,0.90)" : "rgba(15,23,66,0.85)",
+              fontSize: 14,
+              fontWeight: 700,
+              fontFamily: FONT,
+              textDecoration: "none",
+              boxShadow: isDark ? "0 2px 12px rgba(0,0,0,0.25)" : "0 2px 8px rgba(15,23,66,0.10)",
+              transition: "all 0.22s ease",
+              marginBottom: 16,
+            }}
+          >
+            <GoogleIcon size={18} />
+            {t.googleBtn}
+          </a>
+
+          {/* Separator */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+            <div style={{ flex: 1, height: 1, background: isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,66,0.09)" }} />
+            <span style={{ fontSize: 11, color: isDark ? "rgba(200,210,240,0.35)" : "rgba(15,23,66,0.35)", fontFamily: FONT, whiteSpace: "nowrap" }}>{t.orSeparator}</span>
+            <div style={{ flex: 1, height: 1, background: isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,66,0.09)" }} />
+          </div>
+
           {/* Mode tabs */}
           <div style={{
             display: "flex",
@@ -391,6 +460,23 @@ function LoginPage() {
               >
                 {emailMode === "login" ? `${t.noAccount} ${t.createOne}` : `${t.hasAccount} ${t.signInHere}`}
               </button>
+
+              {emailMode === "login" && (
+                <Link
+                  to="/forgot-password"
+                  style={{
+                    fontSize: 11.5,
+                    color: isDark ? "rgba(200,210,240,0.38)" : "rgba(15,23,66,0.38)",
+                    textDecoration: "none",
+                    fontFamily: FONT,
+                    textAlign: "center",
+                    display: "block",
+                    marginTop: 2,
+                  }}
+                >
+                  {t.forgotPassword}
+                </Link>
+              )}
             </form>
           )}
         </div>
@@ -475,6 +561,17 @@ function ReplitIcon({ size = 18 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
       <path d="M3 3h8v8H3zm10 0h8v8h-8zm0 10h8v8h-8zM3 13h8v8H3z" />
+    </svg>
+  );
+}
+
+function GoogleIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24">
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
     </svg>
   );
 }
