@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { getProfile, saveProfile, deleteAccount } from "@/lib/profile.functions";
+import { getProfile, saveProfile, deleteAccount, listSemesters } from "@/lib/profile.functions";
 import { useLang } from "@/lib/use-lang";
 import { useGpaTheme } from "@/components/gpa/use-theme";
 import { ThemeSwitcher } from "@/components/gpa/ThemeSwitcher";
@@ -64,6 +64,12 @@ const T = {
     deleted: "✓ تم حذف الحساب",
     err: "حدث خطأ",
     loading: "جاري...",
+    exportSection: "تصدير البيانات",
+    exportDesc: "نسخة كاملة من سجلك الأكاديمي — الفصول والمواد والدرجات.",
+    exportCSV: "⬇ تصدير CSV",
+    exportPDF: "🖨 طباعة / PDF",
+    exporting: "جاري التصدير...",
+    exportEmpty: "لا توجد فصول دراسية لتصديرها",
   },
   en: {
     title: "Settings",
@@ -101,6 +107,12 @@ const T = {
     deleted: "✓ Account deleted",
     err: "An error occurred",
     loading: "Loading...",
+    exportSection: "Export data",
+    exportDesc: "A full copy of your academic record — semesters, courses, and grades.",
+    exportCSV: "⬇ Export CSV",
+    exportPDF: "🖨 Print / PDF",
+    exporting: "Exporting...",
+    exportEmpty: "No semesters to export yet",
   },
 } as const;
 
@@ -118,6 +130,7 @@ function ProfilePage() {
   const getProfileFn = useServerFn(getProfile);
   const saveProfileFn = useServerFn(saveProfile);
   const deleteAccountFn = useServerFn(deleteAccount);
+  const listSemestersFn = useServerFn(listSemesters);
   const { theme, setTheme } = useGpaTheme();
   const { lang, setLang } = useLang();
   const ar = lang === "ar";
@@ -139,11 +152,15 @@ function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [exporting, setExporting] = useState<"csv" | "pdf" | null>(null);
+  // Keep raw profile snapshot for export header
+  const [rawProfile, setRawProfile] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
     getProfileFn().then((p) => {
       setLoaded(true);
       if (!p) return;
+      setRawProfile(p as unknown as Record<string, unknown>);
       setScaleId(p.scale_id ?? "benha");
       setUniName(p.uni_name ?? "");
       setMajor(p.major ?? "");
@@ -197,6 +214,191 @@ function ProfilePage() {
       flash(e?.message ?? t.err, "err");
     } finally {
       setSaving(false);
+    }
+  };
+
+  /* ── Export helpers ──────────────────────────────── */
+  function semGpa(courses: { credits: number; grade_pts: number | null }[]) {
+    let pts = 0, cr = 0;
+    for (const c of courses) {
+      if (c.grade_pts != null && c.credits > 0) { pts += c.grade_pts * c.credits; cr += c.credits; }
+    }
+    return cr > 0 ? (pts / cr).toFixed(3) : "—";
+  }
+
+  function csvEscape(v: unknown) {
+    const s = v == null ? "" : String(v);
+    return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s.replace(/"/g, '""')}"` : s;
+  }
+
+  const handleExportCSV = async () => {
+    setExporting("csv");
+    try {
+      const { semesters, courses } = await listSemestersFn();
+      if (!semesters.length) { flash(t.exportEmpty, "err"); return; }
+      const p = rawProfile;
+      const hdr = ar
+        ? ["الفصل الدراسي", "نوع الفصل", "السنة", "اسم المادة", "كود المادة", "الساعات", "التقدير", "النقاط", "معدل الفصل"]
+        : ["Semester", "Type", "Year", "Course Name", "Code", "Credits", "Grade", "GPA Pts", "Sem. GPA"];
+      const rows: string[] = [
+        `# Termly Academic Export`,
+        `# ${p?.uni_name ?? ""} ${p?.major ? "— " + p.major : ""}`.trim(),
+        `# ${new Date().toLocaleDateString(ar ? "ar-EG" : "en-US")}`,
+        "",
+        hdr.map(csvEscape).join(","),
+      ];
+      for (const sem of semesters as { id: string; label: string; sem_type: string; year: number | null }[]) {
+        const semCourses = (courses as { semester_id: string; name: string; code: string; credits: number; grade_letter: string | null; grade_pts: number | null }[])
+          .filter((c) => c.semester_id === sem.id);
+        const gpa = semGpa(semCourses);
+        let firstRow = true;
+        for (const c of semCourses) {
+          rows.push([
+            csvEscape(firstRow ? sem.label : ""),
+            csvEscape(firstRow ? sem.sem_type : ""),
+            csvEscape(firstRow ? (sem.year ?? "") : ""),
+            csvEscape(c.name),
+            csvEscape(c.code ?? ""),
+            csvEscape(c.credits),
+            csvEscape(c.grade_letter ?? ""),
+            csvEscape(c.grade_pts != null ? c.grade_pts : ""),
+            csvEscape(firstRow ? gpa : ""),
+          ].join(","));
+          firstRow = false;
+        }
+        rows.push("");
+      }
+      const blob = new Blob(["\uFEFF" + rows.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `termly-export-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (e: any) {
+      flash(e?.message ?? t.err, "err");
+    } finally {
+      setExporting(null);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    setExporting("pdf");
+    try {
+      const { semesters, courses } = await listSemestersFn();
+      if (!semesters.length) { flash(t.exportEmpty, "err"); return; }
+      const p = rawProfile;
+      const isAr = lang === "ar";
+      const dir2 = isAr ? "rtl" : "ltr";
+      const now = new Date().toLocaleDateString(isAr ? "ar-EG" : "en-US", { year: "numeric", month: "long", day: "numeric" });
+
+      let semRows = "";
+      for (const sem of semesters as { id: string; label: string; sem_type: string; year: number | null }[]) {
+        const semCourses = (courses as { semester_id: string; name: string; code: string; credits: number; grade_letter: string | null; grade_pts: number | null }[])
+          .filter((c) => c.semester_id === sem.id);
+        const gpa = semGpa(semCourses);
+        const totalCr = semCourses.reduce((s, c) => s + (c.credits || 0), 0);
+        semRows += `
+          <div class="sem-block">
+            <div class="sem-header">
+              <span class="sem-name">${sem.label}</span>
+              <span class="sem-meta">${isAr ? "الساعات" : "Credits"}: ${totalCr} &nbsp;|&nbsp; ${isAr ? "معدل الفصل" : "Sem. GPA"}: ${gpa}</span>
+            </div>
+            <table>
+              <thead><tr>
+                <th>${isAr ? "اسم المادة" : "Course"}</th>
+                <th>${isAr ? "الكود" : "Code"}</th>
+                <th>${isAr ? "الساعات" : "Cr."}</th>
+                <th>${isAr ? "التقدير" : "Grade"}</th>
+                <th>${isAr ? "النقاط" : "Pts"}</th>
+              </tr></thead>
+              <tbody>
+                ${semCourses.map((c) => `<tr>
+                  <td>${c.name || "—"}</td>
+                  <td>${c.code || ""}</td>
+                  <td style="text-align:center">${c.credits}</td>
+                  <td style="text-align:center">${c.grade_letter || "—"}</td>
+                  <td style="text-align:center">${c.grade_pts != null ? c.grade_pts : "—"}</td>
+                </tr>`).join("")}
+              </tbody>
+            </table>
+          </div>`;
+      }
+
+      const html = `<!DOCTYPE html>
+<html lang="${isAr ? "ar" : "en"}" dir="${dir2}">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Termly — ${isAr ? "سجل أكاديمي" : "Academic Transcript"}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Cairo', 'Segoe UI', sans-serif; color: #111; background: #fff; padding: 32px; font-size: 13px; direction: ${dir2}; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 2px solid #2563eb; }
+    .brand { font-size: 22px; font-weight: 900; color: #2563eb; }
+    .meta { text-align: ${isAr ? "left" : "right"}; font-size: 12px; color: #666; }
+    h1 { font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+    .sub { font-size: 12px; color: #64748b; }
+    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
+    .summary-card { background: #f1f5f9; border-radius: 8px; padding: 12px; text-align: center; }
+    .summary-card .val { font-size: 22px; font-weight: 900; color: #2563eb; }
+    .summary-card .key { font-size: 10px; color: #64748b; margin-top: 2px; text-transform: uppercase; letter-spacing: .4px; }
+    .sem-block { margin-bottom: 24px; }
+    .sem-header { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border-${isAr ? "right" : "left"}: 3px solid #2563eb; padding: 8px 12px; margin-bottom: 8px; border-radius: 4px; }
+    .sem-name { font-weight: 700; font-size: 13px; }
+    .sem-meta { font-size: 11px; color: #64748b; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { background: #f1f5f9; padding: 7px 10px; text-align: ${isAr ? "right" : "left"}; font-weight: 700; color: #475569; }
+    td { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; }
+    tr:last-child td { border-bottom: none; }
+    .footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid #e2e8f0; font-size: 10px; color: #94a3b8; display: flex; justify-content: space-between; }
+    @media print { body { padding: 16px; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="brand">🎓 Termly</div>
+      <div class="sub">${isAr ? "مستشارك الأكاديمي الذكي" : "Your Smart Academic Advisor"}</div>
+    </div>
+    <div class="meta">
+      <h1>${p?.uni_name || (isAr ? "الجامعة" : "University")}</h1>
+      ${p?.major ? `<div class="sub">${p.major}</div>` : ""}
+      <div style="margin-top:4px">${now}</div>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="val">${typeof p?.prev_gpa === "number" ? (p.prev_gpa as number).toFixed(3) : "—"}</div>
+      <div class="key">${isAr ? "المعدل التراكمي" : "Cumulative GPA"}</div>
+    </div>
+    <div class="summary-card">
+      <div class="val">${p?.prev_cr ?? "—"}</div>
+      <div class="key">${isAr ? "الساعات المكتسبة" : "Credits Earned"}</div>
+    </div>
+    <div class="summary-card">
+      <div class="val">${semesters.length}</div>
+      <div class="key">${isAr ? "الفصول الدراسية" : "Semesters"}</div>
+    </div>
+  </div>
+
+  ${semRows}
+
+  <div class="footer">
+    <span>${isAr ? "تم التصدير من Termly" : "Exported from Termly"}</span>
+    <span>${now}</span>
+  </div>
+
+  <script>window.onload = () => { window.print(); }</script>
+</body>
+</html>`;
+
+      const win = window.open("", "_blank");
+      if (win) { win.document.write(html); win.document.close(); }
+    } catch (e: any) {
+      flash(e?.message ?? t.err, "err");
+    } finally {
+      setExporting(null);
     }
   };
 
@@ -512,6 +714,54 @@ function ProfilePage() {
             </button>
           </form>
         )}
+
+        {/* ── Export data ──────────────────────────────── */}
+        <div style={card}>
+          <p style={secTitle}>{t.exportSection}</p>
+          <p style={{ fontSize: 12, color: "var(--gpa-text-faint)", margin: "0 0 14px", lineHeight: 1.7 }}>
+            {t.exportDesc}
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <button
+              onClick={handleExportCSV}
+              disabled={exporting !== null}
+              style={{
+                padding: "11px 10px",
+                background: "var(--gpa-accent-12)",
+                border: "1px solid var(--gpa-accent-44)",
+                borderRadius: 10,
+                color: "var(--gpa-accent)",
+                fontSize: 13,
+                fontWeight: 700,
+                fontFamily: FONT,
+                cursor: exporting !== null ? "not-allowed" : "pointer",
+                opacity: exporting !== null ? 0.6 : 1,
+                transition: "all 0.14s",
+              }}
+            >
+              {exporting === "csv" ? t.exporting : t.exportCSV}
+            </button>
+            <button
+              onClick={handleExportPDF}
+              disabled={exporting !== null}
+              style={{
+                padding: "11px 10px",
+                background: "var(--gpa-surface-alpha-06)",
+                border: "1px solid var(--gpa-border)",
+                borderRadius: 10,
+                color: "var(--gpa-text-faint)",
+                fontSize: 13,
+                fontWeight: 700,
+                fontFamily: FONT,
+                cursor: exporting !== null ? "not-allowed" : "pointer",
+                opacity: exporting !== null ? 0.6 : 1,
+                transition: "all 0.14s",
+              }}
+            >
+              {exporting === "pdf" ? t.exporting : t.exportPDF}
+            </button>
+          </div>
+        </div>
 
         {/* ── Account ───────────────────────────────────── */}
         <div style={card}>
