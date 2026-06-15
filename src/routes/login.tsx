@@ -1,8 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { useGpaTheme } from "@/components/gpa/use-theme";
-import { ThemeSwitcher } from "@/components/gpa/ThemeSwitcher";
-import { LangSwitcher } from "@/components/gpa/LangSwitcher";
+import { PremiumControlsBar } from "@/components/gpa/PremiumControls";
 import { useLang } from "@/lib/use-lang";
 import { Logo } from "@/components/gpa/Logo";
 import { AppBackground } from "@/components/gpa/AppBackground";
@@ -228,33 +227,34 @@ function LoginPage() {
         zIndex: 1,
         animation: "gpa-fade-in-scale 0.5s cubic-bezier(0.22,1,0.36,1) both",
       }}>
-        {/* Top controls */}
+        {/* Header row: Logo inline-start ←→ Controls inline-end (mirrors SetupScreen) */}
         <div style={{
           display: "flex",
-          justifyContent: "space-between",
           alignItems: "center",
+          justifyContent: "space-between",
           marginBottom: 28,
+          animation: "gpa-fade-in-up 0.5s cubic-bezier(0.22,1,0.36,1) 0.05s both",
         }}>
-          <LangSwitcher lang={lang} onChange={setLang} />
-          <ThemeSwitcher theme={theme} onChange={setTheme} />
-        </div>
-
-        {/* Logo + tagline */}
-        <div style={{
-          textAlign: "center",
-          marginBottom: 24,
-          animation: "gpa-fade-in-up 0.5s cubic-bezier(0.22,1,0.36,1) 0.1s both",
-        }}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
-            <Logo height={40} />
+          {/* Logo + tagline */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <Logo height={36} />
+            <p style={{
+              margin: 0,
+              fontSize: 11,
+              fontFamily: FONT,
+              color: isDark ? "rgba(200,210,240,0.38)" : "rgba(15,23,66,0.35)",
+              letterSpacing: "0.5px",
+              paddingInlineStart: 2,
+            }}>{t.taglineSub}</p>
           </div>
-          <p style={{
-            margin: 0,
-            fontSize: 12.5,
-            fontFamily: FONT,
-            color: isDark ? "rgba(200,210,240,0.5)" : "rgba(15,23,66,0.45)",
-            letterSpacing: "0.4px",
-          }}>{t.taglineSub}</p>
+
+          {/* Controls: [🌐 عربي|EN] [☀️🌙🖥] */}
+          <PremiumControlsBar
+            lang={lang}
+            onLangChange={setLang}
+            theme={theme}
+            onThemeChange={setTheme}
+          />
         </div>
 
         {/* Auth card */}

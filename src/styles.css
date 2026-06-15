@@ -511,3 +511,27 @@
   [data-gpa-theme] * { color: #000 !important; background: transparent !important; box-shadow: none !important; }
   .gpa-no-print { display: none !important; }
 }
+
+/* ════════════════════════════════════════════════════
+   PREMIUM PILL CONTROLS — a11y & mobile
+   ════════════════════════════════════════════════════ */
+
+/* Focus-visible ring for all glassmorphism pill buttons */
+.gpa-pill-btn:focus-visible {
+  outline: 2px solid var(--gpa-accent);
+  outline-offset: 2px;
+  border-radius: 11px;
+  box-shadow: 0 0 0 4px var(--gpa-accent-15) !important;
+}
+
+/* Mobile: reduce pill padding on very narrow screens */
+@media (max-width: 360px) {
+  .gpa-pill-container {
+    padding: 2px !important;
+  }
+  .gpa-pill-btn {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+  }
+}
