@@ -83,6 +83,10 @@ interface CourseWizardProps {
   }>;
   onSavePlan?: (data: SavePlanData) => Promise<void>;
   isGuest?: boolean;
+  /** Pre-populate from profile — skips Steps 1+2 if all three are provided */
+  initialDeptId?: string;
+  initialLevelId?: number;
+  initialSemesterId?: 1 | 2 | "summer";
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -91,18 +95,21 @@ interface CourseWizardProps {
 export function CourseWizard({
   lang, cumGpa, earnedCr, totalReq, history,
   onSavePlan, isGuest = false,
+  initialDeptId, initialLevelId, initialSemesterId,
 }: CourseWizardProps) {
   const ar = lang === "ar";
 
+  const hasAllInitial = !!(initialDeptId && initialLevelId != null && initialSemesterId != null);
+
   /* ── wizard step ── */
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(hasAllInitial ? 3 : 1);
 
   /* ── Step 1: department selection ── */
-  const [deptId, setDeptId] = useState<string>("");
+  const [deptId, setDeptId] = useState<string>(initialDeptId ?? "");
 
   /* ── Step 2: level + semester (cascading) ── */
-  const [levelId,    setLevelId]    = useState<number | null>(null);
-  const [semesterId, setSemesterId] = useState<1 | 2 | null>(null);
+  const [levelId,    setLevelId]    = useState<number | null>(initialLevelId ?? null);
+  const [semesterId, setSemesterId] = useState<1 | 2 | "summer" | null>(initialSemesterId ?? null);
 
   /* ── Step 3: chosen elective/free course codes ── */
   const [chosen,       setChosen]      = useState<Set<string>>(new Set());
@@ -144,11 +151,15 @@ export function CourseWizard({
     return dept.levels.find((l) => l.levelId === levelId)?.semesters ?? [];
   }, [dept, levelId]);
 
-  /* ── derived: current semester data ── */
+  /* ── derived: current semester data (null for summer) ── */
   const semData: SemesterData | null = useMemo(() => {
     if (!deptId || levelId === null || semesterId === null) return null;
-    return getSemesterData(deptId, levelId, semesterId) ?? null;
+    if (semesterId === "summer") return null;
+    return getSemesterData(deptId, levelId, semesterId as 1 | 2) ?? null;
   }, [deptId, levelId, semesterId]);
+
+  /* ── derived: is summer mode ── */
+  const isSummer = semesterId === "summer";
 
   /* ── passed / failed codes from history ── */
   const { passedCodes, failedCodes } = useMemo(() => {
@@ -176,8 +187,21 @@ export function CourseWizard({
     }));
   }, [semData, passedCodes]);
 
+  /* ── summer: full COURSES_DB as searchable pool ── */
+  const summerPool: SelectableCourse[] = useMemo(() => {
+    if (!isSummer) return [];
+    return Object.values(COURSES_DB).map((c) => ({
+      ...c,
+      slotType: "elective" as const,
+      chosen: chosen.has(c.code),
+      prereqMet: !c.prerequisite || passedCodes.has(c.prerequisite),
+      alreadyPassed: passedCodes.has(c.code),
+    }));
+  }, [isSummer, chosen, passedCodes]);
+
   /* ── eligible pool for search (elective + free) ── */
   const searchPool: SelectableCourse[] = useMemo(() => {
+    if (isSummer) return summerPool;
     if (!semData) return [];
     const electiveIds   = semData.electiveCourseIds;
     const freeIds       = semData.freeOptionalCourseIds;
@@ -196,11 +220,11 @@ export function CourseWizard({
       alreadyPassed: passedCodes.has(c.code),
     }));
     return [...electives, ...free];
-  }, [semData, chosen, passedCodes]);
+  }, [isSummer, summerPool, semData, chosen, passedCodes]);
 
   /* ── filtered search results ── */
   const searchResults: SelectableCourse[] = useMemo(() => {
-    if (!searchQuery.trim()) return searchPool;
+    if (!searchQuery.trim()) return isSummer ? [] : searchPool;
     const q = searchQuery.toLowerCase();
     return searchPool.filter(
       (c) =>
@@ -208,13 +232,14 @@ export function CourseWizard({
         c.nameEn.toLowerCase().includes(q) ||
         c.nameAr.includes(q),
     );
-  }, [searchPool, searchQuery]);
+  }, [searchPool, searchQuery, isSummer]);
 
   /* ── all active courses (for credit / AI / save) ── */
   const activeCourses: SelectableCourse[] = useMemo(() => {
+    if (isSummer) return searchPool.filter((c) => c.chosen);
     const chosenElective = searchPool.filter((c) => c.chosen);
     return [...compulsoryCourses, ...chosenElective];
-  }, [compulsoryCourses, searchPool]);
+  }, [isSummer, compulsoryCourses, searchPool]);
 
   /* ── credits ── */
   const selectedCr = useMemo(
@@ -316,11 +341,13 @@ export function CourseWizard({
 
   /* ── save plan ── */
   const handleSavePlan = async () => {
-    if (!dept || !semData || !onSavePlan || savePending) return;
+    if (!dept || (!semData && !isSummer) || !onSavePlan || savePending) return;
     if (!activeCourses.length) return;
-    const semStr = semesterId === 1
-      ? (ar ? "الفصل الأول" : "S1")
-      : (ar ? "الفصل الثاني" : "S2");
+    const semStr = isSummer
+      ? (ar ? "الفصل الصيفي" : "Summer")
+      : semesterId === 1
+        ? (ar ? "الفصل الأول" : "S1")
+        : (ar ? "الفصل الثاني" : "S2");
     const label = ar
       ? `📝 ${dept.nameAr} — المستوى ${levelId} / ${semStr}`
       : `📝 ${dept.nameEn} — L${levelId}/${semStr}`;
@@ -773,8 +800,12 @@ tr:nth-child(even) td{background:rgba(255,255,255,.015)}
      STEP 3 — COURSE SELECTION
      (locked if no semData — redirect to step 1)
   ═══════════════════════════════════ */
-  if (step === 3 && dept && semData) {
-    const semLabel = semesterId === 1 ? (ar ? "الفصل الأول" : "Semester 1") : (ar ? "الفصل الثاني" : "Semester 2");
+  if (step === 3 && dept && (semData || isSummer)) {
+    const semLabel = isSummer
+      ? (ar ? "الفصل الصيفي" : "Summer Term")
+      : semesterId === 1
+        ? (ar ? "الفصل الأول" : "Semester 1")
+        : (ar ? "الفصل الثاني" : "Semester 2");
     const chosenElectives = searchPool.filter((c) => c.chosen);
 
     return (
@@ -798,21 +829,46 @@ tr:nth-child(even) td{background:rgba(255,255,255,.015)}
           </button>
         </div>
 
-        {/* ── Compulsory courses (auto-preloaded, locked) ── */}
-        <SectionHeader title={ar ? "مقررات إلزامية — محملة تلقائياً" : "Compulsory Courses — Auto-loaded"} count={compulsoryCourses.length} color={pal.accent} />
-        {compulsoryCourses.length > 0
-          ? <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{compulsoryCourses.map((c) => <CourseCard key={c.code} course={c} locked />)}</div>
-          : <div style={{ textAlign: "center", padding: "20px 0", color: "var(--gpa-text-faintest)", fontSize: 12, fontFamily: FONT }}>{ar ? "لا توجد مقررات إلزامية" : "No compulsory courses"}</div>
-        }
+        {/* ── Summer banner OR Compulsory courses ── */}
+        {isSummer ? (
+          <div style={{
+            marginBottom: 8, padding: "18px 20px", borderRadius: 16,
+            background: "linear-gradient(135deg,rgba(250,204,21,0.10),rgba(249,115,22,0.07))",
+            border: "1px solid rgba(250,204,21,0.25)",
+            display: "flex", alignItems: "flex-start", gap: 14,
+          }}>
+            <span style={{ fontSize: 28 }}>☀️</span>
+            <div>
+              <div style={{ fontFamily: FONT_NUM, fontSize: 14, fontWeight: 800, color: "#FBBF24", marginBottom: 4 }}>
+                {ar ? "الفصل الصيفي — لوحة حرة" : "Summer Term — Free Canvas"}
+              </div>
+              <div style={{ fontSize: 12, color: "var(--gpa-text-faint)", fontFamily: FONT, lineHeight: 1.6 }}>
+                {ar
+                  ? "لا توجد مقررات إلزامية محددة للفصل الصيفي. ابحث عن أي مقرر وأضفه إلى خطتك."
+                  : "No compulsory courses for Summer Term. Search any course and add it to your plan."}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <SectionHeader title={ar ? "مقررات إلزامية — محملة تلقائياً" : "Compulsory Courses — Auto-loaded"} count={compulsoryCourses.length} color={pal.accent} />
+            {compulsoryCourses.length > 0
+              ? <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{compulsoryCourses.map((c) => <CourseCard key={c.code} course={c} locked />)}</div>
+              : <div style={{ textAlign: "center", padding: "20px 0", color: "var(--gpa-text-faintest)", fontSize: 12, fontFamily: FONT }}>{ar ? "لا توجد مقررات إلزامية" : "No compulsory courses"}</div>
+            }
+          </>
+        )}
 
-        {/* ── Smart search for elective + free ── */}
-        {searchPool.length > 0 && (
+        {/* ── Smart search for elective / free / summer ── */}
+        {(isSummer || searchPool.length > 0) && (
           <>
             <div style={{ marginTop: 24, marginBottom: 10 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                 <div style={{ flex: 1, height: 1, background: "#F59E0B30" }} />
                 <div style={{ fontFamily: FONT, fontSize: 11, fontWeight: 700, color: "#F59E0B", background: "#F59E0B12", padding: "4px 14px", borderRadius: 99, letterSpacing: "0.5px", textTransform: "uppercase", whiteSpace: "nowrap" }}>
-                  {ar ? "بحث ذكي — اختياري + حر" : "Smart Search — Elective + Free"} ({searchPool.length})
+                  {isSummer
+                    ? (ar ? `بحث حر — كل المقررات (${searchPool.length})` : `Free Search — All Courses (${searchPool.length})`)
+                    : (ar ? "بحث ذكي — اختياري + حر" : "Smart Search — Elective + Free")} {!isSummer && `(${searchPool.length})`}
                 </div>
                 <div style={{ flex: 1, height: 1, background: "#F59E0B30" }} />
               </div>
@@ -823,7 +879,9 @@ tr:nth-child(even) td{background:rgba(255,255,255,.015)}
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={ar ? "ابحث بالكود أو الاسم..." : "Search by code or name..."}
+                  placeholder={isSummer
+                    ? (ar ? "ابحث عن أي مقرر بالكود أو الاسم..." : "Search any course by code or name...")
+                    : (ar ? "ابحث بالكود أو الاسم..." : "Search by code or name...")}
                   style={{
                     width: "100%", padding: "12px 44px 12px 16px", borderRadius: 12,
                     border: "1px solid var(--gpa-border)", background: "var(--gpa-surface-alpha-06)",
@@ -838,7 +896,12 @@ tr:nth-child(even) td{background:rgba(255,255,255,.015)}
                   <button onClick={() => setSearchQuery("")} style={{ position: "absolute", top: "50%", insetInlineEnd: 40, transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--gpa-text-faint)", fontSize: 16, lineHeight: 1 }}>×</button>
                 )}
               </div>
-              {/* Search result count */}
+              {/* Search result count / hint */}
+              {isSummer && !searchQuery && (
+                <div style={{ fontSize: 11, color: "var(--gpa-text-faintest)", fontFamily: FONT, marginTop: 6, textAlign: "center" }}>
+                  {ar ? "ابدأ الكتابة للبحث في قاعدة بيانات المقررات" : "Start typing to search the course database"}
+                </div>
+              )}
               {searchQuery && (
                 <div style={{ fontSize: 11, color: "var(--gpa-text-faint)", fontFamily: FONT, marginTop: 6 }}>
                   {ar ? `${searchResults.length} نتيجة من أصل ${searchPool.length}` : `${searchResults.length} of ${searchPool.length} results`}

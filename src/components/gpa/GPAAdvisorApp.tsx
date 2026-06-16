@@ -3234,6 +3234,14 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
               earnedCr={newCr}
               totalReq={totalReq}
               isGuest={isGuest}
+              initialDeptId={major || undefined}
+              initialLevelId={currentLevel >= 1 ? currentLevel : undefined}
+              initialSemesterId={
+                semester === "s" ? "summer" :
+                semester === "1" ? 1 :
+                semester === "2" ? 2 :
+                undefined
+              }
               history={(history as any[]).map((h) => ({
                 courses: (h.courses ?? []).map((c: any) => ({
                   code: c.code ?? "",
