@@ -1,0 +1,26 @@
+Act as an Elite Systems Architect and Senior React/TypeScript Developer. 
+
+I am uploading two critical files for you:
+1. The official university bylaws PDF: `لائحة_كلية_العلوم_2021.pdf`
+2. The structured TypeScript database file: `seedData.ts`
+
+We need to fix a critical flaw in the User Onboarding/Login workflow. Currently, selecting the Faculty, Department, Level, and Semester is treated as optional. This is WRONG and breaks the subsequent course wizard logic. 
+
+Please completely overhaul the onboarding flow with the following strict specifications:
+
+### 1. ABSOLUTELY MANDATORY ONBOARDING (STRICT FORM VALIDATION):
+- The initial Setup/Login screen MUST enforce strict validation. 
+- All 4 fields: [Faculty, Department/Program, Level/Year, Semester] are 100% COMPULSORY.
+- The "Start/Enter" button MUST remain strictly DISABLED (`disabled={!faculty || !department || !level || !semester}`) until the user makes a valid selection for every single field. There must be no way to bypass this screen with empty or incomplete data.
+
+### 2. PRE-DEFINED DROPDOWNS ONLY (NO FREE TEXT):
+- For the Department/Program selection, remove any free-text inputs or optional tags. It MUST be a premium, searchable Dropdown/Select component.
+- Populate this dropdown dynamically by parsing ALL available programs inside the attached `seedData.ts` (Biotechnology, Zoology and Ecology, Chemistry, CS, etc.). The student can ONLY choose from this predefined list.
+
+### 3. CONTEXT-AWARE GLOBAL STATE & DEFAULTS:
+- Save these 4 locked parameters into our Global State (Zustand or Context).
+- Once the user passes this gate, the Course Wizard and Dashboard must immediately load the specific context:
+  * For Regular Semesters (Term 1 & 2): Automatically pre-load, check, and lock the compulsory courses for that level/department from `seedData.ts`.
+  * For Summer Semester: Load a completely empty canvas, unlocking the smart autocomplete search to add failed/future courses.
+
+Refactor the setup screen immediately to enforce this ironclad validation layout and connect it seamlessly to the `seedData.ts` registry. Let's make this entry point bulletproof!

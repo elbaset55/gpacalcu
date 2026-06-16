@@ -1,0 +1,24 @@
+Act as an Elite Systems Architect and Senior React/TypeScript Developer. 
+
+I am uploading two critical files for you:
+1. The official university bylaws PDF: `لائحة_كلية_العلوم_2021.pdf`
+2. The structured TypeScript database file: `seedData.ts`
+
+Stop writing isolated components. We need a complete architectural synchronization between the Initial User Onboarding (Setup/Login) and the Course Selection Wizard. The state is currently disconnected. Analyze the files deeply and implement the following:
+
+### 1. MANDATORY GLOBAL ONBOARDING AT LOGIN (THE GATEKEEPER):
+- Move the selection of (Faculty, Department/Program, Level/Year, and Semester) to the INITIAL Setup/Login Screen.
+- This onboarding step is strictly COMPULSORY. The user cannot bypass it or enter the application until these 4 fields are selected.
+- Store this configuration globally (using Zustand or React Context) so the entire application acts on a single source of truth.
+- Populate the Department dropdown dynamically by reading ALL programs from the attached `seedData.ts` (Chemistry, Physics, Math, CS, Biotech, Zoology, etc.). Do not hardcode only two programs.
+
+### 2. CONTEXT-AWARE DYNAMIC PRE-LOADING (SMART DEFAULTS):
+- When the dashboard and the Course Wizard load, they must instantly read the global onboarding state.
+- For Regular Semesters (Term 1 & Term 2): Automatically pre-load the wizard grid with the default compulsory courses mapped out in `seedData.ts` for that specific level and department. The user should see their required term courses pre-selected and locked immediately.
+- For Summer Semester (الترم الصيفي): If the global state says "Summer Term", the default pre-loaded course selection MUST be completely EMPTY. The user starts with a blank canvas and uses the smart autocomplete search to manually add retake courses or future tracks.
+
+### 3. SYNCHRONIZED SEARCH & STATE:
+- Ensure that the custom course addition search bar strictly filters options from `COURSES_DB` that match the user's global program context.
+- When a student finishes or saves their plan in the Wizard, this selection must sync back directly into their global academic roadmap.
+
+Analyze the attached PDF and seedData, refactor the initial Setup Screen to enforce this mandatory flow, and bind the Course Wizard directly to this global context. Let's make the entire system dynamically alive.

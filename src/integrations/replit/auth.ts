@@ -154,3 +154,5 @@ export async function getLogoutUrl(hostname: string): Promise<string> {
     post_logout_redirect_uri: `https://${hostname}`,
   }).href;
 }
+
+export const requireSupabaseAuth = requireReplitAuth;
