@@ -90,3 +90,24 @@ export async function resetPasswordWithToken(
   await query(`UPDATE password_reset_tokens SET used_at=NOW() WHERE token=$1`, [token]);
   return { ok: true };
 }
+
+export async function changePassword(
+  userId: string,
+  oldPassword: string,
+  newPassword: string,
+): Promise<{ ok: true } | { error: string }> {
+  if (newPassword.length < 8) return { error: "Password must be at least 8 characters" };
+
+  const { rows } = await query(
+    `SELECT password_hash FROM email_users WHERE id = $1`,
+    [userId],
+  );
+  if (!rows[0]) return { error: "Account not found or not an email account" };
+  const r = rows[0] as { password_hash: string };
+  const valid = await bcrypt.compare(oldPassword, r.password_hash);
+  if (!valid) return { error: "Current password is incorrect" };
+
+  const hash = await bcrypt.hash(newPassword, 12);
+  await query(`UPDATE email_users SET password_hash=$1 WHERE id=$2`, [hash, userId]);
+  return { ok: true };
+}

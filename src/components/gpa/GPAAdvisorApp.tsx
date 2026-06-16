@@ -40,11 +40,13 @@ import { PremiumControlsBar } from "./PremiumControls";
 import {
   deleteProfile,
   deleteSemester,
+  editCourse,
   getProfile,
   listSemesters,
   saveProfile,
   saveSemester,
 } from "@/lib/profile.functions";
+import { BENHA_PROGRAMS, computeDegreeAudit } from "@/data/benha-programs";
 import { analyzeTranscript } from "@/lib/transcript.functions";
 import { askAdvisor } from "@/lib/advisor.functions";
 import { chatWithAdvisor } from "@/lib/chat.functions";
@@ -1240,6 +1242,7 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
   });
   const [roadmapText, setRoadmapText] = useState<string>("");
   const roadmapFn = useServerFn(generateRoadmap);
+  const [auditProgramId, setAuditProgramId] = useState<string>("");
   const roadmapMut = useMutation({
     mutationFn: roadmapFn,
     onSuccess: (r: any) => setRoadmapText(r?.text ?? ""),
@@ -1274,7 +1277,9 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
   const fillAll = (pts: number) => setCourses((p) => p.map((c) => ({ ...c, grade: pts })));
 
   const semCr = courses.reduce((s, c) => s + (c.cr || 0), 0);
-  const semPts = courses.reduce((s, c) => s + (c.cr || 0) * (c.grade ?? 3.0), 0);
+  // Article 20c (Benha bylaws): retake grade is capped at B (3.0) for GPA purposes
+  const effectiveGrade = (c: Course) => c.retake ? Math.min(c.grade ?? 3.0, 3.0) : (c.grade ?? 3.0);
+  const semPts = courses.reduce((s, c) => s + (c.cr || 0) * effectiveGrade(c), 0);
   const semGpa = semCr ? semPts / semCr : 0;
   const prevPts = prevGpa * prevCr;
   const newPts = prevPts + semPts;
@@ -1488,6 +1493,7 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
         ["chat", "💬 محادثة"],
         ["roadmap", "🗺️ الخريطة"],
         ["scale", "🧮 السكيل"],
+        ...(isBenha ? [["audit", "🎓 التدقيق"]] : []),
       ]
     : [
         ["record", "📚 My Record"],
@@ -1500,6 +1506,7 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
         ["chat", "💬 Chat"],
         ["roadmap", "🗺️ Roadmap"],
         ["scale", "🧮 Scale"],
+        ...(isBenha ? [["audit", "🎓 Audit"]] : []),
       ];
 
   /* ============= SMART ALERTS ============= */
@@ -3077,6 +3084,144 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
             </div>
           </div>
         )}
+
+        {tab === "audit" && isBenha && (() => {
+          const programList = BENHA_PROGRAMS.map((p) => ({ id: p.id, name: ar ? p.nameAr : p.nameEn, dept: p.department }));
+          const selectedProg = BENHA_PROGRAMS.find((p) => p.id === auditProgramId) ?? null;
+
+          const allCodes: string[] = [];
+          const creditMap: Record<string, number> = {};
+          for (const h of history as any[]) {
+            for (const c of h.courses ?? []) {
+              if (c.code) { allCodes.push(c.code); creditMap[c.code] = c.cr ?? c.credits ?? 0; }
+              if (c.name) { allCodes.push(c.name); creditMap[c.name] = c.cr ?? c.credits ?? 0; }
+            }
+          }
+
+          const audit = selectedProg ? computeDegreeAudit(selectedProg, allCodes, creditMap) : null;
+
+          const pctBar = (pct: number, clr: string) => (
+            <div style={{ height: 8, background: "var(--gpa-surface-alpha-06)", borderRadius: 99, overflow: "hidden", marginTop: 4 }}>
+              <div style={{ height: "100%", width: `${Math.min(100, pct)}%`, background: clr, borderRadius: 99, transition: "width 0.5s ease" }} />
+            </div>
+          );
+
+          return (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={card}>
+                <h3 style={{ margin: "0 0 10px", fontSize: 13, fontWeight: 800, color: "var(--gpa-text-soft)", textTransform: "uppercase", letterSpacing: "0.3px" }}>
+                  {ar ? "🎓 تدقيق درجة التخرج" : "🎓 Degree Audit"}
+                </h3>
+                <p style={{ fontSize: 11, color: "var(--gpa-text-faint)", margin: "0 0 12px" }}>
+                  {ar ? "اختر تخصصك لرؤية مدى تقدمك نحو متطلبات التخرج وفق لائحة 2021." : "Select your program to see progress toward graduation requirements under the 2021 bylaws."}
+                </p>
+                <select
+                  value={auditProgramId}
+                  onChange={(e) => setAuditProgramId(e.target.value)}
+                  style={{ width: "100%", background: "var(--gpa-surface-alpha-08)", border: "1px solid var(--gpa-border)", borderRadius: 9, color: "var(--gpa-text)", padding: "9px 12px", fontSize: 12, fontFamily: FONT, outline: "none", cursor: "pointer" }}
+                >
+                  <option value="">{ar ? "— اختر التخصص —" : "— Select program —"}</option>
+                  {programList.map((p) => (
+                    <option key={p.id} value={p.id} style={{ background: "var(--gpa-card)" }}>{p.name} ({p.dept})</option>
+                  ))}
+                </select>
+              </div>
+
+              {audit && selectedProg && (
+                <>
+                  <div style={card}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: "var(--gpa-text)" }}>
+                        {ar ? selectedProg.nameAr : selectedProg.nameEn}
+                      </span>
+                      <span style={{ fontSize: 20, fontWeight: 900, color: audit.progressPercent >= 80 ? "var(--gpa-accent)" : audit.progressPercent >= 50 ? "var(--gpa-grade-b)" : "var(--gpa-grade-c)" }}>
+                        {audit.progressPercent}%
+                      </span>
+                    </div>
+                    {pctBar(audit.progressPercent, audit.progressPercent >= 80 ? "var(--gpa-accent)" : audit.progressPercent >= 50 ? "var(--gpa-grade-b)" : "var(--gpa-grade-c)")}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 12 }}>
+                      {[
+                        { l: ar ? "مكتمل" : "Done", v: audit.totalCompleted, clr: "var(--gpa-accent)" },
+                        { l: ar ? "متبقي" : "Left", v: audit.totalRemaining, clr: "var(--gpa-grade-c)" },
+                        { l: ar ? "المطلوب" : "Required", v: audit.totalRequired, clr: "var(--gpa-text-soft)" },
+                      ].map((item, i) => (
+                        <div key={i} style={{ background: "var(--gpa-bg-soft)", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
+                          <div style={{ fontSize: 18, fontWeight: 900, color: item.clr }}>{item.v}</div>
+                          <div style={{ fontSize: 9, color: "var(--gpa-text-faintest)", textTransform: "uppercase", marginTop: 3 }}>{item.l} {ar ? "ساعة" : "cr"}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={card}>
+                    <h4 style={{ margin: "0 0 10px", fontSize: 12, color: "var(--gpa-text-soft)", fontWeight: 700 }}>
+                      {ar ? "المتطلبات الإلزامية" : "Compulsory Requirements"}
+                    </h4>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--gpa-text-faint)", marginBottom: 4 }}>
+                      <span>{audit.compulsoryCompleted}/{audit.compulsoryRequired} {ar ? "ساعة" : "cr"}</span>
+                      <span>{audit.compulsoryRequired > 0 ? Math.round((audit.compulsoryCompleted / audit.compulsoryRequired) * 100) : 0}%</span>
+                    </div>
+                    {pctBar(audit.compulsoryRequired > 0 ? (audit.compulsoryCompleted / audit.compulsoryRequired) * 100 : 0, "var(--gpa-accent)")}
+                    <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 4 }}>
+                      {audit.completedCourses.filter((a) => a.type === "compulsory").map((a, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, padding: "5px 8px", background: "rgba(79,255,176,0.06)", borderRadius: 6, border: "1px solid rgba(79,255,176,0.15)" }}>
+                          <span style={{ color: "var(--gpa-accent)" }}>✓</span>
+                          <span style={{ flex: 1, color: "var(--gpa-text-soft)" }}>{ar ? a.course.nameAr : a.course.nameEn}</span>
+                          <span style={{ color: "var(--gpa-text-faintest)" }}>{a.course.credits} {ar ? "س" : "cr"}</span>
+                        </div>
+                      ))}
+                      {audit.pendingCourses.filter((a) => a.type === "compulsory").slice(0, 8).map((a, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, padding: "5px 8px", background: "var(--gpa-surface-alpha-06)", borderRadius: 6, border: "1px solid var(--gpa-border)" }}>
+                          <span style={{ color: "var(--gpa-text-faintest)" }}>○</span>
+                          <span style={{ flex: 1, color: "var(--gpa-text-faint)" }}>{ar ? a.course.nameAr : a.course.nameEn}</span>
+                          <span style={{ color: "var(--gpa-text-faintest)" }}>{a.course.credits} {ar ? "س" : "cr"}</span>
+                        </div>
+                      ))}
+                      {audit.pendingCourses.filter((a) => a.type === "compulsory").length > 8 && (
+                        <div style={{ fontSize: 10, color: "var(--gpa-text-faintest)", textAlign: "center", paddingTop: 4 }}>
+                          +{audit.pendingCourses.filter((a) => a.type === "compulsory").length - 8} {ar ? "مادة أخرى متبقية" : "more pending"}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {audit.electiveRequired > 0 && (
+                    <div style={card}>
+                      <h4 style={{ margin: "0 0 10px", fontSize: 12, color: "var(--gpa-text-soft)", fontWeight: 700 }}>
+                        {ar ? "المتطلبات الاختيارية" : "Elective Requirements"}
+                      </h4>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--gpa-text-faint)", marginBottom: 4 }}>
+                        <span>{audit.electiveCompleted}/{audit.electiveRequired} {ar ? "ساعة" : "cr"}</span>
+                        <span>{audit.electiveRequired > 0 ? Math.round((audit.electiveCompleted / audit.electiveRequired) * 100) : 0}%</span>
+                      </div>
+                      {pctBar(audit.electiveRequired > 0 ? (audit.electiveCompleted / audit.electiveRequired) * 100 : 0, "var(--gpa-accent-2)")}
+                    </div>
+                  )}
+
+                  <div style={card}>
+                    <h4 style={{ margin: "0 0 10px", fontSize: 12, color: "var(--gpa-text-soft)", fontWeight: 700 }}>
+                      {ar ? "المتطلبات الخاصة" : "Special Requirements"}
+                    </h4>
+                    {audit.specialRequirements.map((r, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", marginBottom: 6, background: r.met ? "rgba(79,255,176,0.06)" : "var(--gpa-surface-alpha-06)", borderRadius: 8, border: `1px solid ${r.met ? "rgba(79,255,176,0.2)" : "var(--gpa-border)"}` }}>
+                        <span style={{ fontSize: 16 }}>{r.met ? "✅" : "⭕"}</span>
+                        <div>
+                          <div style={{ fontSize: 12, color: r.met ? "var(--gpa-accent)" : "var(--gpa-text-soft)", fontWeight: 600 }}>{r.label}</div>
+                          <div style={{ fontSize: 10, color: "var(--gpa-text-faintest)" }}>{r.details}</div>
+                        </div>
+                      </div>
+                    ))}
+                    {allCodes.length === 0 && (
+                      <div style={{ fontSize: 11, color: "var(--gpa-text-faint)", marginTop: 8 }}>
+                        {ar ? "⚠️ لم يتم العثور على رموز المواد في سجلك — تأكد من أن المواد محفوظة برمز صحيح." : "⚠️ No course codes found in your record — ensure saved courses have codes."}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })()}
       </div>
 
       <style>{`
@@ -3370,7 +3515,7 @@ export default function GPAAdvisorApp({ isGuest = false }: { isGuest?: boolean }
         cumGpa: cumCr ? cumPts / cumCr : 0,
         cr,
         cumCr,
-        courses: semCourses.map((c) => ({ name: c.name, grade: Number(c.grade_pts ?? 0), cr: c.credits })),
+        courses: semCourses.map((c) => ({ name: c.name, code: c.code ?? "", grade: Number(c.grade_pts ?? 0), cr: c.credits })),
       });
     }
   }

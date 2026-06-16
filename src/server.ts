@@ -327,6 +327,33 @@ async function handleEmailReset(request: Request): Promise<Response> {
   }
 }
 
+async function handleEmailChangePassword(request: Request): Promise<Response> {
+  if (!authRateLimit(getClientIp(request), 5, 15 * 60 * 1000)) return tooManyRequests();
+  try {
+    const cookie = request.headers.get("cookie") ?? "";
+    const sessionId = cookie.split(";").map((s) => s.trim()).find((s) => s.startsWith("termly_sid="))?.slice("termly_sid=".length);
+    if (!sessionId) return Response.json({ error: "Not authenticated" }, { status: 401 });
+
+    const { getPool } = await import("./integrations/replit/db");
+    const { rows: sessRows } = await getPool().query(`SELECT user_id FROM user_sessions WHERE session_id=$1 AND expires_at > NOW()`, [sessionId]);
+    if (!sessRows[0]) return Response.json({ error: "Session expired" }, { status: 401 });
+    const userId = (sessRows[0] as { user_id: string }).user_id;
+
+    const body = await request.json().catch(() => null) as { oldPassword?: string; newPassword?: string } | null;
+    if (!body?.oldPassword || !body?.newPassword) {
+      return Response.json({ error: "oldPassword and newPassword required" }, { status: 400 });
+    }
+
+    const { changePassword } = await import("./lib/email-auth");
+    const result = await changePassword(userId, body.oldPassword, body.newPassword);
+    if ("error" in result) return Response.json({ error: result.error }, { status: 400 });
+    return Response.json({ ok: true });
+  } catch (e) {
+    console.error("[change password]", e);
+    return Response.json({ error: "Change password failed" }, { status: 500 });
+  }
+}
+
 /* ── Periodic DB session cleanup (runs once per process lifetime) ─────── */
 if (typeof setInterval !== "undefined") {
   const SESSION_CLEANUP_INTERVAL = 6 * 60 * 60 * 1000; // every 6 hours
@@ -356,6 +383,7 @@ export default {
       if (path === "/api/auth/google/callback") return await handleGoogleCallback(request);
       if (path === "/api/auth/email/reset-request" && request.method === "POST") return await handleEmailResetRequest(request);
       if (path === "/api/auth/email/reset" && request.method === "POST") return await handleEmailReset(request);
+      if (path === "/api/auth/email/change-password" && request.method === "POST") return await handleEmailChangePassword(request);
 
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);

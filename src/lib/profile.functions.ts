@@ -186,3 +186,31 @@ export const deleteSemester = createServerFn({ method: "POST" })
     await query(`DELETE FROM semesters WHERE id = $1 AND user_id = $2`, [data.id, userId]);
     return { ok: true };
   });
+
+const editCourseSchema = z.object({
+  courseId: z.string().uuid(),
+  name: z.string().min(1).max(120),
+  code: z.string().max(40).optional().default(""),
+  credits: z.number().int().min(0).max(12),
+  grade_letter: z.string().max(8).optional().nullable(),
+  grade_pts: z.number().min(0).max(4).optional().nullable(),
+  notes: z.string().max(500).optional().nullable(),
+});
+
+export const editCourse = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: unknown) => editCourseSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const rl = checkRateLimit(`editCourse:${userId}`, 60, 60_000);
+    if (!rl.allowed) throw new Error(`Rate limit exceeded. Try again in ${Math.ceil(rl.retryAfterMs / 1000)}s.`);
+    const result = await query(
+      `UPDATE courses
+         SET name=$1, code=$2, credits=$3, grade_letter=$4, grade_pts=$5
+       WHERE id=$6 AND user_id=$7
+       RETURNING id`,
+      [data.name, data.code ?? "", data.credits, data.grade_letter ?? null, data.grade_pts ?? null, data.courseId, userId],
+    );
+    if (!result.rows[0]) throw new Error("Course not found or unauthorized");
+    return { ok: true };
+  });
