@@ -314,7 +314,7 @@ export function CourseWizard({
   );
 
   useEffect(() => {
-    if (step !== 3 || selectedCr === 0 || isGuest || !dept || !semData) return;
+    if (step !== 3 || selectedCr === 0 || isGuest || !dept || (!semData && !isSummer)) return;
     const key = [...chosen].sort().join(",") + "|" + estimateGpa.toFixed(2);
     if (key === prevKeyRef.current) return;
     prevKeyRef.current = key;
@@ -334,6 +334,8 @@ export function CourseWizard({
         cumGpa,
         earnedCr,
         predictedGpa,
+        cgpaBefore: cumGpa,
+        cgpaAfter: predictedGpa,
       });
     }, 1500);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
@@ -579,13 +581,15 @@ tr:nth-child(even) td{background:rgba(255,255,255,.015)}
 
             <div style={{ width: 1, height: 44, background: "var(--gpa-border)", flexShrink: 0 }} />
 
-            {/* GPA impact */}
+            {/* CGPA Engine — shows before → after cumulative shift */}
             <div style={{ flexShrink: 0, textAlign: "center" }}>
-              <div style={{ fontSize: 10, fontFamily: FONT, color: "var(--gpa-text-faint)", marginBottom: 4 }}>{ar ? "تأثير المعدل" : "GPA Impact"}</div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+              <div style={{ fontSize: 10, fontFamily: FONT, color: "var(--gpa-text-faint)", marginBottom: 4 }}>{ar ? "التراكمي CGPA" : "CGPA"}</div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
+                <span style={{ fontFamily: FONT_NUM, fontSize: 13, color: "var(--gpa-text-faint)", opacity: 0.75 }}>{cumGpa.toFixed(2)}</span>
+                <span style={{ fontFamily: FONT_NUM, fontSize: 11, color: "var(--gpa-text-faintest)", margin: "0 1px" }}>→</span>
                 <span style={{ fontFamily: FONT_NUM, fontSize: 18, fontWeight: 900, color: gpaColor, transition: "color 0.3s ease" }}>{predictedGpa.toFixed(2)}</span>
                 <span style={{ fontFamily: FONT_NUM, fontSize: 11, color: gpaDelta > 0.01 ? "#4ADE80" : gpaDelta < -0.01 ? "#F87171" : "var(--gpa-text-faint)" }}>
-                  {gpaDelta > 0.01 ? `▲${gpaDelta.toFixed(2)}` : gpaDelta < -0.01 ? `▼${Math.abs(gpaDelta).toFixed(2)}` : "→"}
+                  {gpaDelta > 0.01 ? `▲${gpaDelta.toFixed(2)}` : gpaDelta < -0.01 ? `▼${Math.abs(gpaDelta).toFixed(2)}` : "—"}
                 </span>
               </div>
             </div>

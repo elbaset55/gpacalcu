@@ -8,3 +8,4 @@
 - [Termly Replit Auth System](termly-replit-auth.md) — supabase/lovable clients are stubs; real auth is Replit OAuth + termly_sid cookie + pg; pg must be installed
 - [Termly Course Wizard](termly-course-wizard.md) — CourseWizard.tsx at src/components/gpa/; wizard tab only shows when isBenha=true; CSS vars: only use variants that exist in styles.css (surface-alpha-06/08, danger-15/33/55, accent-15..55)
 - [Termly onboarding overhaul](termly-onboarding.md) — strict validation, Benha dept dropdown from FACULTY_DATA, level/sem required; wizard accepts initialDept/Level/Semester props and skips to step 3
+- [Termly CGPA & wizard features](termly-wizard-cgpa.md) — planned semesters (sem_type=wizard) excluded from CGPA; sticky bar shows X.XX→Y.YY; AI trigger fixed for summer; cgpaBefore/cgpaAfter in prompt

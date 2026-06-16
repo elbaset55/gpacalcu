@@ -1100,10 +1100,17 @@ function HistoryPanel({ history, grades, lang, onClose, onDeleteSem }: any) {
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, alignItems: "flex-start", gap: 8 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gpa-text-soft)", flex: 1 }}>{sem.label}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gpa-text-soft)", flex: 1 }}>
+                    {sem.label}
+                    {sem.isPlanned && (
+                      <span style={{ marginInlineStart: 8, fontSize: 9, fontWeight: 700, color: "#F59E0B", background: "rgba(245,158,11,0.15)", padding: "2px 8px", borderRadius: 99, letterSpacing: "0.5px", verticalAlign: "middle" }}>
+                        {ar ? "📝 قيد التسجيل" : "📝 Planned"}
+                      </span>
+                    )}
+                  </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                    <div style={{ fontSize: 19, fontWeight: 900, color: st.clr }}>
-                      {sem.cumGpa.toFixed(3)}
+                    <div style={{ fontSize: 19, fontWeight: 900, color: sem.isPlanned ? "#F59E0B" : st.clr }}>
+                      {sem.isPlanned ? "—" : sem.cumGpa.toFixed(3)}
                     </div>
                     {onDeleteSem && sem.id && (
                       isConfirming ? (
@@ -1703,16 +1710,27 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, alignItems: "center" }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gpa-text-soft)" }}>{sem.label}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gpa-text-soft)" }}>
+                        {sem.label}
+                        {sem.isPlanned && (
+                          <span style={{ marginInlineStart: 8, fontSize: 9, fontWeight: 700, color: "#F59E0B", background: "rgba(245,158,11,0.15)", padding: "2px 7px", borderRadius: 99, verticalAlign: "middle" }}>
+                            {ar ? "📝 قيد التسجيل" : "📝 Planned"}
+                          </span>
+                        )}
+                      </div>
                       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                        <span style={{ fontSize: 11, color: "var(--gpa-text-faint)" }}>
-                          {ar ? "فصلي" : "Term"}{" "}
-                          <b style={{ color: gpaClr(sem.semGpa) }}>{sem.semGpa.toFixed(2)}</b>
-                        </span>
+                        {!sem.isPlanned && (
+                          <span style={{ fontSize: 11, color: "var(--gpa-text-faint)" }}>
+                            {ar ? "فصلي" : "Term"}{" "}
+                            <b style={{ color: gpaClr(sem.semGpa) }}>{sem.semGpa.toFixed(2)}</b>
+                          </span>
+                        )}
                         <span style={{ fontSize: 11, color: "var(--gpa-text-faint)" }}>
                           {sem.cr} {ar ? "س" : "cr"}
                         </span>
-                        <span style={{ fontSize: 18, fontWeight: 900, color: st.clr }}>{sem.cumGpa.toFixed(2)}</span>
+                        <span style={{ fontSize: 18, fontWeight: 900, color: sem.isPlanned ? "#F59E0B" : st.clr }}>
+                          {sem.isPlanned ? "—" : sem.cumGpa.toFixed(2)}
+                        </span>
                       </div>
                     </div>
                     {sem.courses?.length > 0 && (
@@ -3548,14 +3566,26 @@ export default function GPAAdvisorApp({ isGuest = false }: { isGuest?: boolean }
     let cumPts = basePts;
     for (const sem of semsData.semesters) {
       const semCourses = semsData.courses.filter((c) => c.semester_id === sem.id);
+      // A semester is "planned" (wizard-drafted) when sem_type is "wizard"
+      // OR all its courses have no grade yet — exclude these from CGPA accumulation
+      const isPlanned =
+        sem.sem_type === "wizard" ||
+        semCourses.every((c) => c.grade_pts === null || c.grade_pts === undefined);
+      const gradedCourses = semCourses.filter(
+        (c) => c.grade_pts !== null && c.grade_pts !== undefined,
+      );
       const cr = semCourses.reduce((s, c) => s + c.credits, 0);
-      const pts = semCourses.reduce((s, c) => s + c.credits * Number(c.grade_pts ?? 0), 0);
-      cumCr += cr;
-      cumPts += pts;
+      const gradedCr = gradedCourses.reduce((s, c) => s + c.credits, 0);
+      const pts = gradedCourses.reduce((s, c) => s + c.credits * Number(c.grade_pts), 0);
+      if (!isPlanned) {
+        cumCr += gradedCr;
+        cumPts += pts;
+      }
       history.push({
         id: sem.id,
         label: sem.label,
-        semGpa: cr ? pts / cr : 0,
+        isPlanned,
+        semGpa: gradedCr ? pts / gradedCr : 0,
         cumGpa: cumCr ? cumPts / cumCr : 0,
         cr,
         cumCr,
