@@ -47,6 +47,7 @@ import {
   saveSemester,
 } from "@/lib/profile.functions";
 import { BENHA_PROGRAMS, computeDegreeAudit } from "@/data/benha-programs";
+import { CourseWizard } from "@/components/gpa/CourseWizard";
 import { analyzeTranscript } from "@/lib/transcript.functions";
 import { askAdvisor } from "@/lib/advisor.functions";
 import { chatWithAdvisor } from "@/lib/chat.functions";
@@ -1494,6 +1495,7 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
         ["roadmap", "🗺️ الخريطة"],
         ["scale", "🧮 السكيل"],
         ...(isBenha ? [["audit", "🎓 التدقيق"]] : []),
+        ...(isBenha ? [["wizard", "📝 التسجيل"]] : []),
       ]
     : [
         ["record", "📚 My Record"],
@@ -1507,6 +1509,7 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
         ["roadmap", "🗺️ Roadmap"],
         ["scale", "🧮 Scale"],
         ...(isBenha ? [["audit", "🎓 Audit"]] : []),
+        ...(isBenha ? [["wizard", "📝 Wizard"]] : []),
       ];
 
   /* ============= SMART ALERTS ============= */
@@ -3222,6 +3225,25 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
             </div>
           );
         })()}
+
+        {tab === "wizard" && isBenha && (
+          <div style={{ padding: "0 0 24px" }}>
+            <CourseWizard
+              lang={lang as "ar" | "en"}
+              cumGpa={cumGpa}
+              earnedCr={newCr}
+              totalReq={totalReq}
+              history={(history as any[]).map((h) => ({
+                courses: (h.courses ?? []).map((c: any) => ({
+                  code: c.code ?? "",
+                  name: c.name,
+                  grade: Number(c.grade ?? 0),
+                  cr: c.cr,
+                })),
+              }))}
+            />
+          </div>
+        )}
       </div>
 
       <style>{`

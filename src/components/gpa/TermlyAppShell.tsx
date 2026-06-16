@@ -4,7 +4,7 @@ import {
   Zap, MessageSquare, Map, Calculator, GraduationCap,
   Sun, Moon, Monitor, User, LogOut, RotateCcw, Bell,
   CalendarDays, Percent, Share2, Download, Upload, Printer,
-  Menu, X, ChevronLeft, ChevronRight, ShieldCheck,
+  Menu, X, ChevronLeft, ChevronRight, ShieldCheck, ClipboardList,
 } from "lucide-react";
 import type { GpaTheme } from "./use-theme";
 
@@ -22,6 +22,8 @@ const TAB_ICONS: Record<string, React.ComponentType<{ size?: number; color?: str
   chat: MessageSquare,
   roadmap: Map,
   scale: Calculator,
+  audit: ShieldCheck,
+  wizard: ClipboardList,
 };
 
 function gpaColor(g: number, isDark: boolean): string {
@@ -199,6 +201,8 @@ export function TermlyAppShell({
     chat: { ar: "محادثة AI", en: "AI Chat" },
     roadmap: { ar: "خريطة الطريق", en: "Roadmap" },
     scale: { ar: "السلّم التقديري", en: "Grade Scale" },
+    audit: { ar: "تدقيق الدرجة", en: "Degree Audit" },
+    wizard: { ar: "تسجيل المقررات", en: "Course Wizard" },
   };
 
   const menuItems = [

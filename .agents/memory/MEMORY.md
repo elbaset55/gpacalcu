@@ -6,3 +6,4 @@
 - [Termly email auth + guest mode](termly-email-guest.md) — email_users table, bcryptjs, POST /api/auth/email/* in server.ts, isGuest prop on GPAAdvisorApp
 - [Termly shell graduation](termly-shell-graduation.md) — TermlyAppShell.tsx wraps Planner; getRequest alias fix; TABS typed as string[][] not [string,string][]
 - [Termly Replit Auth System](termly-replit-auth.md) — supabase/lovable clients are stubs; real auth is Replit OAuth + termly_sid cookie + pg; pg must be installed
+- [Termly Course Wizard](termly-course-wizard.md) — CourseWizard.tsx at src/components/gpa/; wizard tab only shows when isBenha=true; CSS vars: only use variants that exist in styles.css (surface-alpha-06/08, danger-15/33/55, accent-15..55)
