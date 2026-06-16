@@ -3169,14 +3169,14 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
                       {audit.completedCourses.filter((a) => a.type === "compulsory").map((a, i) => (
                         <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, padding: "5px 8px", background: "rgba(79,255,176,0.06)", borderRadius: 6, border: "1px solid rgba(79,255,176,0.15)" }}>
                           <span style={{ color: "var(--gpa-accent)" }}>✓</span>
-                          <span style={{ flex: 1, color: "var(--gpa-text-soft)" }}>{ar ? a.course.nameAr : a.course.nameEn}</span>
+                          <span style={{ flex: 1, color: "var(--gpa-text-soft)" }}>{a.course.name}</span>
                           <span style={{ color: "var(--gpa-text-faintest)" }}>{a.course.credits} {ar ? "س" : "cr"}</span>
                         </div>
                       ))}
                       {audit.pendingCourses.filter((a) => a.type === "compulsory").slice(0, 8).map((a, i) => (
                         <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, padding: "5px 8px", background: "var(--gpa-surface-alpha-06)", borderRadius: 6, border: "1px solid var(--gpa-border)" }}>
                           <span style={{ color: "var(--gpa-text-faintest)" }}>○</span>
-                          <span style={{ flex: 1, color: "var(--gpa-text-faint)" }}>{ar ? a.course.nameAr : a.course.nameEn}</span>
+                          <span style={{ flex: 1, color: "var(--gpa-text-faint)" }}>{a.course.name}</span>
                           <span style={{ color: "var(--gpa-text-faintest)" }}>{a.course.credits} {ar ? "س" : "cr"}</span>
                         </div>
                       ))}
@@ -3233,6 +3233,7 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
               cumGpa={cumGpa}
               earnedCr={newCr}
               totalReq={totalReq}
+              isGuest={isGuest}
               history={(history as any[]).map((h) => ({
                 courses: (h.courses ?? []).map((c: any) => ({
                   code: c.code ?? "",
@@ -3241,6 +3242,19 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
                   cr: c.cr,
                 })),
               }))}
+              onSavePlan={isGuest && onSaveSemGuest
+                ? async (planData) => {
+                    if (onSaveSemGuest) onSaveSemGuest(planData);
+                    showToast(ar ? "خطة محفوظة مؤقتاً ✅" : "Plan saved locally ✅");
+                  }
+                : !isGuest
+                  ? async (planData) => {
+                      await saveSemServer({ data: planData });
+                      queryClient.invalidateQueries({ queryKey: ["semesters"] });
+                      showToast(ar ? "تم حفظ الخطة في سجلك ✅" : "Plan saved to your record ✅");
+                    }
+                  : undefined
+              }
             />
           </div>
         )}
