@@ -1,0 +1,30 @@
+Act as an Elite Full-Stack React Engineer and World-Class UX/UI Designer. 
+I am going to provide you with the official university course catalog/by-law document (اللائحة). Your task is to architect a highly dynamic, context-aware Course Selection & Registration Wizard for "Termly" based on this data.
+
+Give this feature your maximum creative power to build an ultra-premium, frictionless user experience.
+
+### 1. THE ARCHITECTURAL CORE (COMPULSORY FLOW):
+- Mandatory Specialization Step: Before seeing any courses, the user MUST choose their Specialization/Department (التخصص). You must dynamically extract the available departments from the provided by-law text and present them in a premium selection interface (e.g., interactive cards or a futuristic floating dropdown). This selection is strictly mandatory.
+- Context-Aware Filtering: Once the specialization, academic year, and semester are determined, the wizard must automatically filter and present the exact matching courses for that specific slice of the by-law.
+
+### 2. INTUITIVE & ADVANCED UX RULES (SUMMER SEMESTER LOGIC):
+- Regular Semesters: Group courses by "Mandatory" (إجباري) and "Elective" (اختياري) with clear visual indicators of credit hours.
+- Summer Semester (الترم الصيفي) Super-Powers: If the user selects Summer Semester, implement a unique, creative filtering mechanism that unlocks:
+  1. Failed/Retake Courses: Any course the user previously marked as failed or didn't pass (شالها قبل كدا).
+  2. Future Track (المستقبلية): Any course from any upcoming semester or future academic year, allowing them to accelerate their graduation.
+- Micro-Interactions: Give the user an incredibly satisfying way to "add" or "register" a course (e.g., a fluid card click, a smooth swipe, or a tactile grid layout).
+
+### 3. VISUAL IDENTITY & TECH STACK STIPULATIONS:
+- Theme & Vibe: Fully compatible with our "Termly Aurora" design system (Space Obsidian background, frosted glass cards, Quantum Cyan and GPA Emerald glowing accents).
+- Layout Shift & i18n: Use logical CSS properties. The layout must remain pixel-perfect in both RTL (Arabic) and LTR (English) as the language toggle is clicked.
+- Smart Feedback/Validation: Show a real-time floating summary indicator tracking:
+  * Total Registered Credit Hours vs. Maximum Allowed Hours.
+  * Estimated GPA impact if they pass these courses.
+  * Validation alerts if they try to select a course without its prerequisite (المتطلب السابق) based on the by-law logic.
+
+### CREATIVE FREEDOM:
+I want you to surprise me with how the course dashboard looks. Avoid plain tables or boring checklists. Think of Bento-style interactive course slots, vibrant color-coded categories based on subjects, and buttery-smooth spring animations for selection states.
+
+Here is the official university by-law data. Parse it, design the data structure, and build the full responsive React frontend:
+
+[PASTE YOUR BY-LAW TEXT/DATA HERE]
