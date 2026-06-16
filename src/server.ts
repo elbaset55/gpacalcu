@@ -3,6 +3,37 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
+/* ── Auth endpoint rate limiter (IP-based, in-memory) ─────────────────── */
+const _authLimits = new Map<string, { count: number; resetAt: number }>();
+if (typeof setInterval !== "undefined") {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [k, v] of _authLimits) if (now >= v.resetAt) _authLimits.delete(k);
+  }, 60_000);
+}
+function authRateLimit(ip: string, maxReq = 10, windowMs = 15 * 60 * 1000): boolean {
+  const now = Date.now();
+  const entry = _authLimits.get(ip);
+  if (!entry || now >= entry.resetAt) { _authLimits.set(ip, { count: 1, resetAt: now + windowMs }); return true; }
+  if (entry.count >= maxReq) return false;
+  entry.count++;
+  return true;
+}
+function getClientIp(req: Request): string {
+  return (
+    req.headers.get("cf-connecting-ip") ??
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    req.headers.get("x-real-ip") ??
+    "unknown"
+  );
+}
+function tooManyRequests(): Response {
+  return Response.json(
+    { error: "Too many requests. Please wait a few minutes and try again." },
+    { status: 429, headers: { "Retry-After": "900" } },
+  );
+}
+
 type ServerEntry = {
   fetch: (request: Request, env?: unknown, ctx?: unknown) => Promise<Response> | Response;
 };
@@ -156,6 +187,7 @@ async function handleAuthLogout(request: Request): Promise<Response> {
 }
 
 async function handleEmailRegister(request: Request): Promise<Response> {
+  if (!authRateLimit(getClientIp(request), 5, 15 * 60 * 1000)) return tooManyRequests();
   try {
     const body = await request.json().catch(() => null) as { email?: string; password?: string; displayName?: string } | null;
     if (!body?.email || !body?.password) {
@@ -179,6 +211,7 @@ async function handleEmailRegister(request: Request): Promise<Response> {
 }
 
 async function handleEmailLogin(request: Request): Promise<Response> {
+  if (!authRateLimit(getClientIp(request), 10, 15 * 60 * 1000)) return tooManyRequests();
   try {
     const body = await request.json().catch(() => null) as { email?: string; password?: string } | null;
     if (!body?.email || !body?.password) {
@@ -262,6 +295,7 @@ async function handleGoogleCallback(request: Request): Promise<Response> {
 
 /* ── Email Password Reset ─────────────────────────────────────────────── */
 async function handleEmailResetRequest(request: Request): Promise<Response> {
+  if (!authRateLimit(getClientIp(request), 3, 15 * 60 * 1000)) return tooManyRequests();
   try {
     const body = await request.json().catch(() => null) as { email?: string } | null;
     if (!body?.email) return Response.json({ error: "Email required" }, { status: 400 });
@@ -291,6 +325,20 @@ async function handleEmailReset(request: Request): Promise<Response> {
     console.error("[reset password]", e);
     return Response.json({ error: "Reset failed" }, { status: 500 });
   }
+}
+
+/* ── Periodic DB session cleanup (runs once per process lifetime) ─────── */
+if (typeof setInterval !== "undefined") {
+  const SESSION_CLEANUP_INTERVAL = 6 * 60 * 60 * 1000; // every 6 hours
+  setInterval(async () => {
+    try {
+      const { cleanupExpiredSessions } = await import("./integrations/replit/auth");
+      const n = await cleanupExpiredSessions();
+      if (n > 0) console.info(`[session-cleanup] removed ${n} expired session(s)`);
+    } catch (e) {
+      console.warn("[session-cleanup] failed:", e);
+    }
+  }, SESSION_CLEANUP_INTERVAL);
 }
 
 export default {

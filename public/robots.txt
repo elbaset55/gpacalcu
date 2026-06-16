@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /app
+Disallow: /profile
+Disallow: /admin
+Disallow: /onboarding
+Disallow: /api/

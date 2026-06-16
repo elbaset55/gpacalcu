@@ -160,6 +160,28 @@ export async function deleteSession(sessionId: string): Promise<void> {
   }
 }
 
+export async function deleteUserSessions(userId: string): Promise<void> {
+  const pool = getPool();
+  try {
+    await pool.query(
+      `DELETE FROM sessions WHERE sess->>'userId' = $1`,
+      [userId],
+    );
+  } finally {
+    await pool.end();
+  }
+}
+
+export async function cleanupExpiredSessions(): Promise<number> {
+  const pool = getPool();
+  try {
+    const result = await pool.query(`DELETE FROM sessions WHERE expire <= NOW()`);
+    return result.rowCount ?? 0;
+  } finally {
+    await pool.end();
+  }
+}
+
 export async function getLogoutUrl(hostname: string): Promise<string> {
   const config = await getOidcConfig();
   return client.buildEndSessionUrl(config, {

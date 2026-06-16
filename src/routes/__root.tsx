@@ -10,23 +10,75 @@ import {
 
 import appCss from "../styles.css?url";
 
+const pageStyles: React.CSSProperties = {
+  minHeight: "100vh",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  background: "var(--gpa-bg, #f8fafc)",
+  padding: "1rem",
+  fontFamily: "'Manrope','Cairo','Noto Sans Arabic',sans-serif",
+};
+const boxStyles: React.CSSProperties = {
+  maxWidth: 420,
+  width: "100%",
+  textAlign: "center",
+  padding: "2.5rem 2rem",
+  background: "var(--gpa-card, #ffffff)",
+  borderRadius: 18,
+  border: "1px solid var(--gpa-border, #e2e8f0)",
+  boxShadow: "0 8px 40px rgba(0,0,0,.06)",
+};
+const btnPrimary: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "10px 22px",
+  background: "var(--gpa-accent, #2563eb)",
+  color: "#fff",
+  border: "none",
+  borderRadius: 10,
+  fontSize: 14,
+  fontWeight: 700,
+  cursor: "pointer",
+  textDecoration: "none",
+  fontFamily: "inherit",
+};
+const btnSecondary: React.CSSProperties = {
+  ...btnPrimary,
+  background: "transparent",
+  color: "var(--gpa-text-soft, #475569)",
+  border: "1px solid var(--gpa-border, #e2e8f0)",
+};
+
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+    <div style={pageStyles}>
+      <div style={boxStyles}>
+        <div style={{ fontSize: 64, marginBottom: 12 }}>🔍</div>
+        <h1 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 900, color: "var(--gpa-text, #0f172a)" }}>404 — صفحة غير موجودة</h1>
+        <p style={{ margin: "0 0 24px", fontSize: 14, color: "var(--gpa-text-faint, #94a3b8)", lineHeight: 1.7 }}>
+          الصفحة التي تبحث عنها غير موجودة أو تم نقلها.
         </p>
-        <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Go home
-          </Link>
-        </div>
+        <a href="/" style={btnPrimary}>← الرئيسية</a>
+      </div>
+    </div>
+  );
+}
+
+function PendingComponent() {
+  return (
+    <div style={pageStyles}>
+      <div style={{ textAlign: "center" }}>
+        <div style={{
+          width: 48, height: 48, borderRadius: "50%",
+          border: "3px solid var(--gpa-accent-12, rgba(37,99,235,.12))",
+          borderTopColor: "var(--gpa-accent, #2563eb)",
+          animation: "spin 0.8s linear infinite",
+          margin: "0 auto 16px",
+        }} />
+        <div style={{ fontSize: 13, color: "var(--gpa-text-faint, #94a3b8)", fontFamily: "inherit" }}>جاري التحميل...</div>
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     </div>
   );
@@ -35,32 +87,22 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+    <div style={pageStyles}>
+      <div style={boxStyles}>
+        <div style={{ fontSize: 56, marginBottom: 12 }}>⚠️</div>
+        <h1 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 800, color: "var(--gpa-text, #0f172a)" }}>حدث خطأ غير متوقع</h1>
+        <p style={{ margin: "0 0 6px", fontSize: 13, color: "var(--gpa-text-faint, #94a3b8)", lineHeight: 1.7 }}>
+          يمكنك المحاولة مجدداً أو العودة للصفحة الرئيسية.
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <button
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Try again
-          </button>
-          <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            Go home
-          </a>
+        {error?.message && (
+          <pre style={{ fontSize: 10, color: "var(--gpa-danger, #ef4444)", background: "var(--gpa-danger-08, rgba(239,68,68,.08))", padding: "8px 12px", borderRadius: 8, margin: "12px 0", overflowX: "auto", textAlign: "start", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
+            {error.message}
+          </pre>
+        )}
+        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+          <button style={btnPrimary} onClick={() => { router.invalidate(); reset(); }}>حاول مجدداً</button>
+          <a href="/" style={btnSecondary}>الرئيسية</a>
         </div>
       </div>
     </div>
@@ -83,11 +125,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "خطط، تتبع وتفوق في معدلك التراكمي مع Termly." },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Termly" },
-      { name: "twitter:card", content: "summary" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Termly — مستشارك الأكاديمي الذكي" },
       { name: "twitter:description", content: "خطط، تتبع وتفوق في معدلك التراكمي مع Termly." },
-      { property: "og:image", content: "https://gpacalcu.lovable.app/icon-512.png" },
-      { name: "twitter:image", content: "https://gpacalcu.lovable.app/icon-512.png" },
+      { name: "robots", content: "index, follow" },
+      { name: "theme-color", content: "#2563eb" },
+      { property: "og:image", content: "/icon-512.png" },
+      { name: "twitter:image", content: "/icon-512.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -106,6 +150,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
+  pendingComponent: PendingComponent,
 });
 
 function RootShell({ children }: { children: React.ReactNode }) {

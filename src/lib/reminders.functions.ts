@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { query } from "@/integrations/replit/db";
 import { z } from "zod";
+import { checkRateLimit } from "./rate-limit";
 
 const newReminderSchema = z.object({
   title: z.string().min(1).max(200),
@@ -34,6 +35,8 @@ export const addReminder = createServerFn({ method: "POST" })
   .validator((input: unknown) => newReminderSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { userId } = context;
+    const rl = checkRateLimit(`addReminder:${userId}`, 30, 60_000);
+    if (!rl.allowed) throw new Error(`Rate limit exceeded. Try again in ${Math.ceil(rl.retryAfterMs / 1000)}s.`);
     await query(
       `INSERT INTO reminders (user_id, title, body, kind, due_at)
        VALUES ($1, $2, $3, $4, $5)`,

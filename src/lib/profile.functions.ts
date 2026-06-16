@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { query } from "@/integrations/replit/db";
 import { z } from "zod";
+import { checkRateLimit } from "./rate-limit";
 
 const profileSchema = z.object({
   lang: z.string().max(8),
@@ -35,6 +36,8 @@ export const saveProfile = createServerFn({ method: "POST" })
   .validator((input: unknown) => profileSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { userId } = context;
+    const rl = checkRateLimit(`saveProfile:${userId}`, 20, 60_000);
+    if (!rl.allowed) throw new Error(`Rate limit exceeded. Try again in ${Math.ceil(rl.retryAfterMs / 1000)}s.`);
     await query(
       `INSERT INTO academic_profiles
          (user_id, lang, scale_id, is_benha, total_req, uni_name, major, prev_gpa, prev_cr,
@@ -74,6 +77,8 @@ export const deleteAccount = createServerFn({ method: "POST" })
     await query(`DELETE FROM semesters WHERE user_id = $1`, [userId]);
     await query(`DELETE FROM reminders WHERE user_id = $1`, [userId]);
     await query(`DELETE FROM academic_profiles WHERE user_id = $1`, [userId]);
+    // Delete all active sessions so the cookie is immediately invalidated
+    await query(`DELETE FROM sessions WHERE sess->>'userId' = $1`, [userId]);
     await query(`DELETE FROM replit_users WHERE id = $1`, [userId]);
     return { ok: true };
   });
@@ -101,6 +106,8 @@ export const saveSemester = createServerFn({ method: "POST" })
   .validator((input: unknown) => saveSemesterSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { userId } = context;
+    const rl = checkRateLimit(`saveSemester:${userId}`, 10, 60_000);
+    if (!rl.allowed) throw new Error(`Rate limit exceeded. Try again in ${Math.ceil(rl.retryAfterMs / 1000)}s.`);
 
     const existing = await query(
       `SELECT id FROM semesters WHERE user_id = $1 AND label = $2`,
