@@ -9,13 +9,7 @@
  *   https://<your-replit-dev-domain>/api/auth/google/callback
  *   https://<your-deployed-domain>/api/auth/google/callback
  */
-import pg from "pg";
-
-const { Pool } = pg;
-
-function getPool() {
-  return new Pool({ connectionString: process.env.DATABASE_URL });
-}
+import { query } from "@/integrations/replit/db";
 
 export interface GoogleUser {
   googleId: string;
@@ -24,7 +18,6 @@ export interface GoogleUser {
   picture: string | null;
 }
 
-/** Returns { url, state } — caller must store `state` in a short-lived cookie. */
 export function getGoogleOAuthUrl(callbackUrl: string): { url: string; state: string } {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   if (!clientId) throw new Error("GOOGLE_CLIENT_ID is not set");
@@ -46,7 +39,6 @@ export function getGoogleOAuthUrl(callbackUrl: string): { url: string; state: st
   };
 }
 
-/** Exchanges an authorisation code for a GoogleUser. */
 export async function handleGoogleCode(
   code: string,
   callbackUrl: string,
@@ -97,64 +89,45 @@ export async function handleGoogleCode(
   };
 }
 
-/** Upserts the Google user in the DB and returns the internal userId. */
 export async function findOrCreateGoogleUser(
   gu: GoogleUser,
 ): Promise<{ userId: string }> {
-  const pool = getPool();
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS google_users (
-        id          TEXT PRIMARY KEY,
-        google_id   TEXT NOT NULL UNIQUE,
-        email       TEXT,
-        name        TEXT,
-        picture     TEXT,
-        created_at  TIMESTAMPTZ DEFAULT NOW(),
-        updated_at  TIMESTAMPTZ DEFAULT NOW()
-      )
-    `);
+  const { rows } = await query(
+    `SELECT id FROM google_users WHERE google_id = $1`,
+    [gu.googleId],
+  );
 
-    const { rows } = await pool.query(
-      `SELECT id FROM google_users WHERE google_id = $1`,
-      [gu.googleId],
+  let userId: string;
+  if (rows[0]) {
+    userId = (rows[0] as { id: string }).id;
+    await query(
+      `UPDATE google_users SET email=$1, name=$2, picture=$3, updated_at=NOW()
+       WHERE google_id=$4`,
+      [gu.email, gu.name, gu.picture, gu.googleId],
     );
-
-    let userId: string;
-    if (rows[0]) {
-      userId = rows[0].id as string;
-      await pool.query(
-        `UPDATE google_users SET email=$1, name=$2, picture=$3, updated_at=NOW()
-         WHERE google_id=$4`,
-        [gu.email, gu.name, gu.picture, gu.googleId],
-      );
-    } else {
-      userId = `gu_${crypto.randomUUID().replace(/-/g, "")}`;
-      await pool.query(
-        `INSERT INTO google_users (id, google_id, email, name, picture)
-         VALUES ($1,$2,$3,$4,$5)`,
-        [userId, gu.googleId, gu.email, gu.name, gu.picture],
-      );
-    }
-
-    // Mirror into replit_users so the rest of the app (session lookup, profile) works
-    const parts = (gu.name ?? "").split(" ");
-    const firstName = parts[0] || null;
-    const lastName = parts.slice(1).join(" ") || null;
-    await pool.query(
-      `INSERT INTO replit_users (id, email, first_name, last_name, profile_image_url, updated_at)
-       VALUES ($1,$2,$3,$4,$5,NOW())
-       ON CONFLICT (id) DO UPDATE SET
-         email=EXCLUDED.email,
-         first_name=EXCLUDED.first_name,
-         last_name=EXCLUDED.last_name,
-         profile_image_url=EXCLUDED.profile_image_url,
-         updated_at=NOW()`,
-      [userId, gu.email, firstName, lastName, gu.picture],
+  } else {
+    userId = `gu_${crypto.randomUUID().replace(/-/g, "")}`;
+    await query(
+      `INSERT INTO google_users (id, google_id, email, name, picture)
+       VALUES ($1,$2,$3,$4,$5)`,
+      [userId, gu.googleId, gu.email, gu.name, gu.picture],
     );
-
-    return { userId };
-  } finally {
-    await pool.end();
   }
+
+  const parts = (gu.name ?? "").split(" ");
+  const firstName = parts[0] || null;
+  const lastName = parts.slice(1).join(" ") || null;
+  await query(
+    `INSERT INTO replit_users (id, email, first_name, last_name, profile_image_url, updated_at)
+     VALUES ($1,$2,$3,$4,$5,NOW())
+     ON CONFLICT (id) DO UPDATE SET
+       email=EXCLUDED.email,
+       first_name=EXCLUDED.first_name,
+       last_name=EXCLUDED.last_name,
+       profile_image_url=EXCLUDED.profile_image_url,
+       updated_at=NOW()`,
+    [userId, gu.email, firstName, lastName, gu.picture],
+  );
+
+  return { userId };
 }

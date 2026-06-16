@@ -1,6 +1,7 @@
 - [Termly redesign approach](termly-design.md) — CSS variables drive all theming; surgical edits to GPAAdvisorApp.tsx safer than rewrite
 - [Security fixes applied](security-fixes.md) — 13 confirmed vulns patched; SUPABASE_SERVICE_ROLE_KEY still needed for full auth-user deletion
 - [Termly Replit migration](termly-replit-migration.md) — TanStack Start + pg auth route wiring, key lessons from migration
+- [Termly production server](termly-prod-server.md) — server-prod.mjs wraps the fetch handler; deployment uses npm start + npm run build
 - [Termly email auth + guest mode](termly-email-guest.md) — email_users table, bcryptjs, POST /api/auth/email/* in server.ts, isGuest prop on GPAAdvisorApp
 - [Termly shell graduation](termly-shell-graduation.md) — TermlyAppShell.tsx wraps Planner; getRequest alias fix; TABS typed as string[][] not [string,string][]
 - [Termly Replit Auth System](termly-replit-auth.md) — supabase/lovable clients are stubs; real auth is Replit OAuth + termly_sid cookie + pg; pg must be installed

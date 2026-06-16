@@ -1,9 +1,7 @@
 import * as client from "openid-client";
 import { createMiddleware } from "@tanstack/react-start";
 import { getRequest as getWebRequest } from "@tanstack/react-start/server";
-import pg from "pg";
-
-const { Pool } = pg;
+import { query } from "@/integrations/replit/db";
 
 let _oidcConfig: client.Configuration | undefined;
 
@@ -17,10 +15,6 @@ async function getOidcConfig() {
   return _oidcConfig;
 }
 
-function getPool() {
-  return new Pool({ connectionString: process.env.DATABASE_URL });
-}
-
 export interface ReplitUser {
   id: string;
   email: string | null;
@@ -30,30 +24,26 @@ export interface ReplitUser {
 }
 
 async function getUserFromSession(sessionId: string): Promise<ReplitUser | null> {
-  const pool = getPool();
-  try {
-    const { rows } = await pool.query(
-      `SELECT sess FROM sessions WHERE sid = $1 AND expire > NOW()`,
-      [sessionId],
-    );
-    if (!rows[0]) return null;
-    const sess = rows[0].sess;
-    if (!sess?.userId) return null;
-    const { rows: userRows } = await pool.query(
-      `SELECT id, email, first_name, last_name, profile_image_url FROM replit_users WHERE id = $1`,
-      [sess.userId],
-    );
-    if (!userRows[0]) return null;
-    return {
-      id: userRows[0].id,
-      email: userRows[0].email,
-      firstName: userRows[0].first_name,
-      lastName: userRows[0].last_name,
-      profileImageUrl: userRows[0].profile_image_url,
-    };
-  } finally {
-    await pool.end();
-  }
+  const { rows } = await query(
+    `SELECT sess FROM sessions WHERE sid = $1 AND expire > NOW()`,
+    [sessionId],
+  );
+  if (!rows[0]) return null;
+  const sess = rows[0].sess as { userId?: string };
+  if (!sess?.userId) return null;
+  const { rows: userRows } = await query(
+    `SELECT id, email, first_name, last_name, profile_image_url FROM replit_users WHERE id = $1`,
+    [sess.userId],
+  );
+  if (!userRows[0]) return null;
+  const u = userRows[0] as Record<string, string | null>;
+  return {
+    id: u.id as string,
+    email: u.email,
+    firstName: u.first_name,
+    lastName: u.last_name,
+    profileImageUrl: u.profile_image_url,
+  };
 }
 
 function getSessionId(request: Request): string | null {
@@ -117,69 +107,44 @@ export async function handleCallback(
     profileImageUrl: (claims.profile_image_url as string) ?? null,
   };
 
-  const pool = getPool();
-  try {
-    await pool.query(
-      `INSERT INTO replit_users (id, email, first_name, last_name, profile_image_url, updated_at)
-       VALUES ($1,$2,$3,$4,$5,NOW())
-       ON CONFLICT (id) DO UPDATE SET
-         email=EXCLUDED.email,
-         first_name=EXCLUDED.first_name,
-         last_name=EXCLUDED.last_name,
-         profile_image_url=EXCLUDED.profile_image_url,
-         updated_at=NOW()`,
-      [user.id, user.email, user.firstName, user.lastName, user.profileImageUrl],
-    );
-  } finally {
-    await pool.end();
-  }
+  await query(
+    `INSERT INTO replit_users (id, email, first_name, last_name, profile_image_url, updated_at)
+     VALUES ($1,$2,$3,$4,$5,NOW())
+     ON CONFLICT (id) DO UPDATE SET
+       email=EXCLUDED.email,
+       first_name=EXCLUDED.first_name,
+       last_name=EXCLUDED.last_name,
+       profile_image_url=EXCLUDED.profile_image_url,
+       updated_at=NOW()`,
+    [user.id, user.email, user.firstName, user.lastName, user.profileImageUrl],
+  );
 
   return user;
 }
 
 export async function saveSession(sessionId: string, userId: string): Promise<void> {
-  const pool = getPool();
-  try {
-    await pool.query(
-      `INSERT INTO sessions (sid, sess, expire)
-       VALUES ($1, $2::jsonb, NOW() + INTERVAL '7 days')
-       ON CONFLICT (sid) DO UPDATE SET sess=$2::jsonb, expire=NOW() + INTERVAL '7 days'`,
-      [sessionId, JSON.stringify({ userId })],
-    );
-  } finally {
-    await pool.end();
-  }
+  await query(
+    `INSERT INTO sessions (sid, sess, expire)
+     VALUES ($1, $2::jsonb, NOW() + INTERVAL '7 days')
+     ON CONFLICT (sid) DO UPDATE SET sess=$2::jsonb, expire=NOW() + INTERVAL '7 days'`,
+    [sessionId, JSON.stringify({ userId })],
+  );
 }
 
 export async function deleteSession(sessionId: string): Promise<void> {
-  const pool = getPool();
-  try {
-    await pool.query(`DELETE FROM sessions WHERE sid = $1`, [sessionId]);
-  } finally {
-    await pool.end();
-  }
+  await query(`DELETE FROM sessions WHERE sid = $1`, [sessionId]);
 }
 
 export async function deleteUserSessions(userId: string): Promise<void> {
-  const pool = getPool();
-  try {
-    await pool.query(
-      `DELETE FROM sessions WHERE sess->>'userId' = $1`,
-      [userId],
-    );
-  } finally {
-    await pool.end();
-  }
+  await query(
+    `DELETE FROM sessions WHERE sess->>'userId' = $1`,
+    [userId],
+  );
 }
 
 export async function cleanupExpiredSessions(): Promise<number> {
-  const pool = getPool();
-  try {
-    const result = await pool.query(`DELETE FROM sessions WHERE expire <= NOW()`);
-    return result.rowCount ?? 0;
-  } finally {
-    await pool.end();
-  }
+  const result = await query(`DELETE FROM sessions WHERE expire <= NOW()`);
+  return result.rowCount ?? 0;
 }
 
 export async function getLogoutUrl(hostname: string): Promise<string> {
