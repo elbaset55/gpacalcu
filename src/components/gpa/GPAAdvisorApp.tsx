@@ -1171,11 +1171,17 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
   const [modal, setModal] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [advisorText, setAdvisorText] = useState<string>("");
+  const [analysisText, setAnalysisText] = useState<string>("");
   const askAdvisorFn = useServerFn(askAdvisor);
   const advisorMut = useMutation({
     mutationFn: askAdvisorFn,
     onSuccess: (r: any) => setAdvisorText(r?.text ?? ""),
     onError: (e: any) => setAdvisorText((ar ? "❌ خطأ: " : "❌ Error: ") + (e?.message ?? "")),
+  });
+  const analysisMut = useMutation({
+    mutationFn: askAdvisorFn,
+    onSuccess: (r: any) => setAnalysisText(r?.text ?? ""),
+    onError: (e: any) => setAnalysisText((ar ? "❌ خطأ: " : "❌ Error: ") + (e?.message ?? "")),
   });
   const [roadmapText, setRoadmapText] = useState<string>("");
   const roadmapFn = useServerFn(generateRoadmap);
@@ -1588,8 +1594,8 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
                   >
                     ⚠️{" "}
                     {ar
-                      ? `${missing} مادة بدون تقدير — افتح تبويب "التحليل" وأعد رفع كشف أوضح أو عدّل التقدير يدوياً.`
-                      : `${missing} course(s) without a grade — open the "Analysis" tab to re-upload a clearer transcript or fix manually.`}
+                      ? `${missing} مادة بدون تقدير — افتح تبويب "المواد" وعدّل التقدير يدوياً، أو افتح "التحليل" للتحليل الشامل.`
+                      : `${missing} course(s) without a grade — fix them in the "Courses" tab manually, or open "Analysis" for a full AI review.`}
                   </div>
                 );
               return null;
@@ -1606,8 +1612,8 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
                 }}
               >
                 {ar
-                  ? "لا يوجد سجل بعد. افتح تبويب \"التحليل\" وارفع كشف الدرجات لاستخراج موادك تلقائياً."
-                  : 'No record yet. Open the "Analysis" tab and upload your transcript to extract your courses.'}
+                  ? "لا يوجد سجل بعد — أضف موادك من تبويب \"المواد\" ثم احفظ الفصل."
+                  : 'No record yet — add your courses in the "Courses" tab, then save the semester.'}
               </div>
             ) : (
               history.map((sem: any, i: number) => {
@@ -2342,64 +2348,189 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
 
         {/* ANALYSIS */}
         {tab === "analysis" && (
-          <div style={card}>
-            <h3 style={{ margin: "0 0 12px", fontSize: 14, color: "var(--gpa-text)" }}>
-              ⚡ {ar ? "تحليل مفصل" : "Detailed Analysis"}
-            </h3>
-            {[
-              { l: ar ? "قبل الفصل" : "Before", v: prevGpa, cr: prevCr },
-              { l: ar ? "الفصل الحالي" : "This Sem", v: semGpa, cr: semCr },
-              { l: ar ? "التراكمي الجديد" : "New CGPA", v: cumGpa, cr: newCr },
-              { l: ar ? "عند التخرج" : "At Graduation", v: gradPredict, cr: totalReq },
-            ].map((r) => (
-              <div
-                key={r.l}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "8px 11px",
-                  background: "var(--gpa-bg-soft)",
-                  borderRadius: 8,
-                  marginBottom: 6,
-                }}
-              >
-                <span style={{ fontSize: 11, color: "var(--gpa-text-muted)" }}>
-                  {r.l}
-                  <span style={{ color: "var(--gpa-text-faintest)", fontSize: 10 }}>
-                    {" "}
-                    ({r.cr}
-                    {ar ? "س" : "cr"})
-                  </span>
-                </span>
-                <span style={{ fontSize: 15, fontWeight: 700, color: gpaClr(r.v) }}>
-                  {isNaN(r.v) || r.v === 0 ? "—" : r.v.toFixed(3)}
-                </span>
-              </div>
-            ))}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
 
-            {/* LEVEL PROGRESS */}
-            <div style={{ marginTop: 14, padding: "12px 12px", background: "var(--gpa-bg-soft)", borderRadius: 10, border: "1px solid var(--gpa-border)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <span style={{ fontSize: 12, color: "var(--gpa-text-muted)" }}>
-                  {ar ? `📚 ${lv.ar} · المستوى ${currentLevel}` : `📚 ${lv.en} · Level ${currentLevel}`}
-                </span>
-                <span style={{ fontSize: 11, color: "var(--gpa-text-faint)" }}>{newCr}/{totalReq}{ar ? "س" : "cr"}</span>
-              </div>
-              <div style={{ height: 10, background: "var(--gpa-bg)", borderRadius: 5, overflow: "hidden", border: "1px solid var(--gpa-border)" }}>
-                <div
-                  style={{
-                    width: `${Math.min((newCr / totalReq) * 100, 100)}%`,
-                    height: "100%",
-                    background: `linear-gradient(90deg, ${lv.clr}, var(--gpa-accent))`,
-                    transition: "width .6s",
-                  }}
-                />
-              </div>
-              <div style={{ marginTop: 8, fontSize: 11, color: "var(--gpa-text-faint)" }}>
-                {ar ? `الحد الأقصى للساعات هذا الفصل: ${ld.max} ساعة` : `Max load this term: ${ld.max} credits`}
+            {/* ── GPA Trajectory ── */}
+            <div style={card}>
+              <h3 style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 800, color: "var(--gpa-text-soft)", letterSpacing: "0.3px", textTransform: "uppercase" }}>
+                {ar ? "مسار المعدل" : "GPA Trajectory"}
+              </h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {[
+                  { l: ar ? "قبل الفصل" : "Before Term", v: prevGpa, cr: prevCr, icon: "📌" },
+                  { l: ar ? "الفصل الحالي" : "This Semester", v: semGpa, cr: semCr, icon: "📋" },
+                  { l: ar ? "التراكمي الجديد" : "New CGPA", v: cumGpa, cr: newCr, icon: "🎓" },
+                  { l: ar ? "توقع التخرج" : "Graduation Est.", v: gradPredict, cr: totalReq, icon: "🏁" },
+                ].map((r) => (
+                  <div
+                    key={r.l}
+                    style={{
+                      padding: "14px 12px",
+                      background: "var(--gpa-bg-soft)",
+                      borderRadius: 12,
+                      border: "1px solid var(--gpa-border)",
+                      borderBottom: `3px solid ${gpaClr(r.v)}`,
+                    }}
+                  >
+                    <div style={{ fontSize: 10, color: "var(--gpa-text-faintest)", marginBottom: 6, display: "flex", alignItems: "center", gap: 4 }}>
+                      <span>{r.icon}</span>
+                      <span style={{ textTransform: "uppercase", letterSpacing: "0.4px" }}>{r.l}</span>
+                    </div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: gpaClr(r.v), lineHeight: 1 }}>
+                      {isNaN(r.v) || r.v === 0 ? "—" : r.v.toFixed(3)}
+                    </div>
+                    <div style={{ fontSize: 10, color: "var(--gpa-text-faintest)", marginTop: 4 }}>
+                      {r.cr} {ar ? "ساعة" : "credits"}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
+
+            {/* ── Status + Progress ── */}
+            <div style={card}>
+              <h3 style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 800, color: "var(--gpa-text-soft)", letterSpacing: "0.3px", textTransform: "uppercase" }}>
+                {ar ? "الوضع الأكاديمي" : "Academic Status"}
+              </h3>
+
+              {/* Standing badge */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                <div style={{ fontSize: 28 }}>{stand.emoji}</div>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 900, color: stand.clr }}>{ar ? stand.label : stand.en}</div>
+                  <div style={{ fontSize: 11, color: "var(--gpa-text-faintest)" }}>{stand.pct} · {ar ? `الحد الأقصى ${ld.max} ساعة` : `Max load ${ld.max} cr`}</div>
+                </div>
+                {honorOk?.ok && (
+                  <div style={{ marginInlineStart: "auto", background: "var(--gpa-accent-12)", border: "1px solid var(--gpa-accent-44)", borderRadius: 20, padding: "4px 12px", fontSize: 11, color: "var(--gpa-accent)", fontWeight: 700 }}>
+                    🏅 {ar ? "مرتبة الشرف" : "Honors"}
+                  </div>
+                )}
+              </div>
+
+              {/* Credit progress bar */}
+              <div style={{ marginBottom: 4, display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--gpa-text-faint)" }}>
+                <span>{ar ? `${lv.ar} · المستوى ${currentLevel}` : `${lv.en} · Level ${currentLevel}`}</span>
+                <span style={{ fontWeight: 700 }}>{newCr} / {totalReq} {ar ? "س" : "cr"}</span>
+              </div>
+              <div style={{ height: 10, background: "var(--gpa-bg)", borderRadius: 6, overflow: "hidden", border: "1px solid var(--gpa-border)" }}>
+                <div style={{ width: `${Math.min((newCr / totalReq) * 100, 100)}%`, height: "100%", background: `linear-gradient(90deg, ${lv.clr}, var(--gpa-accent))`, transition: "width .6s", borderRadius: 6 }} />
+              </div>
+              <div style={{ marginTop: 6, fontSize: 11, color: "var(--gpa-text-faintest)" }}>
+                {remCr > 0
+                  ? (ar ? `تبقى ${remCr} ساعة للتخرج` : `${remCr} credits remaining to graduation`)
+                  : (ar ? "✅ اكتملت ساعات التخرج" : "✅ Graduation credits complete")}
+              </div>
+            </div>
+
+            {/* ── Semester History Table ── */}
+            {history.length > 0 && (
+              <div style={card}>
+                <h3 style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 800, color: "var(--gpa-text-soft)", letterSpacing: "0.3px", textTransform: "uppercase" }}>
+                  {ar ? "مسار الفصول" : "Semester History"}
+                </h3>
+                <div style={{ display: "grid", gridTemplateColumns: ar ? "1fr auto auto auto" : "1fr auto auto auto", gap: 1, background: "var(--gpa-border)", borderRadius: 10, overflow: "hidden" }}>
+                  {/* header */}
+                  {[ar ? "الفصل" : "Semester", ar ? "فصلي" : "Term GPA", ar ? "تراكمي" : "CGPA", ar ? "ساعات" : "Cr"].map((h) => (
+                    <div key={h} style={{ background: "var(--gpa-card-elevated)", padding: "8px 10px", fontSize: 10, fontWeight: 700, color: "var(--gpa-text-faintest)", textTransform: "uppercase", letterSpacing: "0.4px" }}>{h}</div>
+                  ))}
+                  {history.map((h: any, i: number) => {
+                    const prev = i > 0 ? (history[i - 1] as any).semGpa : null;
+                    const trend = prev == null ? null : h.semGpa > prev + 0.05 ? "▲" : h.semGpa < prev - 0.05 ? "▼" : "—";
+                    const trendClr = trend === "▲" ? "var(--gpa-accent)" : trend === "▼" ? "var(--gpa-danger)" : "var(--gpa-text-faintest)";
+                    return (
+                      <Fragment key={i}>
+                        <div style={{ background: "var(--gpa-card)", padding: "9px 10px", fontSize: 12, color: "var(--gpa-text-soft)", fontWeight: 600 }}>{h.label}</div>
+                        <div style={{ background: "var(--gpa-card)", padding: "9px 10px", fontSize: 13, fontWeight: 700, color: gpaClr(h.semGpa), display: "flex", alignItems: "center", gap: 4 }}>
+                          {h.semGpa.toFixed(2)}
+                          {trend && <span style={{ fontSize: 9, color: trendClr }}>{trend}</span>}
+                        </div>
+                        <div style={{ background: "var(--gpa-card)", padding: "9px 10px", fontSize: 13, fontWeight: 700, color: gpaClr(h.cumGpa) }}>{h.cumGpa.toFixed(3)}</div>
+                        <div style={{ background: "var(--gpa-card)", padding: "9px 10px", fontSize: 11, color: "var(--gpa-text-faint)" }}>{h.cr}</div>
+                      </Fragment>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* ── AI Full Analysis ── */}
+            <div style={card}>
+              <h3 style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 800, color: "var(--gpa-text-soft)", letterSpacing: "0.3px", textTransform: "uppercase" }}>
+                {ar ? "التحليل الذكي الشامل" : "AI Full Analysis"}
+              </h3>
+              <p style={{ fontSize: 11, color: "var(--gpa-text-faint)", margin: "0 0 14px", lineHeight: 1.75 }}>
+                {ar
+                  ? "تحليل كامل لأدائك الأكاديمي — نقاط القوة، المخاطر، الاتجاهات، وتوصيات فصل قادم."
+                  : "Full breakdown of your academic performance — strengths, risks, trends, and next-semester recommendations."}
+              </p>
+              <button
+                onClick={() => {
+                  if (isGuest) { showToast(ar ? "سجّل دخولك لاستخدام الذكاء الاصطناعي 🔒" : "Sign in to use AI features 🔒", false); return; }
+                  setAnalysisText("");
+                  analysisMut.mutate({
+                    data: {
+                      lang: lang as "ar" | "en",
+                      context: {
+                        uniName: uniName || "",
+                        major: major || "",
+                        level: currentLevel,
+                        semester,
+                        prevGpa,
+                        prevCr,
+                        cumGpa,
+                        semGpa,
+                        newCr,
+                        totalReq,
+                        gradTarget,
+                        gradPredict,
+                        hasFailed,
+                        honorOk: honorOk?.ok ?? false,
+                        courses: courses.map((c) => ({ name: c.name || "—", cr: c.cr, grade: c.grade })),
+                        history: history.map((h: any) => ({ label: h.label, gpa: h.cumGpa, cr: h.cumCr ?? newCr })),
+                      },
+                    },
+                  });
+                }}
+                disabled={analysisMut.isPending}
+                style={{
+                  width: "100%",
+                  padding: "13px",
+                  background: analysisMut.isPending
+                    ? "var(--gpa-card-elevated)"
+                    : "linear-gradient(135deg, var(--gpa-accent), var(--gpa-accent-2))",
+                  color: analysisMut.isPending ? "var(--gpa-text-faint)" : "var(--gpa-bg)",
+                  border: "none",
+                  borderRadius: 12,
+                  fontFamily: FONT,
+                  fontWeight: 800,
+                  fontSize: 14,
+                  cursor: analysisMut.isPending ? "wait" : "pointer",
+                  letterSpacing: "0.2px",
+                  transition: "all 0.2s",
+                }}
+              >
+                {analysisMut.isPending
+                  ? (ar ? "⏳ جاري التحليل..." : "⏳ Analyzing...")
+                  : (ar ? "🔬 شغّل التحليل الشامل" : "🔬 Run Full Analysis")}
+              </button>
+
+              {analysisText && (
+                <div style={{ marginTop: 14 }}>
+                  {/* Render markdown-like output with sections */}
+                  {analysisText.split("\n").map((line, i) => {
+                    if (line.startsWith("## ") || line.startsWith("### "))
+                      return <div key={i} style={{ fontSize: 13, fontWeight: 800, color: "var(--gpa-accent)", margin: "14px 0 6px", fontFamily: FONT_HEAD }}>{line.replace(/^#+\s*/, "")}</div>;
+                    if (line.startsWith("**") && line.endsWith("**"))
+                      return <div key={i} style={{ fontSize: 12, fontWeight: 700, color: "var(--gpa-text-strong)", margin: "10px 0 4px" }}>{line.replace(/\*\*/g, "")}</div>;
+                    if (line.startsWith("- ") || line.startsWith("• "))
+                      return <div key={i} style={{ fontSize: 12, color: "var(--gpa-text-strong)", padding: "3px 0 3px 14px", borderInlineStart: "2px solid var(--gpa-accent-44)", marginBottom: 3, lineHeight: 1.65 }}>{"• "}{line.replace(/^[-•]\s*/, "")}</div>;
+                    if (line.trim() === "") return <div key={i} style={{ height: 6 }} />;
+                    return <div key={i} style={{ fontSize: 12, color: "var(--gpa-text-strong)", lineHeight: 1.7, marginBottom: 2 }}>{line}</div>;
+                  })}
+                </div>
+              )}
+            </div>
+
           </div>
         )}
 
@@ -2464,21 +2595,17 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
                   : "✨ Get smart advice"}
             </button>
             {advisorText && (
-              <div
-                style={{
-                  marginTop: 14,
-                  padding: 12,
-                  background: "var(--gpa-bg-soft)",
-                  border: "1px solid var(--gpa-border)",
-                  borderRadius: 10,
-                  fontSize: 13,
-                  lineHeight: 1.75,
-                  color: "var(--gpa-text-strong)",
-                  whiteSpace: "pre-wrap",
-                  fontFamily: FONT,
-                }}
-              >
-                {advisorText}
+              <div style={{ marginTop: 14 }}>
+                {advisorText.split("\n").map((line, i) => {
+                  if (line.startsWith("## ") || line.startsWith("### "))
+                    return <div key={i} style={{ fontSize: 13, fontWeight: 800, color: "var(--gpa-accent)", margin: "14px 0 6px", fontFamily: FONT_HEAD }}>{line.replace(/^#+\s*/, "")}</div>;
+                  if (line.startsWith("**") && line.endsWith("**"))
+                    return <div key={i} style={{ fontSize: 12, fontWeight: 700, color: "var(--gpa-text-strong)", margin: "10px 0 4px" }}>{line.replace(/\*\*/g, "")}</div>;
+                  if (line.startsWith("- ") || line.startsWith("• "))
+                    return <div key={i} style={{ fontSize: 12, color: "var(--gpa-text-strong)", padding: "3px 0 3px 14px", borderInlineStart: "2px solid var(--gpa-accent-44)", marginBottom: 3, lineHeight: 1.65 }}>{"• "}{line.replace(/^[-•]\s*/, "")}</div>;
+                  if (line.trim() === "") return <div key={i} style={{ height: 6 }} />;
+                  return <div key={i} style={{ fontSize: 12, color: "var(--gpa-text-strong)", lineHeight: 1.7, marginBottom: 2 }}>{line}</div>;
+                })}
               </div>
             )}
           </div>
@@ -2620,8 +2747,17 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
               {roadmapMut.isPending ? (ar ? "جاري التخطيط..." : "Planning...") : (ar ? "🚀 ولّد الخطة" : "🚀 Generate plan")}
             </button>
             {roadmapText && (
-              <div style={{ marginTop: 14, padding: 12, background: "var(--gpa-bg-soft)", border: "1px solid var(--gpa-border)", borderRadius: 10, fontSize: 13, lineHeight: 1.75, color: "var(--gpa-text-strong)", whiteSpace: "pre-wrap", fontFamily: FONT }}>
-                {roadmapText}
+              <div style={{ marginTop: 14 }}>
+                {roadmapText.split("\n").map((line, i) => {
+                  if (line.startsWith("## ") || line.startsWith("### "))
+                    return <div key={i} style={{ fontSize: 13, fontWeight: 800, color: "var(--gpa-accent)", margin: "14px 0 6px", fontFamily: FONT_HEAD }}>{line.replace(/^#+\s*/, "")}</div>;
+                  if (line.startsWith("**") && line.endsWith("**"))
+                    return <div key={i} style={{ fontSize: 12, fontWeight: 700, color: "var(--gpa-text-strong)", margin: "10px 0 4px" }}>{line.replace(/\*\*/g, "")}</div>;
+                  if (line.startsWith("- ") || line.startsWith("• "))
+                    return <div key={i} style={{ fontSize: 12, color: "var(--gpa-text-strong)", padding: "3px 0 3px 14px", borderInlineStart: "2px solid var(--gpa-accent-44)", marginBottom: 3, lineHeight: 1.65 }}>{"• "}{line.replace(/^[-•]\s*/, "")}</div>;
+                  if (line.trim() === "") return <div key={i} style={{ height: 6 }} />;
+                  return <div key={i} style={{ fontSize: 12, color: "var(--gpa-text-strong)", lineHeight: 1.7, marginBottom: 2 }}>{line}</div>;
+                })}
               </div>
             )}
           </div>
