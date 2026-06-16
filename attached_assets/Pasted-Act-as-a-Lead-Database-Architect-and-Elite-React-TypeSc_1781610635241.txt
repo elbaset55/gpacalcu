@@ -1,0 +1,27 @@
+Act as a Lead Database Architect and Elite React/TypeScript Developer.
+We need to fix the core data flow and validation in the Course Selection Wizard. The current implementation lacks a solid relational data structure and strict user constraints.
+
+Please implement a complete architectural overhaul based on the following requirements:
+
+### 1. COMPREHENSIVE DATA SEEDING (THE MOCK DB):
+Before rendering the UI, you MUST create a robust, relational seed data structure (e.g., in a separate data.ts file). The hierarchy must be strictly:
+Faculty -> Department -> Level/Year -> Semester -> Courses.
+- Seed the database with realistic data for "Faculty of Science - Benha University".
+- Include departments like "Biotechnology" (بيوتكنولوجي) and "Zoology" (علم الحيوان) as pre-defined, uneditable options.
+- For a specific path (e.g., Level 3, Semester 1), seed all the exact mandatory and elective courses with their Arabic names, credit hours, and prerequisite IDs.
+
+### 2. STRICT MANDATORY ONBOARDING FLOW:
+- Step 1 (Faculty & Dept): The user CANNOT type the Faculty or Department manually. They MUST select them from beautifully designed, searchable dropdowns or cards populated ONLY from the seeded data.
+- Step 2 (Level & Semester): Must also be selected from seeded options.
+- Lock Mechanism: Step 3 (Courses) must remain completely locked and inaccessible until Step 1 and Step 2 are 100% completed.
+
+### 3. SMART AUTOCOMPLETE & CONTEXT-AWARE SEARCH:
+- In the Course Addition step, implement a "Smart Search" input. 
+- As soon as the user types the FIRST letter, fetch and display a beautifully animated dropdown of matching courses.
+- CRITICAL LOGIC: This autocomplete must NOT search the entire database. It must strictly filter the courses that belong ONLY to the user's previously selected Department, Level, and Semester (with exceptions applied only if the Summer Term logic is active).
+
+### 4. DATA WIRING & STATE MANAGEMENT:
+- Wire the entire flow together using proper React state (or Context).
+- When a user is identified as "Level 3, Term 1", the system should automatically pre-load the default grid with the seeded compulsory courses for that exact term, minimizing the need for manual searching.
+
+Rewrite the necessary components and provide the `seedData.ts` structure so the application logic is bulletproof, relational, and deeply context-aware.
