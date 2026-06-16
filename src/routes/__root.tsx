@@ -7,6 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
 
@@ -171,6 +172,14 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      import('../data/validateDatabase').then(({ validateDatabase }) => {
+        validateDatabase();
+      });
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -1,0 +1,19 @@
+Phenomenal work! The onboarding validation, the state sync via props, and the Summer "Free Canvas" logic are flawlessly implemented. The system now feels highly integrated and robust.
+
+Yes, absolutely! Let's build the "Re-select Semester" quick-action banner in the Step 3 header so students can preview or simulate other semesters on the fly without breaking their core onboarding profile state.
+
+Now that our data layer and wizard flow are locked and synchronized, let's execute the next major milestone to make "Termly" complete:
+
+### 1. "SAVE PLAN" PERSISTENCE & ROADMAP INTEGRATION:
+- Implement the "Save Plan" feature. When the user clicks "Save Plan" in the sticky bottom bar, save these selected courses into the global state/database as a "Draft Semester" or "Planned Term".
+- This planned term must instantly reflect in their global Academic Roadmap/Profile, updates their total completed/registered credit hours, and marks these courses as "In-Progress".
+
+### 2. DYNAMIC CUMULATIVE GPA (CGPA) PREDICTOR:
+- Expand the bottom slider logic. Instead of just showing the localized GPA impact for this semester, calculate and display the Cumulative GPA (CGPA) impact!
+- It should dynamically combine the student's existing historical grades (passed courses) with the predicted grades from the slider for the new courses to show exactly how their overall graduation GPA changes (e.g., "CGPA will shift from 2.85 → 2.92").
+
+### 3. LIVE AI COPILOT REVIEWS:
+- Now that the data in Step 3 is perfectly structured, connect the AI Copilot card to listen to the active course selections.
+- As the user toggles elective courses, adds free optionals, or moves the GPA slider, let the AI Copilot instantly stream or update a smart, contextual review in Arabic/English (e.g., "اختيار ممتاز لمادة المعالجة البيولوجية (Bot 349)؛ مادة قوية وستفتح لك آفاقاً في التكنولوجيا الحيوية البيئية، ومعدلك التراكمي يقترب من الامتياز!").
+
+Build the semester switcher banner first, then integrate the persistent save, CGPA engine, and live AI responses. Let's elevate this dashboard to its final premium form!
