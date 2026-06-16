@@ -95,7 +95,7 @@ export const analyzeTranscript = createServerFn({ method: "POST" })
       );
     }
 
-    const model = getAiModel("google/gemini-3-flash-preview");
+    const model = getAiModel("google/gemini-2.5-flash");
 
     const scaleName = data.scaleHint === "benha" ? "بنها 2021" : "4.0 جنرك";
 

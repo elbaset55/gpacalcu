@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+  BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
 import { getAdminOverview, getAdminUsers } from "@/lib/admin.functions";
@@ -17,6 +17,7 @@ const PALETTE = {
   orange: "#fbbf24",
   red: "#ff6b6b",
   pink: "#f472b6",
+  green: "#34d399",
 };
 
 /* ─── tiny helpers ─── */
@@ -101,6 +102,8 @@ function OverviewSection({ data }: { data: any }) {
           sub={`${data.totalCourses} مادة مسجلة`} clr={PALETTE.orange} />
         <StatCard icon="🎓" label="متوسط المعدل" value={data.avgGpa.toFixed(2)}
           sub="عبر جميع المستخدمين" clr={gpaClr(data.avgGpa)} />
+        <StatCard icon="🔔" label="إجمالي التذكيرات" value={data.totalReminders}
+          sub="مهام مسجلة" clr={PALETTE.pink} />
       </div>
 
       {/* Charts row */}
@@ -137,15 +140,22 @@ function OverviewSection({ data }: { data: any }) {
             📅 تسجيلات آخر 30 يوم
           </div>
           <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={data.timeline}>
+            <AreaChart data={data.timeline}>
+              <defs>
+                <linearGradient id="regGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={PALETTE.accent} stopOpacity={0.25} />
+                  <stop offset="95%" stopColor={PALETTE.accent} stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
               <XAxis dataKey="date" tick={{ fill: "var(--gpa-text-faint)", fontSize: 9, fontFamily: FONT }}
                 interval={6} />
               <YAxis tick={{ fill: "var(--gpa-text-faint)", fontSize: 10 }} allowDecimals={false} />
               <Tooltip content={<CustomTooltip />} />
-              <Line type="monotone" dataKey="count" name="مستخدمون جدد" stroke={PALETTE.accent}
-                strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: PALETTE.accent }} />
-            </LineChart>
+              <Area type="monotone" dataKey="count" name="مستخدمون جدد"
+                stroke={PALETTE.accent} strokeWidth={2.5} fill="url(#regGrad)"
+                dot={false} activeDot={{ r: 4, fill: PALETTE.accent }} />
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>
@@ -318,6 +328,7 @@ function UsersSection({ overviewFn }: { overviewFn: any }) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["adminUsers", page, search],
@@ -329,6 +340,47 @@ function UsersSection({ overviewFn }: { overviewFn: any }) {
   const total = data?.total ?? 0;
   const pages = Math.ceil(total / 25);
 
+  const handleExportCSV = async () => {
+    setExporting(true);
+    try {
+      // Fetch all pages
+      const allUsers: any[] = [];
+      let p = 1;
+      while (true) {
+        const batch = await getUsersFn({ data: { page: p, search } });
+        allUsers.push(...(batch?.users ?? []));
+        if (allUsers.length >= (batch?.total ?? 0)) break;
+        p++;
+      }
+      const headers = ["البريد الإلكتروني", "تاريخ الانضمام", "الجامعة", "التخصص",
+        "المعدل", "الهدف", "الساعات", "المستوى", "الفصول", "النظام"];
+      const rows = allUsers.map((u: any) => [
+        u.email ?? "",
+        u.created_at ? new Date(u.created_at).toLocaleDateString("en-GB") : "",
+        u.university_name ?? "",
+        u.major ?? "",
+        u.current_gpa ?? "",
+        u.target_gpa ?? "",
+        u.credit_hours_completed ?? "",
+        u.academic_level ?? "",
+        u.semester_count ?? "",
+        u.grading_system ?? "",
+      ]);
+      const csvContent = [headers, ...rows]
+        .map((r) => r.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+        .join("\n");
+      const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `termly-users-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const inp: React.CSSProperties = {
     background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)",
     borderRadius: 10, color: "var(--gpa-text)", padding: "9px 14px",
@@ -338,7 +390,7 @@ function UsersSection({ overviewFn }: { overviewFn: any }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {/* Search bar */}
-      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+      <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
         <input
           style={inp}
           placeholder="🔍 ابحث بالبريد الإلكتروني..."
@@ -363,8 +415,30 @@ function UsersSection({ overviewFn }: { overviewFn: any }) {
             ✕ مسح
           </button>
         )}
-        <div style={{ marginLeft: "auto", fontSize: 12, color: "var(--gpa-text-faint)" }}>
-          {total} مستخدم إجمالي
+        <div style={{ marginInlineStart: "auto", display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ fontSize: 12, color: "var(--gpa-text-faint)" }}>
+            {total} مستخدم إجمالي
+          </div>
+          <button
+            onClick={handleExportCSV}
+            disabled={exporting || total === 0}
+            style={{
+              background: exporting ? "rgba(255,255,255,.04)" : `${PALETTE.green}18`,
+              border: `1px solid ${exporting ? "rgba(255,255,255,.08)" : PALETTE.green + "44"}`,
+              borderRadius: 9, color: exporting ? "var(--gpa-text-faint)" : PALETTE.green,
+              padding: "7px 14px", fontSize: 12, fontWeight: 600, fontFamily: FONT,
+              cursor: exporting || total === 0 ? "not-allowed" : "pointer",
+              display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
+            }}>
+            {exporting ? (
+              <>
+                <span style={{ display: "inline-block", animation: "spin .8s linear infinite" }}>↻</span>
+                جاري التصدير...
+              </>
+            ) : (
+              <>⬇ تصدير CSV</>
+            )}
+          </button>
         </div>
       </div>
 
@@ -560,16 +634,22 @@ function AnalyticsSection({ data }: { data: any }) {
           📈 منحنى التسجيلات - آخر 30 يوم
         </div>
         <ResponsiveContainer width="100%" height={200}>
-          <LineChart data={data.timeline}>
+          <AreaChart data={data.timeline}>
+            <defs>
+              <linearGradient id="regGrad2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={PALETTE.accent} stopOpacity={0.3} />
+                <stop offset="95%" stopColor={PALETTE.accent} stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
             <XAxis dataKey="date" tick={{ fill: "var(--gpa-text-faint)", fontSize: 10, fontFamily: FONT }}
               interval={4} />
             <YAxis tick={{ fill: "var(--gpa-text-faint)", fontSize: 10 }} allowDecimals={false} />
             <Tooltip content={<CustomTooltip />} />
-            <Line type="monotone" dataKey="count" name="مستخدمون جدد"
-              stroke={PALETTE.accent} strokeWidth={2.5} dot={{ r: 3, fill: PALETTE.accent }}
-              activeDot={{ r: 5 }} />
-          </LineChart>
+            <Area type="monotone" dataKey="count" name="مستخدمون جدد"
+              stroke={PALETTE.accent} strokeWidth={2.5} fill="url(#regGrad2)"
+              dot={{ r: 3, fill: PALETTE.accent }} activeDot={{ r: 5 }} />
+          </AreaChart>
         </ResponsiveContainer>
       </div>
 
@@ -601,13 +681,29 @@ function AnalyticsSection({ data }: { data: any }) {
 export default function AdminDashboard() {
   const getOverviewFn = useServerFn(getAdminOverview);
   const [section, setSection] = useState<"overview" | "users" | "analytics">("overview");
+  const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
 
   const overviewQ = useQuery({
     queryKey: ["adminOverview"],
-    queryFn: () => getOverviewFn(),
+    queryFn: async () => {
+      const data = await getOverviewFn();
+      setLastRefreshed(new Date());
+      return data;
+    },
     staleTime: 60_000,
     retry: false,
   });
+
+  const handleRefresh = () => {
+    overviewQ.refetch();
+  };
+
+  const fmtRefreshed = (d: Date) => {
+    const diff = Math.floor((Date.now() - d.getTime()) / 1000);
+    if (diff < 60) return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+  };
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
@@ -671,12 +767,30 @@ export default function AdminDashboard() {
           borderRadius: 6, padding: "2px 10px", letterSpacing: ".5px",
         }}>ADMIN</div>
 
-        <div style={{ marginInlineStart: "auto", display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ marginInlineStart: "auto", display: "flex", alignItems: "center", gap: 10 }}>
           {overviewQ.isSuccess && (
             <div style={{ fontSize: 11, color: "var(--gpa-text-faint)" }}>
               {overviewQ.data.totalUsers} مستخدم · {overviewQ.data.usersWithProfile} مفعَّل
             </div>
           )}
+          <button
+            onClick={handleRefresh}
+            disabled={overviewQ.isFetching}
+            title="Refresh data"
+            style={{
+              background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)",
+              borderRadius: 8, color: overviewQ.isFetching ? "var(--gpa-text-faintest)" : "var(--gpa-text-muted)",
+              padding: "6px 12px", fontSize: 12, fontFamily: FONT, cursor: overviewQ.isFetching ? "wait" : "pointer",
+              display: "flex", alignItems: "center", gap: 6,
+            }}>
+            <span style={{
+              display: "inline-block",
+              animation: overviewQ.isFetching ? "spin .8s linear infinite" : "none",
+            }}>↻</span>
+            <span style={{ fontSize: 10, color: "var(--gpa-text-faintest)" }}>
+              {fmtRefreshed(lastRefreshed)}
+            </span>
+          </button>
           <button
             onClick={handleLogout}
             style={{
@@ -722,28 +836,42 @@ export default function AdminDashboard() {
             <div style={{ fontSize: 11, color: "var(--gpa-text-faint)", lineHeight: 1.6 }}>
               أضف <code style={{ color: PALETTE.accent, background: `${PALETTE.accent}12`,
                 borderRadius: 4, padding: "1px 4px", fontSize: 10 }}>ADMIN_EMAILS</code><br />
-              و <code style={{ color: PALETTE.orange, background: `${PALETTE.orange}12`,
-                borderRadius: 4, padding: "1px 4px", fontSize: 10 }}>SUPABASE_SERVICE_ROLE_KEY</code><br />
-              في إعدادات البيئة.
+              في Replit Secrets.
             </div>
           </div>
         </div>
 
         {/* Main content */}
         <div style={{ flex: 1, overflowY: "auto", padding: "24px" }}>
-          {/* Loading state */}
+          {/* Loading skeleton */}
           {isLoading && (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div style={{ fontSize: 14, color: "var(--gpa-text-muted)", textAlign: "center",
-                padding: "60px 0", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-                <div style={{
-                  width: 44, height: 44, borderRadius: "50%",
-                  border: `3px solid ${PALETTE.accent}30`,
-                  borderTop: `3px solid ${PALETTE.accent}`,
-                  animation: "spin 0.9s linear infinite",
-                }} />
-                جاري تحميل بيانات الأدمن...
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(175px,1fr))", gap: 14 }}>
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} style={{
+                    background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.07)",
+                    borderRadius: 16, padding: "20px 22px", height: 90,
+                    animation: "skeleton-pulse 1.5s ease-in-out infinite",
+                    animationDelay: `${i * 0.1}s`,
+                  }} />
+                ))}
               </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                {[...Array(2)].map((_, i) => (
+                  <div key={i} style={{
+                    background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.07)",
+                    borderRadius: 14, height: 220,
+                    animation: "skeleton-pulse 1.5s ease-in-out infinite",
+                    animationDelay: `${(i + 6) * 0.1}s`,
+                  }} />
+                ))}
+              </div>
+              <div style={{
+                background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.07)",
+                borderRadius: 14, height: 280,
+                animation: "skeleton-pulse 1.5s ease-in-out infinite",
+                animationDelay: "0.8s",
+              }} />
             </div>
           )}
 
@@ -765,20 +893,15 @@ export default function AdminDashboard() {
                 borderRadius: 10, padding: "14px 16px", textAlign: "start",
               }}>
                 <div style={{ fontSize: 11, color: "var(--gpa-text-muted)", marginBottom: 10, fontWeight: 700 }}>
-                  لتفعيل لوحة الأدمن أضف إلى Secrets:
+                  لتفعيل لوحة الأدمن:
                 </div>
-                {[
-                  { key: "ADMIN_EMAILS", desc: "بريدك الإلكتروني (أو قائمة مفصولة بفاصلة)" },
-                  { key: "SUPABASE_SERVICE_ROLE_KEY", desc: "من Supabase → Settings → API" },
-                ].map((s) => (
-                  <div key={s.key} style={{ marginBottom: 8 }}>
-                    <code style={{ color: PALETTE.accent, background: `${PALETTE.accent}18`,
-                      borderRadius: 5, padding: "2px 7px", fontSize: 11 }}>{s.key}</code>
-                    <span style={{ fontSize: 11, color: "var(--gpa-text-faint)", marginInlineStart: 8 }}>
-                      {s.desc}
-                    </span>
-                  </div>
-                ))}
+                <div style={{ marginBottom: 8 }}>
+                  <code style={{ color: PALETTE.accent, background: `${PALETTE.accent}18`,
+                    borderRadius: 5, padding: "2px 7px", fontSize: 11 }}>ADMIN_EMAILS</code>
+                  <span style={{ fontSize: 11, color: "var(--gpa-text-faint)", marginInlineStart: 8 }}>
+                    بريدك الإلكتروني في Replit Secrets
+                  </span>
+                </div>
               </div>
               <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 20 }}>
                 <button onClick={() => overviewQ.refetch()}
@@ -810,6 +933,10 @@ export default function AdminDashboard() {
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
+        @keyframes skeleton-pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.45; }
+        }
         *{box-sizing:border-box}
         ::-webkit-scrollbar{width:4px;height:4px}
         ::-webkit-scrollbar-track{background:transparent}

@@ -77,6 +77,9 @@ export const deleteAccount = createServerFn({ method: "POST" })
     await query(`DELETE FROM semesters WHERE user_id = $1`, [userId]);
     await query(`DELETE FROM reminders WHERE user_id = $1`, [userId]);
     await query(`DELETE FROM academic_profiles WHERE user_id = $1`, [userId]);
+    await query(`DELETE FROM email_users WHERE id = $1`, [userId]);
+    await query(`DELETE FROM google_users WHERE id = $1`, [userId]);
+    await query(`DELETE FROM password_reset_tokens WHERE user_id = $1`, [userId]);
     // Delete all active sessions so the cookie is immediately invalidated
     await query(`DELETE FROM sessions WHERE sess->>'userId' = $1`, [userId]);
     await query(`DELETE FROM replit_users WHERE id = $1`, [userId]);
@@ -166,8 +169,20 @@ export const listSemesters = createServerFn({ method: "GET" })
       [userId],
     );
     const { rows: courses } = await query(
-      `SELECT * FROM courses WHERE user_id = $1`,
+      `SELECT * FROM courses WHERE user_id = $1 ORDER BY created_at ASC`,
       [userId],
     );
     return { semesters, courses };
+  });
+
+export const deleteSemester = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: unknown) =>
+    z.object({ id: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    await query(`DELETE FROM courses WHERE semester_id = $1 AND user_id = $2`, [data.id, userId]);
+    await query(`DELETE FROM semesters WHERE id = $1 AND user_id = $2`, [data.id, userId]);
+    return { ok: true };
   });

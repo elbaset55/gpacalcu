@@ -39,6 +39,7 @@ import { PremiumControlsBar } from "./PremiumControls";
 
 import {
   deleteProfile,
+  deleteSemester,
   getProfile,
   listSemesters,
   saveProfile,
@@ -1030,8 +1031,10 @@ function PctConverter({ grades, lang, onClose }: any) {
 /* ══════════════════════════════════════════════════════════
    HISTORY PANEL
 ══════════════════════════════════════════════════════════ */
-function HistoryPanel({ history, grades, lang, onClose }: any) {
+function HistoryPanel({ history, grades, lang, onClose, onDeleteSem }: any) {
   const ar = lang === "ar";
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
   return (
     <div
       style={{
@@ -1078,6 +1081,8 @@ function HistoryPanel({ history, grades, lang, onClose }: any) {
         ) : (
           history.map((sem: any, i: number) => {
             const st = standing(sem.cumGpa);
+            const isConfirming = confirmId === sem.id;
+            const isDeleting = deleting === sem.id;
             return (
               <div
                 key={i}
@@ -1087,12 +1092,60 @@ function HistoryPanel({ history, grades, lang, onClose }: any) {
                   padding: 14,
                   marginBottom: 10,
                   borderRight: `3px solid ${st.clr}`,
+                  opacity: isDeleting ? 0.5 : 1,
+                  transition: "opacity .2s",
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gpa-text-soft)" }}>{sem.label}</div>
-                  <div style={{ fontSize: 19, fontWeight: 900, color: st.clr }}>
-                    {sem.cumGpa.toFixed(3)}
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, alignItems: "flex-start", gap: 8 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gpa-text-soft)", flex: 1 }}>{sem.label}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                    <div style={{ fontSize: 19, fontWeight: 900, color: st.clr }}>
+                      {sem.cumGpa.toFixed(3)}
+                    </div>
+                    {onDeleteSem && sem.id && (
+                      isConfirming ? (
+                        <div style={{ display: "flex", gap: 4 }}>
+                          <button
+                            onClick={async () => {
+                              setDeleting(sem.id);
+                              setConfirmId(null);
+                              await onDeleteSem(sem.id);
+                              setDeleting(null);
+                            }}
+                            disabled={isDeleting}
+                            style={{
+                              background: "var(--gpa-danger-15)", border: "1px solid var(--gpa-danger-33)",
+                              borderRadius: 6, color: "var(--gpa-danger)", padding: "3px 8px",
+                              fontSize: 10, fontWeight: 700, cursor: "pointer", fontFamily: FONT,
+                            }}
+                          >
+                            {ar ? "تأكيد" : "Delete"}
+                          </button>
+                          <button
+                            onClick={() => setConfirmId(null)}
+                            style={{
+                              background: "none", border: "1px solid var(--gpa-border)",
+                              borderRadius: 6, color: "var(--gpa-text-faint)", padding: "3px 7px",
+                              fontSize: 10, cursor: "pointer", fontFamily: FONT,
+                            }}
+                          >
+                            {ar ? "إلغاء" : "Cancel"}
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmId(sem.id)}
+                          title={ar ? "حذف الفصل" : "Delete semester"}
+                          style={{
+                            background: "none", border: "1px solid rgba(255,107,107,.25)",
+                            borderRadius: 6, color: "var(--gpa-danger)", padding: "3px 7px",
+                            fontSize: 12, cursor: "pointer", lineHeight: 1, opacity: 0.7,
+                          }}
+                        >
+                          🗑
+                        </button>
+                      )
+                    )}
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 10, fontSize: 11, color: "var(--gpa-text-faint)" }}>
@@ -1137,7 +1190,7 @@ function HistoryPanel({ history, grades, lang, onClose }: any) {
 ══════════════════════════════════════════════════════════ */
 type Course = { id: string; name: string; cr: number; grade: number; retake?: boolean };
 
-function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveSemGuest }: { profile: Profile; onReset: () => void; history: any[]; onImport: (payload: ImportPayload) => Promise<void>; isGuest?: boolean; onSaveSemGuest?: (data: any) => void }) {
+function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveSemGuest, onDeleteSem }: { profile: Profile; onReset: () => void; history: any[]; onImport: (payload: ImportPayload) => Promise<void>; isGuest?: boolean; onSaveSemGuest?: (data: any) => void; onDeleteSem?: (semId: string) => Promise<void> }) {
   const { theme, setTheme } = useGpaTheme();
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -1500,7 +1553,7 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
     >
       {toast && <Toast msg={toast.msg} ok={toast.ok} />}
       {modal === "history" && (
-        <HistoryPanel history={history} grades={grades} lang={lang} onClose={() => setModal(null)} />
+        <HistoryPanel history={history} grades={grades} lang={lang} onClose={() => setModal(null)} onDeleteSem={onDeleteSem} />
       )}
       {modal === "pct" && <PctConverter grades={grades} lang={lang} onClose={() => setModal(null)} />}
       {modal === "reminders" && <RemindersPanel lang={lang as "ar" | "en"} onClose={() => setModal(null)} />}
@@ -2899,6 +2952,7 @@ export default function GPAAdvisorApp({ isGuest = false }: { isGuest?: boolean }
   const saveProfileFn = useServerFn(saveProfile);
   const saveSemesterFn = useServerFn(saveSemester);
   const deleteProfileFn = useServerFn(deleteProfile);
+  const deleteSemesterFn = useServerFn(deleteSemester);
   const queryClient = useQueryClient();
   // Initialise theme attribute on mount
   useGpaTheme();
@@ -2935,13 +2989,21 @@ export default function GPAAdvisorApp({ isGuest = false }: { isGuest?: boolean }
       queryClient.invalidateQueries({ queryKey: ["semesters"] });
     },
   });
+  const deleteSemMut = useMutation({
+    mutationFn: (id: string) => deleteSemesterFn({ data: { id } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["semesters"] }),
+  });
 
   useEffect(() => {
     if (profileQ.error) {
       const msg = profileQ.error instanceof Error ? profileQ.error.message : String(profileQ.error);
-      if (msg && msg !== "[object Object]") console.error("Profile load error:", msg);
+      if (/unauthorized|401|forbidden|session.*expir/i.test(msg)) {
+        navigate({ to: "/login", search: { redirect: "/app", error: undefined } });
+      } else if (msg && msg !== "[object Object]") {
+        console.error("Profile load error:", msg);
+      }
     }
-  }, [profileQ.error]);
+  }, [profileQ.error, navigate]);
 
   if (!isGuest && profileQ.isLoading) {
     return (
@@ -3072,6 +3134,7 @@ export default function GPAAdvisorApp({ isGuest = false }: { isGuest?: boolean }
       cumCr += cr;
       cumPts += pts;
       history.push({
+        id: sem.id,
         label: sem.label,
         semGpa: cr ? pts / cr : 0,
         cumGpa: cumCr ? cumPts / cumCr : 0,
@@ -3091,6 +3154,7 @@ export default function GPAAdvisorApp({ isGuest = false }: { isGuest?: boolean }
           history={history}
           isGuest={isGuest}
           onSaveSemGuest={isGuest ? guestSaveSem : undefined}
+          onDeleteSem={isGuest ? undefined : async (id: string) => { await deleteSemMut.mutateAsync(id); }}
           onReset={async () => {
             if (typeof window !== "undefined" && !window.confirm(profile.lang === "ar" ? "متأكد من إعادة التعيين؟" : "Reset?")) return;
             if (isGuest) {
