@@ -104,6 +104,9 @@ function OverviewSection({ data }: { data: any }) {
           sub="عبر جميع المستخدمين" clr={gpaClr(data.avgGpa)} />
         <StatCard icon="🔔" label="إجمالي التذكيرات" value={data.totalReminders}
           sub="مهام مسجلة" clr={PALETTE.pink} />
+        <StatCard icon="📋" label="متوسط الفصول/مستخدم" value={data.avgSemsPerUser?.toFixed(1) ?? "—"}
+          sub="مقياس التفاعل" clr={PALETTE.green}
+          note={data.avgSemsPerUser >= 2 ? "تفاعل جيد ✓" : "بحاجة تحسين"} />
       </div>
 
       {/* Charts row */}

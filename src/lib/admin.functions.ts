@@ -54,6 +54,7 @@ export const getAdminOverview = createServerFn({ method: "GET" })
       timelineRes,
       weekRes,
       todayRes,
+      avgSemsRes,
     ] = await Promise.all([
       query<{ c: string }>("SELECT COUNT(*) AS c FROM replit_users"),
       query<{ c: string }>("SELECT COUNT(*) AS c FROM academic_profiles"),
@@ -111,6 +112,10 @@ export const getAdminOverview = createServerFn({ method: "GET" })
       query<{ c: string }>(
         "SELECT COUNT(*) AS c FROM replit_users WHERE created_at >= NOW() - INTERVAL '1 day'"
       ),
+      query<{ avg_sems: string | null }>(`
+        SELECT ROUND(AVG(sem_count),1)::text AS avg_sems
+        FROM (SELECT COUNT(*) AS sem_count FROM semesters GROUP BY user_id) t
+      `),
     ]);
 
     const g = gpaRes.rows[0];
@@ -183,6 +188,7 @@ export const getAdminOverview = createServerFn({ method: "GET" })
       totalCourses: parseInt(courseRes.rows[0]?.c ?? "0"),
       totalReminders: parseInt(reminderRes.rows[0]?.c ?? "0"),
       avgGpa,
+      avgSemsPerUser: parseFloat(avgSemsRes.rows[0]?.avg_sems ?? "0") || 0,
       gpaDist,
       universities,
       levels,

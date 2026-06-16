@@ -1220,6 +1220,8 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
   const [targetGpa, setTargetGpa] = useState(gradTarget || 3.0);
   const [wiCourse, setWiCourse] = useState<string | null>(null);
   const [wiGrade, setWiGrade] = useState(grades[0]?.pts ?? 4.0);
+  const [wiMode, setWiMode] = useState<"change" | "plan">("change");
+  const [wiPlanCourses, setWiPlanCourses] = useState<{ id: string; name: string; cr: number; grade: number }[]>([]);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const [modal, setModal] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -1363,6 +1365,13 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
     const old = wiCourseObj.grade ?? 3.0;
     return newCr ? (newPts - wiCourseObj.cr * old + wiCourseObj.cr * wiGrade) / newCr : cumGpa;
   }, [wiCourseObj, wiGrade, newPts, newCr, cumGpa]);
+
+  const wiPlanSemCr = wiPlanCourses.reduce((s, c) => s + (c.cr || 0), 0);
+  const wiPlanSemPts = wiPlanCourses.reduce((s, c) => s + (c.cr || 0) * c.grade, 0);
+  const wiPlanCumGpa = useMemo(() => {
+    const totalCr = newCr + wiPlanSemCr;
+    return totalCr > 0 ? (newPts + wiPlanSemPts) / totalCr : cumGpa;
+  }, [newCr, wiPlanSemCr, newPts, wiPlanSemPts, cumGpa]);
 
   const semLabel =
     semester === "1" ? (ar ? "الأول" : "1st") : semester === "2" ? (ar ? "الثاني" : "2nd") : ar ? "الصيفي" : "Summer";
@@ -2103,99 +2112,239 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
 
         {/* WHAT-IF */}
         {tab === "whatif" && (
-          <div style={card}>
-            <h3 style={{ margin: "0 0 12px", fontSize: 14, color: "var(--gpa-text)" }}>
-              🔬 {ar ? "محاكاة تغيير تقدير" : "Simulate"}
-            </h3>
-            {courses.length === 0 ? (
-              <div style={{ textAlign: "center", padding: 32, color: "var(--gpa-text-faintest)", fontSize: 13 }}>
-                {ar ? "أضف مواداً أولاً" : "Add courses first"}
-              </div>
-            ) : (
-              <>
-                <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 14 }}>
-                  {courses.map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() => setWiCourse(c.id)}
-                      style={{
-                        textAlign: ar ? "right" : "left",
-                        background: wiCourse === c.id ? "var(--gpa-accent2-18)" : "var(--gpa-surface-alpha-06)",
-                        border: wiCourse === c.id ? "1px solid #6366f155" : "1px solid var(--gpa-border)",
-                        borderRadius: 8,
-                        padding: "9px 12px",
-                        color: wiCourse === c.id ? "var(--gpa-accent-2-soft)" : "var(--gpa-text-muted)",
-                        fontSize: 12,
-                        fontFamily: FONT,
-                        cursor: "pointer",
-                      }}
-                    >
-                      {c.name || (ar ? "مادة" : "Course")} · {c.cr}
-                      {ar ? "س" : "cr"} · {ga(c.grade, grades)}
-                    </button>
-                  ))}
-                </div>
-                {wiCourse && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {/* Mode toggle */}
+            <div style={{ display: "flex", gap: 6, background: "var(--gpa-bg-soft)", borderRadius: 12, padding: 4 }}>
+              {(["change", "plan"] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setWiMode(m)}
+                  style={{
+                    flex: 1,
+                    padding: "9px 0",
+                    borderRadius: 9,
+                    border: "none",
+                    background: wiMode === m ? "var(--gpa-card)" : "transparent",
+                    color: wiMode === m ? "var(--gpa-accent)" : "var(--gpa-text-faint)",
+                    fontSize: 12,
+                    fontWeight: wiMode === m ? 800 : 500,
+                    fontFamily: FONT,
+                    cursor: "pointer",
+                    boxShadow: wiMode === m ? "0 2px 8px rgba(0,0,0,0.18)" : "none",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  {m === "change"
+                    ? (ar ? "🔄 تغيير تقدير" : "🔄 Change Grade")
+                    : (ar ? "🗓️ خطط لفصل قادم" : "🗓️ Plan Next Semester")}
+                </button>
+              ))}
+            </div>
+
+            {/* ── MODE: CHANGE EXISTING GRADE ── */}
+            {wiMode === "change" && (
+              <div style={card}>
+                <h3 style={{ margin: "0 0 10px", fontSize: 13, fontWeight: 800, color: "var(--gpa-text-soft)", textTransform: "uppercase", letterSpacing: "0.3px" }}>
+                  {ar ? "ماذا لو غيّرت تقدير مادة؟" : "What if you change a grade?"}
+                </h3>
+                {courses.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: 32, color: "var(--gpa-text-faintest)", fontSize: 13 }}>
+                    {ar ? "أضف مواداً أولاً" : "Add courses first"}
+                  </div>
+                ) : (
                   <>
-                    <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 14 }}>
-                      {grades.map((g: any) => (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 14 }}>
+                      {courses.map((c) => (
                         <button
-                          key={g.ar}
-                          onClick={() => setWiGrade(g.pts)}
+                          key={c.id}
+                          onClick={() => setWiCourse(c.id)}
                           style={{
-                            background: wiGrade === g.pts ? `${g.clr}22` : "var(--gpa-surface-alpha-06)",
-                            border: `1px solid ${wiGrade === g.pts ? g.clr : "var(--gpa-border)"}`,
-                            borderRadius: 7,
-                            padding: "6px 10px",
-                            color: wiGrade === g.pts ? g.clr : "var(--gpa-text-faint)",
+                            textAlign: ar ? "right" : "left",
+                            background: wiCourse === c.id ? "var(--gpa-accent2-18)" : "var(--gpa-surface-alpha-06)",
+                            border: wiCourse === c.id ? "1px solid #6366f155" : "1px solid var(--gpa-border)",
+                            borderRadius: 8,
+                            padding: "9px 12px",
+                            color: wiCourse === c.id ? "var(--gpa-accent-2-soft)" : "var(--gpa-text-muted)",
                             fontSize: 12,
                             fontFamily: FONT,
                             cursor: "pointer",
-                            fontWeight: 700,
                           }}
                         >
-                          {g.ar}
+                          {c.name || (ar ? "مادة" : "Course")} · {c.cr}{ar ? "س" : "cr"} · {ga(c.grade, grades)}
                         </button>
                       ))}
                     </div>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr auto 1fr",
-                        gap: 10,
-                        alignItems: "center",
-                      }}
-                    >
+                    {wiCourse && (
+                      <>
+                        <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 14 }}>
+                          {grades.map((g: any) => (
+                            <button
+                              key={g.ar}
+                              onClick={() => setWiGrade(g.pts)}
+                              style={{
+                                background: wiGrade === g.pts ? `${g.clr}22` : "var(--gpa-surface-alpha-06)",
+                                border: `1px solid ${wiGrade === g.pts ? g.clr : "var(--gpa-border)"}`,
+                                borderRadius: 7,
+                                padding: "6px 10px",
+                                color: wiGrade === g.pts ? g.clr : "var(--gpa-text-faint)",
+                                fontSize: 12,
+                                fontFamily: FONT,
+                                cursor: "pointer",
+                                fontWeight: 700,
+                              }}
+                            >
+                              {g.ar}
+                            </button>
+                          ))}
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 10, alignItems: "center" }}>
+                          {[{ k: "before", v: cumGpa }, { k: "arrow", v: null }, { k: "after", v: wiCumGpa }].map((x: any) =>
+                            x.k === "arrow" ? (
+                              <div key="arrow" style={{ fontSize: 20, color: "var(--gpa-text-ghost)", textAlign: "center" }}>→</div>
+                            ) : (
+                              <div key={x.k} style={{ background: "var(--gpa-bg-soft)", borderRadius: 10, padding: 14, textAlign: "center" }}>
+                                <div style={{ fontSize: 10, color: "var(--gpa-text-faintest)", marginBottom: 3 }}>
+                                  {x.k === "before" ? (ar ? "قبل" : "Before") : (ar ? "بعد" : "After")}
+                                </div>
+                                <div style={{ fontSize: 24, fontWeight: 800, color: gpaClr(x.v) }}>{x.v.toFixed(3)}</div>
+                                <div style={{ fontSize: 10, color: "var(--gpa-text-faintest)", marginTop: 3 }}>
+                                  {x.k === "after" && wiCumGpa !== cumGpa && (
+                                    <span style={{ color: wiCumGpa > cumGpa ? "var(--gpa-accent)" : "var(--gpa-danger)", fontWeight: 700 }}>
+                                      {wiCumGpa > cumGpa ? "▲" : "▼"} {Math.abs(wiCumGpa - cumGpa).toFixed(3)}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* ── MODE: PLAN FUTURE SEMESTER ── */}
+            {wiMode === "plan" && (
+              <div style={card}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <h3 style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "var(--gpa-text-soft)", textTransform: "uppercase", letterSpacing: "0.3px" }}>
+                    {ar ? "مواد الفصل القادم" : "Next Semester Courses"}
+                  </h3>
+                  <button
+                    onClick={() => {
+                      const id = `wp_${Date.now()}`;
+                      setWiPlanCourses((p) => [...p, { id, name: "", cr: 3, grade: grades[2]?.pts ?? 3.333 }]);
+                    }}
+                    style={{
+                      padding: "5px 12px",
+                      background: "var(--gpa-accent-12)",
+                      border: "1px solid var(--gpa-accent-44)",
+                      borderRadius: 8,
+                      color: "var(--gpa-accent)",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      fontFamily: FONT,
+                      cursor: "pointer",
+                    }}
+                  >
+                    + {ar ? "أضف مادة" : "Add Course"}
+                  </button>
+                </div>
+
+                {wiPlanCourses.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "24px 0", color: "var(--gpa-text-faintest)", fontSize: 12 }}>
+                    {ar ? "أضف مواداً تنوي دراستها لترى تأثيرها على معدلك" : "Add courses you plan to take to see their GPA impact"}
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+                    {wiPlanCourses.map((c) => (
+                      <div key={c.id} style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                        <input
+                          type="text"
+                          value={c.name}
+                          onChange={(e) => setWiPlanCourses((p) => p.map((x) => x.id === c.id ? { ...x, name: e.target.value } : x))}
+                          placeholder={ar ? "اسم المادة" : "Course name"}
+                          style={{
+                            flex: 1, padding: "7px 10px",
+                            background: "var(--gpa-bg-soft)", border: "1px solid var(--gpa-border)",
+                            borderRadius: 8, color: "var(--gpa-text)", fontSize: 12, fontFamily: FONT,
+                          }}
+                        />
+                        <select
+                          value={c.cr}
+                          onChange={(e) => setWiPlanCourses((p) => p.map((x) => x.id === c.id ? { ...x, cr: +e.target.value } : x))}
+                          style={{
+                            width: 52, padding: "7px 4px",
+                            background: "var(--gpa-bg-soft)", border: "1px solid var(--gpa-border)",
+                            borderRadius: 8, color: "var(--gpa-text)", fontSize: 12, fontFamily: FONT,
+                          }}
+                        >
+                          {[1,2,3,4,5,6].map((n) => <option key={n} value={n}>{n}{ar ? "س" : "cr"}</option>)}
+                        </select>
+                        <select
+                          value={c.grade}
+                          onChange={(e) => setWiPlanCourses((p) => p.map((x) => x.id === c.id ? { ...x, grade: +e.target.value } : x))}
+                          style={{
+                            width: 70, padding: "7px 4px",
+                            background: "var(--gpa-bg-soft)", border: "1px solid var(--gpa-border)",
+                            borderRadius: 8, color: "var(--gpa-text)", fontSize: 12, fontFamily: FONT,
+                          }}
+                        >
+                          {grades.map((g: any) => <option key={g.pts} value={g.pts}>{g.ar}</option>)}
+                        </select>
+                        <button
+                          onClick={() => setWiPlanCourses((p) => p.filter((x) => x.id !== c.id))}
+                          style={{
+                            width: 28, height: 28, borderRadius: 7,
+                            background: "var(--gpa-danger-15)", border: "1px solid var(--gpa-danger-33)",
+                            color: "var(--gpa-danger)", fontSize: 14, cursor: "pointer",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                          }}
+                        >×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {wiPlanCourses.length > 0 && (
+                  <>
+                    {/* Projected GPA result */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 10, alignItems: "center", marginBottom: 10 }}>
+                      <div style={{ background: "var(--gpa-bg-soft)", borderRadius: 10, padding: 14, textAlign: "center" }}>
+                        <div style={{ fontSize: 10, color: "var(--gpa-text-faintest)", marginBottom: 3 }}>{ar ? "معدلك الآن" : "Current CGPA"}</div>
+                        <div style={{ fontSize: 22, fontWeight: 800, color: gpaClr(cumGpa) }}>{cumGpa.toFixed(3)}</div>
+                        <div style={{ fontSize: 10, color: "var(--gpa-text-faintest)", marginTop: 2 }}>{newCr} {ar ? "س" : "cr"}</div>
+                      </div>
+                      <div style={{ fontSize: 20, color: "var(--gpa-text-ghost)", textAlign: "center" }}>→</div>
+                      <div style={{ background: "var(--gpa-bg-soft)", borderRadius: 10, padding: 14, textAlign: "center", borderBottom: `3px solid ${gpaClr(wiPlanCumGpa)}` }}>
+                        <div style={{ fontSize: 10, color: "var(--gpa-text-faintest)", marginBottom: 3 }}>{ar ? "بعد الفصل القادم" : "After Next Semester"}</div>
+                        <div style={{ fontSize: 22, fontWeight: 800, color: gpaClr(wiPlanCumGpa) }}>{wiPlanCumGpa.toFixed(3)}</div>
+                        <div style={{ fontSize: 10, marginTop: 2 }}>
+                          <span style={{ color: wiPlanCumGpa > cumGpa ? "var(--gpa-accent)" : wiPlanCumGpa < cumGpa ? "var(--gpa-danger)" : "var(--gpa-text-faintest)", fontWeight: 700 }}>
+                            {wiPlanCumGpa > cumGpa ? "▲" : wiPlanCumGpa < cumGpa ? "▼" : "—"}{" "}
+                            {wiPlanCumGpa !== cumGpa ? Math.abs(wiPlanCumGpa - cumGpa).toFixed(3) : ar ? "بدون تغيير" : "No change"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Next semester stats */}
+                    <div style={{ display: "flex", gap: 8 }}>
                       {[
-                        { k: "before", v: cumGpa },
-                        { k: "arrow", v: null },
-                        { k: "after", v: wiCumGpa },
-                      ].map((x: any) =>
-                        x.k === "arrow" ? (
-                          <div key="arrow" style={{ fontSize: 20, color: "var(--gpa-text-ghost)", textAlign: "center" }}>→</div>
-                        ) : (
-                          <div
-                            key={x.k}
-                            style={{
-                              background: "var(--gpa-bg-soft)",
-                              borderRadius: 10,
-                              padding: 14,
-                              textAlign: "center",
-                            }}
-                          >
-                            <div style={{ fontSize: 10, color: "var(--gpa-text-faintest)", marginBottom: 3 }}>
-                              {x.k === "before" ? (ar ? "قبل" : "Before") : ar ? "بعد" : "After"}
-                            </div>
-                            <div style={{ fontSize: 24, fontWeight: 800, color: gpaClr(x.v) }}>
-                              {x.v.toFixed(3)}
-                            </div>
-                          </div>
-                        ),
-                      )}
+                        { l: ar ? "ساعات الفصل" : "Semester Credits", v: wiPlanSemCr },
+                        { l: ar ? "إجمالي الساعات" : "Total Credits", v: newCr + wiPlanSemCr },
+                        { l: ar ? "معدل الفصل" : "Semester GPA", v: wiPlanSemCr ? (wiPlanSemPts / wiPlanSemCr).toFixed(2) : "—" },
+                      ].map((s, i) => (
+                        <div key={i} style={{ flex: 1, textAlign: "center", background: "var(--gpa-bg-soft)", borderRadius: 9, padding: "8px 4px", border: "1px solid var(--gpa-border)" }}>
+                          <div style={{ fontSize: 16, fontWeight: 800, color: "var(--gpa-text)" }}>{s.v}</div>
+                          <div style={{ fontSize: 9, color: "var(--gpa-text-faintest)", marginTop: 2 }}>{s.l}</div>
+                        </div>
+                      ))}
                     </div>
                   </>
                 )}
-              </>
+              </div>
             )}
           </div>
         )}
@@ -2505,6 +2654,87 @@ function Planner({ profile, onReset, history, onImport, isGuest = false, onSaveS
                 </div>
               </div>
             )}
+
+            {/* ── Smart Insights ── */}
+            {history.length > 0 && (() => {
+              const semGpas = (history as any[]).map((h) => h.semGpa as number);
+              const bestSem = (history as any[]).reduce((a, b) => a.semGpa > b.semGpa ? a : b);
+              const worstSem = (history as any[]).reduce((a, b) => a.semGpa < b.semGpa ? a : b);
+              const avgSemGpa = semGpas.reduce((s, g) => s + g, 0) / semGpas.length;
+              const variance = semGpas.reduce((s, g) => s + Math.pow(g - avgSemGpa, 2), 0) / semGpas.length;
+              const stdDev = Math.sqrt(variance);
+              const consistency = Math.max(0, Math.round((1 - stdDev / 2) * 100));
+              const improvements = semGpas.slice(1).map((g, i) => g - semGpas[i]);
+              const trend = improvements.length > 0
+                ? improvements.reduce((s, v) => s + v, 0) / improvements.length
+                : 0;
+              const trendLabel = trend > 0.05
+                ? (ar ? "📈 في تحسن" : "📈 Improving")
+                : trend < -0.05
+                  ? (ar ? "📉 في تراجع" : "📉 Declining")
+                  : (ar ? "➡️ مستقر" : "➡️ Stable");
+              const trendClr = trend > 0.05 ? "var(--gpa-accent)" : trend < -0.05 ? "var(--gpa-danger)" : "var(--gpa-text-faint)";
+              const creditsPerSem = newCr / Math.max(1, (history as any[]).length + 1);
+              const semsLeft = remCr > 0 ? Math.ceil(remCr / Math.max(1, creditsPerSem)) : 0;
+              return (
+                <div style={card}>
+                  <h3 style={{ margin: "0 0 14px", fontSize: 13, fontWeight: 800, color: "var(--gpa-text-soft)", letterSpacing: "0.3px", textTransform: "uppercase" }}>
+                    ✨ {ar ? "رؤى ذكية" : "Smart Insights"}
+                  </h3>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
+                    {[
+                      {
+                        icon: "🏆",
+                        l: ar ? "أفضل فصل" : "Best Semester",
+                        v: bestSem.semGpa.toFixed(2),
+                        sub: bestSem.label,
+                        clr: "var(--gpa-accent)",
+                      },
+                      {
+                        icon: "📉",
+                        l: ar ? "أضعف فصل" : "Weakest Semester",
+                        v: worstSem.semGpa.toFixed(2),
+                        sub: worstSem.label,
+                        clr: semGpas.length > 1 ? gpaClr(worstSem.semGpa) : "var(--gpa-text-faint)",
+                      },
+                      {
+                        icon: "🎯",
+                        l: ar ? "اتجاه الأداء" : "Performance Trend",
+                        v: trendLabel,
+                        sub: trend !== 0 ? `${trend > 0 ? "+" : ""}${trend.toFixed(2)} ${ar ? "نقطة/فصل" : "pts/term"}` : "",
+                        clr: trendClr,
+                      },
+                      {
+                        icon: "🔄",
+                        l: ar ? "الاتساق" : "Consistency",
+                        v: `${consistency}%`,
+                        sub: stdDev < 0.2 ? (ar ? "ممتاز" : "Excellent") : stdDev < 0.4 ? (ar ? "جيد" : "Good") : (ar ? "متذبذب" : "Variable"),
+                        clr: consistency >= 80 ? "var(--gpa-accent)" : consistency >= 60 ? "var(--gpa-grade-b)" : "var(--gpa-grade-c)",
+                      },
+                    ].map((item, i) => (
+                      <div key={i} style={{
+                        padding: "12px 12px",
+                        background: "var(--gpa-bg-soft)",
+                        borderRadius: 12,
+                        border: "1px solid var(--gpa-border)",
+                      }}>
+                        <div style={{ fontSize: 9, color: "var(--gpa-text-faintest)", marginBottom: 4, display: "flex", alignItems: "center", gap: 4, textTransform: "uppercase", letterSpacing: "0.4px" }}>
+                          <span>{item.icon}</span><span>{item.l}</span>
+                        </div>
+                        <div style={{ fontSize: 17, fontWeight: 800, color: item.clr, lineHeight: 1 }}>{item.v}</div>
+                        {item.sub && <div style={{ fontSize: 9, color: "var(--gpa-text-faintest)", marginTop: 4 }}>{item.sub}</div>}
+                      </div>
+                    ))}
+                  </div>
+                  {semsLeft > 0 && (
+                    <div style={{ padding: "10px 14px", background: "var(--gpa-accent-12)", border: "1px solid var(--gpa-accent-44)", borderRadius: 10, fontSize: 12, color: "var(--gpa-accent)", display: "flex", justifyContent: "space-between" }}>
+                      <span>🎓 {ar ? "وتيرة الساعات الحالية" : "At your current pace"}</span>
+                      <span style={{ fontWeight: 800 }}>~{semsLeft} {ar ? "فصل للتخرج" : "semesters left"}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* ── AI Full Analysis ── */}
             <div style={card}>

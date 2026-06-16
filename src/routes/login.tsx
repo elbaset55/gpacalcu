@@ -319,8 +319,27 @@ function LoginPage() {
             ))}
           </div>
 
+          {/* Stats strip */}
+          <div style={{ display:"flex", gap:10, marginTop:28, animation:"lp-feat 0.5s 0.55s both" }}>
+            {[
+              { n: ar ? "٤.٠" : "4.0",  l: ar ? "أعلى معدل" : "Max GPA Scale" },
+              { n: ar ? "١٠+" : "10+",   l: ar ? "نظام تقييم" : "Grade Scales" },
+              { n: ar ? "ذكاء اصطناعي" : "AI",  l: ar ? "مستشار شخصي" : "Powered Advisor" },
+            ].map((s, i) => (
+              <div key={i} style={{
+                flex: 1, textAlign: "center",
+                background: "rgba(255,255,255,0.08)",
+                borderRadius: 12, padding: "10px 6px",
+                border: "1px solid rgba(255,255,255,0.12)",
+              }}>
+                <div style={{ fontSize: ar ? 14 : 18, fontWeight: 900, color: "#fff", fontFamily: ar ? FONT : FONT_EN, lineHeight: 1 }}>{s.n}</div>
+                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.5)", marginTop: 4, fontFamily: ar ? FONT : FONT_EN }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+
           {/* Bottom label */}
-          <div style={{ marginTop:36, animation: "lp-feat 0.5s 0.65s both" }}>
+          <div style={{ marginTop:20, animation: "lp-feat 0.5s 0.65s both" }}>
             <p style={{ margin:0, fontSize:11, color:"rgba(255,255,255,0.35)", fontFamily: ar ? FONT : FONT_EN }}>
               🔒 {t.footer}
             </p>
