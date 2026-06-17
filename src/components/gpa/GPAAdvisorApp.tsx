@@ -3382,7 +3382,7 @@ function GuestBanner({ lang }: { lang: string }) {
 /* ══════════════════════════════════════════════════════════
    ROOT
 ══════════════════════════════════════════════════════════ */
-export default function GPAAdvisorApp({ isGuest = false }: { isGuest?: boolean } = {}) {
+export default function GPAAdvisorApp({ isGuest = false, forceSetup = false }: { isGuest?: boolean; forceSetup?: boolean } = {}) {
   const navigate = useNavigate();
   const getProfileFn = useServerFn(getProfile);
   const listSemestersFn = useServerFn(listSemesters);
@@ -3494,7 +3494,7 @@ export default function GPAAdvisorApp({ isGuest = false }: { isGuest?: boolean }
     );
   }
 
-  const dbProfile = isGuest ? guestRawProfile : profileQ.data;
+  const dbProfile = isGuest ? (forceSetup ? null : guestRawProfile) : profileQ.data;
 
   const guestSaveSem = (semData: any) => {
     const semId = crypto.randomUUID();

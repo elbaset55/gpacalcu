@@ -730,7 +730,7 @@ function LoginPage() {
             width:"100%", maxWidth:440, marginTop:12,
             animation:"lp-in 0.55s 0.3s cubic-bezier(0.22,1,0.36,1) both",
           }}>
-            <a href="/guest" className="lp-guest-btn" style={{
+            <a href="/guest?onboard=1" className="lp-guest-btn" style={{
               display:"flex", alignItems:"center", justifyContent:"center", gap:8,
               width:"100%", padding:"11px 16px",
               background: isDark ? "rgba(255,255,255,0.04)" : "rgba(15,23,66,0.04)",

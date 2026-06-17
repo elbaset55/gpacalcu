@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect, type FormEvent } from "react";
+import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
+import { useState, type FormEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getProfile, saveProfile } from "@/lib/profile.functions";
 import { useLang } from "@/lib/use-lang";
@@ -11,6 +11,15 @@ import { AppBackground } from "@/components/gpa/AppBackground";
 import { FACULTY_DATA } from "@/data/seedData";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
+  loader: async () => {
+    try {
+      const profile = await getProfile();
+      if (profile) throw redirect({ to: "/app" });
+    } catch (e: any) {
+      // Re-throw TanStack redirect objects; absorb auth/network errors
+      if (e?.isRedirect) throw e;
+    }
+  },
   component: OnboardingPage,
 });
 
@@ -150,14 +159,7 @@ function OnboardingPage() {
   const navigate = useNavigate();
   const { theme, setTheme } = useGpaTheme();
   const { lang: globalLang, setLang: setGlobalLang } = useLang();
-  const getProfileFn = useServerFn(getProfile);
   const saveProfileFn = useServerFn(saveProfile);
-
-  useEffect(() => {
-    getProfileFn().then((p) => {
-      if (p) navigate({ to: "/app" });
-    }).catch(() => {});
-  }, []);
 
   const [step, setStep] = useState(0);
 
