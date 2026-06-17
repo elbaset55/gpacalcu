@@ -869,7 +869,7 @@ function SetupScreen({
     const semLabel = semMap[existingProfile.semester] ?? existingProfile.semester;
     const deptName = prevDept ? (ar ? prevDept.nameAr : prevDept.nameEn) : (existingProfile.major || (ar ? "غير محدد" : "Unknown"));
     return (
-      <div dir={dir} style={{ fontFamily: FONT, background: "var(--gpa-bg)", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, position: "relative", overflow: "hidden" }}>
+      <div dir={dir} style={{ fontFamily: FONT, background: "var(--gpa-bg)", minHeight: "100vh", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "20px 16px 56px", position: "relative", overflowX: "hidden", overflowY: "auto" }}>
         <AppBackground theme={theme} variant="login" />
         <div style={{ width: "100%", maxWidth: 460, position: "relative", zIndex: 1 }}>
           {/* Logo + controls */}
@@ -965,11 +965,12 @@ function SetupScreen({
         background: "var(--gpa-bg)",
         minHeight: "100vh",
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-start",
         justifyContent: "center",
-        padding: 16,
+        padding: "20px 16px 56px",
         position: "relative",
-        overflow: "hidden",
+        overflowX: "hidden",
+        overflowY: "auto",
       }}
     >
       <AppBackground theme={theme} variant="login" />

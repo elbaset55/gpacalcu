@@ -139,6 +139,7 @@ export default defineConfig({
   },
   ssr: {
     noExternal: ["openid-client"],
+    external: ["pg", "pg-native", "pg-pool"],
   },
   optimizeDeps: {
     exclude: ["pg", "pg-native"],

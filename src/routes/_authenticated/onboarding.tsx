@@ -664,7 +664,7 @@ function OnboardingPage() {
     <div dir={dir} style={{
       fontFamily: FONT, background: "var(--gpa-bg)", minHeight: "100vh",
       display: "flex", flexDirection: "column", alignItems: "center",
-      padding: "20px 16px 40px", position: "relative", overflow: "hidden",
+      padding: "20px 16px 56px", position: "relative", overflowX: "hidden",
     }}>
       <AppBackground theme={theme} variant="login" />
 
@@ -688,35 +688,40 @@ function OnboardingPage() {
 
         {/* Progress */}
         <div style={{ marginBottom: 24 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 0, justifyContent: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 0, justifyContent: "center", width: "100%", overflowX: "auto" }}>
             {t.steps.map((label, i) => {
               const done = i < step;
               const active = i === step;
               return (
-                <div key={i} style={{ display: "flex", alignItems: "center" }}>
+                <div key={i} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
                   {i > 0 && (
                     <div style={{
-                      width: 36, height: 2,
+                      width: "clamp(16px, 4vw, 36px)", height: 2,
                       background: done || active ? "var(--gpa-accent)" : "var(--gpa-border)",
                       transition: "background 0.3s",
                     }} />
                   )}
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
                     <div style={{
-                      width: 32, height: 32, borderRadius: "50%",
+                      width: 30, height: 30, borderRadius: "50%",
                       background: done ? "var(--gpa-accent)" : active ? "var(--gpa-accent-20)" : "var(--gpa-surface-alpha-06)",
                       border: `2px solid ${(done || active) ? "var(--gpa-accent)" : "var(--gpa-border)"}`,
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 13, fontWeight: 700,
+                      fontSize: 12, fontWeight: 700,
                       color: done ? "var(--gpa-bg)" : active ? "var(--gpa-accent)" : "var(--gpa-text-faint)",
                       transition: "all 0.3s", flexShrink: 0,
                     }}>
                       {done ? "✓" : i + 1}
                     </div>
                     <span style={{
-                      fontSize: 10,
+                      fontSize: 9,
                       color: active ? "var(--gpa-accent)" : done ? "var(--gpa-text-soft)" : "var(--gpa-text-faintest)",
-                      whiteSpace: "nowrap", fontWeight: active ? 700 : 400, transition: "color 0.3s",
+                      maxWidth: "clamp(60px, 18vw, 90px)",
+                      textAlign: "center",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      fontWeight: active ? 700 : 400, transition: "color 0.3s",
                     }}>
                       {label}
                     </span>

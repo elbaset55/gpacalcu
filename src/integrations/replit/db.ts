@@ -1,10 +1,8 @@
-import pg from "pg";
+import { Pool, type QueryResultRow, type QueryResult } from "pg";
 
-const { Pool } = pg;
+let _pool: Pool | undefined;
 
-let _pool: pg.Pool | undefined;
-
-export function getPool(): pg.Pool {
+export function getPool(): Pool {
   if (!_pool) {
     if (!process.env.DATABASE_URL) {
       throw new Error("DATABASE_URL must be set.");
@@ -14,9 +12,9 @@ export function getPool(): pg.Pool {
   return _pool;
 }
 
-export async function query<T extends pg.QueryResultRow = pg.QueryResultRow>(
+export async function query<T extends QueryResultRow = QueryResultRow>(
   sql: string,
   params?: unknown[],
-): Promise<pg.QueryResult<T>> {
+): Promise<QueryResult<T>> {
   return getPool().query<T>(sql, params);
 }
