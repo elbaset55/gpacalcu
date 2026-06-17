@@ -295,6 +295,20 @@ function SetupScreen({
     ? ["اللغة والنظام", scale.isBenha ? "البرنامج والمستوى" : "بيانات الجامعة", "المعدل والساعات", "الفصل والهدف", "مرتبة الشرف"]
     : ["Language & Scale", scale.isBenha ? "Programme & Level" : "University Info", "GPA & Credits", "Semester & Goal", "Honors Check"];
 
+  const STEP_META = ar ? [
+    { icon: "🌐", title: "اللغة ونظام التقدير", desc: "اختر لغة التطبيق ونظام التقدير المناسب لجامعتك" },
+    { icon: "🎓", title: scale.isBenha ? "البرنامج الأكاديمي" : "بيانات جامعتك", desc: scale.isBenha ? "اختر قسمك ومستواك الدراسي في كلية العلوم" : "أدخل بيانات تخصصك وجامعتك" },
+    { icon: "📊", title: "المعدل التراكمي والساعات", desc: "أدخل بياناتك يدوياً أو استخدم التحليل بالذكاء الاصطناعي" },
+    { icon: "🗓️", title: "الفصل الدراسي والهدف", desc: "حدد فصلك الحالي وضع هدفك للمعدل التراكمي عند التخرج" },
+    { icon: "🏆", title: "أهلية مرتبة الشرف", desc: "أجب على أسئلة مرتبة الشرف طبقاً للمادة 24 من اللائحة" },
+  ] : [
+    { icon: "🌐", title: "Language & Grading Scale", desc: "Choose your preferred language and university grading system" },
+    { icon: "🎓", title: scale.isBenha ? "Academic Programme" : "University Details", desc: scale.isBenha ? "Select your department and academic year in Faculty of Science" : "Enter your major, university, and year details" },
+    { icon: "📊", title: "GPA & Credit Hours", desc: "Enter manually or use the AI transcript analyzer to auto-fill" },
+    { icon: "🗓️", title: "Semester & Graduation Goal", desc: "Set your current semester and target cumulative GPA" },
+    { icon: "🏆", title: "Honors Eligibility", desc: "Answer honors standing questions per Article 24 of by-laws" },
+  ];
+
   const inp: React.CSSProperties = {
     background: "var(--gpa-card)",
     border: "1px solid var(--gpa-border)",
@@ -434,65 +448,91 @@ function SetupScreen({
     switch (step) {
       case 0:
         return (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Language selector */}
             <div>
-              <label style={lbl}>{ar ? "اللغة" : "Language"}</label>
-              <div style={{ display: "flex", gap: 8 }}>
-                {[["ar", "العربية 🇪🇬"], ["en", "English 🇬🇧"]].map(([v, l]) => (
-                  <button
-                    key={v}
-                    onClick={() => { setLang(v); setGlobalLang(v === "en" ? "en" : "ar"); }}
-                    style={{
-                      flex: 1,
-                      padding: "12px",
-                      fontFamily: FONT,
-                      background: lang === v ? "var(--gpa-accent2-18)" : "var(--gpa-surface-alpha-06)",
-                      border: lang === v ? "1px solid #6366f166" : "1px solid var(--gpa-border)",
-                      borderRadius: 10,
-                      color: lang === v ? "var(--gpa-accent-2-soft)" : "var(--gpa-text-faint)",
-                      fontSize: 14,
-                      cursor: "pointer",
-                    }}
-                  >
-                    {l}
-                  </button>
-                ))}
+              <label style={{ ...lbl, fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                {ar ? "لغة التطبيق" : "Application Language"}
+              </label>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {([["ar", "العربية", "🇪🇬", ar ? "اللغة الرسمية للنظام" : "Arabic interface"], ["en", "English", "🇬🇧", ar ? "النسخة الإنجليزية" : "English interface"]] as [string, string, string, string][]).map(([v, label, flag, sub]) => {
+                  const sel = lang === v;
+                  return (
+                    <button
+                      key={v}
+                      onClick={() => { setLang(v); setGlobalLang(v === "en" ? "en" : "ar"); }}
+                      style={{
+                        padding: "14px 12px", fontFamily: FONT, textAlign: "center",
+                        background: sel ? "var(--gpa-accent2-18)" : "var(--gpa-surface-alpha-06)",
+                        border: sel ? "2px solid #6366f166" : "1.5px solid var(--gpa-border)",
+                        borderRadius: 14,
+                        color: sel ? "var(--gpa-accent-2-soft)" : "var(--gpa-text-muted)",
+                        cursor: "pointer", transition: "all 0.18s",
+                        boxShadow: sel ? "0 2px 14px rgba(99,102,241,.15)" : "none",
+                        position: "relative",
+                      }}
+                    >
+                      {sel && <div style={{ position: "absolute", top: 7, insetInlineEnd: 8, width: 7, height: 7, borderRadius: "50%", background: "#6366f1" }} />}
+                      <div style={{ fontSize: 24, marginBottom: 6 }}>{flag}</div>
+                      <div style={{ fontSize: 14, fontWeight: 800, lineHeight: 1.2 }}>{label}</div>
+                      <div style={{ fontSize: 10, marginTop: 3, color: "var(--gpa-text-faintest)" }}>{sub}</div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
+
+            {/* Grading scale selector */}
             <div>
-              <label style={lbl}>{ar ? "نظام التقدير" : "Grading Scale"}</label>
-              {SCALE_SYSTEMS.map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => setScaleId(s.id)}
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    textAlign: ar ? "right" : "left",
-                    marginBottom: 8,
-                    padding: "12px 14px",
-                    fontFamily: FONT,
-                    background: scaleId === s.id ? "var(--gpa-accent-12)" : "var(--gpa-surface-alpha-06)",
-                    border: scaleId === s.id ? "1px solid var(--gpa-accent-44)" : "1px solid var(--gpa-border)",
-                    borderRadius: 10,
-                    color: scaleId === s.id ? "var(--gpa-accent)" : "var(--gpa-text-muted)",
-                    fontSize: 13,
-                    cursor: "pointer",
-                  }}
-                >
-                  {scaleId === s.id ? "✓ " : ""}
-                  {s.label}
-                  <span style={{ color: "var(--gpa-text-faint)", fontSize: 11, display: "block", marginTop: 2 }}>
-                    {s.isBenha
-                      ? ar
-                        ? "136 ساعة للتخرج · مادة 22 + 24"
-                        : "136cr graduation · Art.22+24"
-                      : ar
-                        ? `${s.totalReq} ساعة`
-                        : `${s.totalReq}cr`}
-                  </span>
-                </button>
-              ))}
+              <label style={{ ...lbl, fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                {ar ? "نظام التقدير الجامعي" : "University Grading Scale"}
+              </label>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {SCALE_SYSTEMS.map((s) => {
+                  const sel = scaleId === s.id;
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => setScaleId(s.id)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 14,
+                        width: "100%", textAlign: ar ? "right" : "left",
+                        padding: "14px 16px", fontFamily: FONT,
+                        background: sel ? "var(--gpa-accent-12)" : "var(--gpa-surface-alpha-06)",
+                        border: sel ? "2px solid var(--gpa-accent-44)" : "1.5px solid var(--gpa-border)",
+                        borderRadius: 14,
+                        cursor: "pointer", transition: "all 0.18s",
+                        boxShadow: sel ? "0 2px 14px var(--gpa-accent-15)" : "none",
+                      }}
+                    >
+                      <div style={{
+                        width: 38, height: 38, borderRadius: 10, flexShrink: 0,
+                        background: sel ? "var(--gpa-accent-20)" : "var(--gpa-surface-alpha-08)",
+                        border: `1px solid ${sel ? "var(--gpa-accent-44)" : "var(--gpa-border)"}`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 18,
+                      }}>
+                        {s.isBenha ? "🏛️" : "🌍"}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: sel ? 800 : 600, color: sel ? "var(--gpa-accent)" : "var(--gpa-text)", lineHeight: 1.3 }}>
+                          {s.label}
+                        </div>
+                        <div style={{ fontSize: 10, color: "var(--gpa-text-faint)", marginTop: 2 }}>
+                          {s.isBenha
+                            ? ar ? "136 ساعة للتخرج · مادة 22 + 24" : "136cr to graduate · Art.22 + Art.24"
+                            : ar ? `${s.totalReq} ساعة للتخرج · نظام عام` : `${s.totalReq}cr to graduate · Generic scale`}
+                        </div>
+                      </div>
+                      {sel && (
+                        <div style={{ width: 22, height: 22, borderRadius: "50%", background: "var(--gpa-accent)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "var(--gpa-bg)", fontWeight: 900, flexShrink: 0 }}>
+                          ✓
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         );
@@ -740,112 +780,169 @@ function SetupScreen({
         );
       case 3:
         return (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <div>
-              <label style={lbl}>{ar ? "الفصل الدراسي الحالي *" : "Current Semester *"}</label>
-              <div style={{ display: "flex", gap: 8 }}>
+              <label style={{ ...lbl, fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                {ar ? "الفصل الدراسي الحالي *" : "Current Semester *"}
+              </label>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
                 {(ar
-                  ? [["1", "الأول"], ["2", "الثاني"], ["summer", "الصيفي"]]
-                  : [["1", "First"], ["2", "Second"], ["summer", "Summer"]]
-                ).map(([v, l]) => (
-                  <button
-                    key={v}
-                    onClick={() => setSemester(v)}
-                    style={{
-                      flex: 1,
-                      padding: "12px",
-                      fontFamily: FONT,
-                      background: semester === v ? "rgba(168,85,247,.12)" : "var(--gpa-surface-alpha-06)",
-                      border: semester === v ? "1px solid #a855f766" : "1px solid var(--gpa-border)",
-                      borderRadius: 10,
-                      color: semester === v ? "var(--gpa-violet)" : "var(--gpa-text-faint)",
-                      fontSize: 13,
-                      cursor: "pointer",
-                    }}
-                  >
-                    {l}
-                  </button>
-                ))}
+                  ? [["1", "الفصل الأول", "🍂", "سبتمبر — يناير"], ["2", "الفصل الثاني", "🌸", "فبراير — يونيو"], ["summer", "الفصل الصيفي", "☀️", "يوليو — أغسطس"]]
+                  : [["1", "First", "🍂", "Sep — Jan"], ["2", "Second", "🌸", "Feb — Jun"], ["summer", "Summer", "☀️", "Jul — Aug"]]
+                ).map(([v, l, icon, range]) => {
+                  const sel = semester === v;
+                  return (
+                    <button
+                      key={v}
+                      onClick={() => setSemester(v)}
+                      style={{
+                        padding: "14px 8px", fontFamily: FONT, textAlign: "center",
+                        background: sel ? "rgba(168,85,247,.12)" : "var(--gpa-surface-alpha-06)",
+                        border: sel ? "2px solid #a855f766" : "1.5px solid var(--gpa-border)",
+                        borderRadius: 14,
+                        color: sel ? "var(--gpa-violet)" : "var(--gpa-text-faint)",
+                        cursor: "pointer", transition: "all 0.18s",
+                        boxShadow: sel ? "0 2px 14px rgba(168,85,247,.15)" : "none",
+                        position: "relative",
+                      }}
+                    >
+                      {sel && <div style={{ position: "absolute", top: 6, insetInlineEnd: 7, width: 7, height: 7, borderRadius: "50%", background: "var(--gpa-violet)" }} />}
+                      <div style={{ fontSize: 22, marginBottom: 6 }}>{icon}</div>
+                      <div style={{ fontSize: 12, fontWeight: sel ? 800 : 600, lineHeight: 1.2, marginBottom: 3 }}>{l}</div>
+                      <div style={{ fontSize: 9, color: "var(--gpa-text-faintest)", lineHeight: 1.3 }}>{range}</div>
+                    </button>
+                  );
+                })}
               </div>
-              {err && <div style={{ color: "var(--gpa-danger)", fontSize: 12, marginTop: 6 }}>⚠️ {err}</div>}
+              {err && <div style={{ color: "var(--gpa-danger)", fontSize: 12, marginTop: 8, background: "var(--gpa-danger-15)", padding: "8px 12px", borderRadius: 8 }}>⚠️ {err}</div>}
             </div>
-            <div>
-              <label style={lbl}>{ar ? "هدف المعدل التراكمي عند التخرج" : "Target GPA at Graduation"}</label>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                <span style={{ fontSize: 12, color: "var(--gpa-text-muted-2)" }}>{ar ? "الهدف:" : "Target:"}</span>
-                <span style={{ fontSize: 18, fontWeight: 800, color: gpaClr(gradTarget) }}>
-                  {gradTarget.toFixed(2)}
-                </span>
+
+            {/* GPA Target Slider */}
+            <div style={{ background: "var(--gpa-surface-alpha-06)", border: "1px solid var(--gpa-border)", borderRadius: 14, padding: "16px" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--gpa-text-muted-2)", textTransform: "uppercase", letterSpacing: "0.8px", fontFamily: FONT }}>
+                    {ar ? "هدف المعدل عند التخرج" : "Graduation GPA Target"}
+                  </div>
+                  <div style={{ fontSize: 10, color: "var(--gpa-text-faintest)", fontFamily: FONT, marginTop: 2 }}>
+                    {ar ? "المعدل التراكمي الذي تسعى للوصول إليه" : "The cumulative GPA you aim to achieve"}
+                  </div>
+                </div>
+                <div style={{
+                  background: `${gpaClr(gradTarget)}18`,
+                  border: `1.5px solid ${gpaClr(gradTarget)}44`,
+                  borderRadius: 10, padding: "6px 12px",
+                  textAlign: "center",
+                }}>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: gpaClr(gradTarget), fontFamily: "'Sora','Cairo',monospace", lineHeight: 1 }}>
+                    {gradTarget.toFixed(2)}
+                  </div>
+                  <div style={{ fontSize: 9, color: "var(--gpa-text-faintest)", fontFamily: FONT, marginTop: 2 }}>
+                    {gradTarget >= 3.667 ? (ar ? "امتياز" : "Distinction") : gradTarget >= 3.0 ? (ar ? "جيد جداً" : "Very Good") : gradTarget >= 2.0 ? (ar ? "جيد" : "Good") : (ar ? "مقبول" : "Pass")}
+                  </div>
+                </div>
               </div>
               <input
-                type="range"
-                min="2.0"
-                max="4.0"
-                step="0.05"
+                type="range" min="2.0" max="4.0" step="0.05"
                 value={gradTarget}
                 onChange={(e) => setGradTarget(parseFloat(e.target.value))}
-                style={{ width: "100%", accentColor: gpaClr(gradTarget) }}
+                style={{ width: "100%", accentColor: gpaClr(gradTarget), height: 5 }}
               />
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+                <span style={{ fontSize: 9, color: "var(--gpa-text-faintest)", fontFamily: FONT }}>2.00 {ar ? "مقبول" : "Pass"}</span>
+                <span style={{ fontSize: 9, color: "var(--gpa-text-faintest)", fontFamily: FONT }}>{ar ? "امتياز" : "Distinction"} 4.00</span>
+              </div>
             </div>
           </div>
         );
       case 4:
         return (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div
-              style={{
-                background: "var(--gpa-accent2-18)",
-                border: "1px solid #6366f133",
-                borderRadius: 10,
-                padding: "12px 14px",
-                fontSize: 12,
-                color: "var(--gpa-accent-2-soft)",
-              }}
-            >
-              {ar
-                ? "هذه المعلومات لحساب مرتبة الشرف بدقة طبقاً للمادة 24 من اللائحة."
-                : "Honors info per Art.24."}
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Info banner */}
+            <div style={{
+              background: "linear-gradient(135deg,rgba(99,102,241,.12),rgba(139,92,246,.10))",
+              border: "1px solid rgba(99,102,241,.25)",
+              borderRadius: 14, padding: "12px 16px",
+              display: "flex", alignItems: "flex-start", gap: 12,
+            }}>
+              <span style={{ fontSize: 20, flexShrink: 0, marginTop: 1 }}>🎓</span>
+              <div style={{ fontFamily: FONT, fontSize: 12, color: "var(--gpa-accent-2-soft)", lineHeight: 1.6 }}>
+                <strong style={{ display: "block", marginBottom: 3, fontSize: 13 }}>
+                  {ar ? "معايير مرتبة الشرف — المادة 24 من اللائحة" : "Honors Criteria — Article 24 of By-laws"}
+                </strong>
+                {ar
+                  ? "يُشترط لمرتبة الشرف: معدل تراكمي ≥ 3.4 + معدل فصلي ≥ 3.0 في كل فصل + عدم الرسوب في أي مادة."
+                  : "Honors requires: CGPA ≥ 3.4 + semester GPA ≥ 3.0 every term + never failed any course."}
+              </div>
             </div>
+
+            {/* Failed course question */}
             <div>
-              <label style={lbl}>{ar ? "هل رسبت في أي مادة طوال دراستك؟" : "Have you ever failed any course?"}</label>
-              <div style={{ display: "flex", gap: 8 }}>
-                {([[true, ar ? "نعم ❌" : "Yes ❌", "var(--gpa-danger)"], [false, ar ? "لا ✅" : "No ✅", "var(--gpa-accent)"]] as const).map(
-                  ([v, l, c]) => (
+              <label style={{ ...lbl, fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                {ar ? "هل رسبت في أي مادة؟" : "Have you ever failed a course?"}
+              </label>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {([
+                  [true,  ar ? "نعم، رسبت" : "Yes, I have",  "❌", "var(--gpa-danger)",  ar ? "يؤثر على أهلية الشرف" : "Affects honors eligibility"],
+                  [false, ar ? "لا، لم أرسب" : "No, never",  "✅", "var(--gpa-grade-a)", ar ? "مؤهل لمرتبة الشرف" : "Eligible for honors"],
+                ] as const).map(([v, l, icon, c, sub]) => {
+                  const sel = hasFailed === v;
+                  return (
                     <button
                       key={String(v)}
                       onClick={() => setHasFailed(v as boolean)}
                       style={{
-                        flex: 1,
-                        padding: "12px",
-                        fontFamily: FONT,
-                        background: hasFailed === v ? `${c}18` : "var(--gpa-surface-alpha-06)",
-                        border: hasFailed === v ? `1px solid ${c}66` : "1px solid var(--gpa-border)",
-                        borderRadius: 10,
-                        color: hasFailed === v ? c : "var(--gpa-text-faint)",
-                        fontSize: 13,
-                        cursor: "pointer",
+                        padding: "14px 12px", fontFamily: FONT, textAlign: "center",
+                        background: sel ? `${String(c)}18` : "var(--gpa-surface-alpha-06)",
+                        border: sel ? `2px solid ${String(c)}55` : "1.5px solid var(--gpa-border)",
+                        borderRadius: 14, cursor: "pointer",
+                        transition: "all 0.18s", position: "relative",
+                        boxShadow: sel ? `0 2px 14px ${String(c)}20` : "none",
                       }}
                     >
-                      {l}
+                      {sel && <div style={{ position: "absolute", top: 7, insetInlineEnd: 8, width: 7, height: 7, borderRadius: "50%", background: String(c) }} />}
+                      <div style={{ fontSize: 22, marginBottom: 6 }}>{icon}</div>
+                      <div style={{ fontSize: 13, fontWeight: sel ? 800 : 600, color: sel ? String(c) : "var(--gpa-text-muted)", lineHeight: 1.2, marginBottom: 3 }}>{l}</div>
+                      <div style={{ fontSize: 9, color: "var(--gpa-text-faintest)", lineHeight: 1.3 }}>{sub}</div>
                     </button>
-                  ),
-                )}
+                  );
+                })}
               </div>
             </div>
-            <div>
-              <label style={lbl}>
-                {ar ? "أدنى معدل فصلي حصلت عليه (0 إذا أول فصل):" : "Lowest semester GPA (0 if first):"}
-              </label>
+
+            {/* Min semester GPA */}
+            <div style={{ background: "var(--gpa-surface-alpha-06)", border: "1px solid var(--gpa-border)", borderRadius: 14, padding: "16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--gpa-text-muted-2)", textTransform: "uppercase", letterSpacing: "0.8px", fontFamily: FONT }}>
+                    {ar ? "أدنى معدل فصلي" : "Lowest Semester GPA"}
+                  </div>
+                  <div style={{ fontSize: 10, color: "var(--gpa-text-faintest)", fontFamily: FONT, marginTop: 2 }}>
+                    {ar ? "اكتب 0 إذا كان هذا أول فصل دراسي لك" : "Enter 0 if this is your first semester"}
+                  </div>
+                </div>
+                <div style={{
+                  background: Number(minSemGpa) >= 3.0 ? "var(--gpa-grade-a)18" : "var(--gpa-danger)18",
+                  border: `1px solid ${Number(minSemGpa) >= 3.0 ? "var(--gpa-grade-a)" : "var(--gpa-danger)"}44`,
+                  borderRadius: 8, padding: "4px 10px",
+                  fontSize: 11, fontWeight: 700,
+                  color: Number(minSemGpa) >= 3.0 ? "var(--gpa-grade-a)" : "var(--gpa-danger)",
+                  fontFamily: "'Sora','Cairo',monospace",
+                }}>
+                  {Number(minSemGpa) >= 3.0 ? (ar ? "✓ مؤهل" : "✓ OK") : Number(minSemGpa) === 0 ? "–" : (ar ? "✗ منخفض" : "✗ Low")}
+                </div>
+              </div>
               <input
-                type="number"
-                min="0"
-                max="4"
-                step="0.01"
+                type="number" min="0" max="4" step="0.01"
                 value={minSemGpa}
                 onChange={(e) => setMinSemGpa(e.target.value)}
                 placeholder="3.00"
-                style={inp}
+                style={{ ...inp, textAlign: "center", fontSize: 22, fontWeight: 900, fontFamily: "'Sora','Cairo',monospace", padding: "12px" }}
               />
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+                <span style={{ fontSize: 9, color: "var(--gpa-text-faintest)", fontFamily: FONT }}>0.00 {ar ? "رسوب" : "Fail"}</span>
+                <span style={{ fontSize: 9, color: "var(--gpa-text-faintest)", fontFamily: FONT }}>{ar ? "امتياز" : "Distinction"} 4.00</span>
+              </div>
             </div>
           </div>
         );
@@ -1007,86 +1104,154 @@ function SetupScreen({
           />
         </div>
 
-        <div style={{ display: "flex", gap: 4, marginBottom: 20 }}>
-          {STEPS.map((_, i) => (
-            <div
-              key={i}
-              style={{
-                flex: 1,
-                height: 3,
-                borderRadius: 2,
-                background: i <= step ? "var(--gpa-accent)" : "var(--gpa-border)",
-                transition: "background .3s",
-              }}
-            />
-          ))}
-        </div>
-        <div style={{ fontSize: 11, color: "var(--gpa-text-faint)", textAlign: "center", marginBottom: 16 }}>
-          {ar ? `الخطوة ${step + 1} من ${STEPS.length}` : `Step ${step + 1} of ${STEPS.length}`} — {STEPS[step]}
+        {/* ── Professional Step Stepper ── */}
+        <div style={{ marginBottom: 22 }}>
+          <div style={{ display: "flex", alignItems: "flex-start" }}>
+            {STEPS.map((label, i) => {
+              const done = i < step;
+              const active = i === step;
+              return (
+                <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
+                  {i > 0 && (
+                    <div style={{
+                      position: "absolute", top: 12, right: "50%", width: "100%", height: 2,
+                      background: done ? "var(--gpa-accent)" : "var(--gpa-border)",
+                      transition: "background 0.4s ease", zIndex: 0,
+                    }} />
+                  )}
+                  <div style={{
+                    width: 24, height: 24, borderRadius: "50%", zIndex: 1, position: "relative",
+                    background: done ? "var(--gpa-accent)" : active ? "var(--gpa-accent-20)" : "var(--gpa-bg)",
+                    border: `2px solid ${done || active ? "var(--gpa-accent)" : "var(--gpa-border)"}`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 10, fontWeight: 800,
+                    color: done ? "var(--gpa-bg)" : active ? "var(--gpa-accent)" : "var(--gpa-text-faint)",
+                    transition: "all 0.35s ease",
+                    boxShadow: active ? "0 0 0 4px var(--gpa-accent-12)" : "none",
+                    fontFamily: "'Sora','Cairo',monospace",
+                  }}>
+                    {done ? "✓" : i + 1}
+                  </div>
+                  <span style={{
+                    marginTop: 5, fontSize: 9, fontFamily: FONT,
+                    color: active ? "var(--gpa-accent)" : done ? "var(--gpa-text-soft)" : "var(--gpa-text-faintest)",
+                    fontWeight: active ? 700 : 400,
+                    textAlign: "center", lineHeight: 1.3,
+                    maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                    padding: "0 2px",
+                  }}>
+                    {label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         <div
           style={{
             background: "var(--gpa-card)",
             border: "1px solid var(--gpa-border)",
-            borderRadius: 20,
-            padding: 22,
-            boxShadow: "var(--gpa-shadow)",
+            borderRadius: 22,
+            overflow: "hidden",
+            boxShadow: "var(--gpa-shadow), 0 4px 32px rgba(0,0,0,.06)",
+            animation: "gpa-fade-in-up 0.38s cubic-bezier(0.22,1,0.36,1) both",
           }}
+          key={step}
         >
-          {stepContent()}
+          {/* Accent top stripe */}
+          <div style={{ height: 3, background: "linear-gradient(90deg,var(--gpa-accent) 0%,var(--gpa-accent-2,#6366f1) 100%)" }} />
+          {/* Step header */}
+          <div style={{ padding: "18px 22px 14px", borderBottom: "1px solid var(--gpa-border)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 13,
+                background: "var(--gpa-accent-12)",
+                border: "1.5px solid var(--gpa-accent-22,rgba(32,84,224,.22))",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 22, flexShrink: 0,
+                boxShadow: "0 2px 12px var(--gpa-accent-12)",
+              }}>
+                {STEP_META[step].icon}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "var(--gpa-text-strong)", fontFamily: FONT, lineHeight: 1.2 }}>
+                  {STEP_META[step].title}
+                </div>
+                <div style={{ fontSize: 11, color: "var(--gpa-text-faint)", fontFamily: FONT, marginTop: 3, lineHeight: 1.45 }}>
+                  {STEP_META[step].desc}
+                </div>
+              </div>
+              <div dir="ltr" style={{
+                flexShrink: 0, background: "var(--gpa-accent-12)", borderRadius: 8,
+                padding: "3px 9px", fontSize: 10, fontWeight: 700,
+                color: "var(--gpa-accent)", fontFamily: "'Sora','Cairo',monospace",
+                border: "1px solid var(--gpa-accent-22,rgba(32,84,224,.22))",
+              }}>
+                {step + 1} / {STEPS.length}
+              </div>
+            </div>
+          </div>
+          {/* Step content */}
+          <div style={{ padding: "20px 22px 22px" }}>
+            {stepContent()}
+          </div>
         </div>
 
-        <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+        <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
           {step > 0 && (
             <button
               onClick={back}
               style={{
-                flex: 1,
-                padding: 13,
-                background: "var(--gpa-surface-alpha-08)",
-                border: "1px solid var(--gpa-border)",
-                borderRadius: 12,
+                flex: 1, padding: "14px 18px",
+                background: "var(--gpa-card)",
+                border: "1.5px solid var(--gpa-border)",
+                borderRadius: 14,
                 color: "var(--gpa-text-muted-2)",
-                fontSize: 14,
-                fontFamily: FONT,
-                cursor: "pointer",
+                fontSize: 13, fontWeight: 600,
+                fontFamily: FONT, cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                transition: "border-color 0.2s, color 0.2s",
               }}
             >
-              {ar ? "← رجوع" : "← Back"}
+              <span style={{ fontSize: 15 }}>{ar ? "→" : "←"}</span>
+              {ar ? "رجوع" : "Back"}
             </button>
           )}
           <button
             onClick={next}
             disabled={saving}
             style={{
-              flex: 2,
-              padding: 13,
-              background: "linear-gradient(135deg,var(--gpa-accent-25),var(--gpa-accent2-20))",
-              border: "1px solid var(--gpa-accent-55)",
-              borderRadius: 12,
-              color: "var(--gpa-accent)",
-              fontSize: 14,
-              fontWeight: 700,
+              flex: step > 0 ? 2 : 1,
+              padding: "15px 20px",
+              background: saving
+                ? "var(--gpa-accent-25)"
+                : "linear-gradient(135deg,var(--gpa-accent) 0%,var(--gpa-accent) 100%)",
+              border: "none",
+              borderRadius: 14,
+              color: saving ? "var(--gpa-accent)" : "var(--gpa-bg)",
+              fontSize: 15, fontWeight: 800,
               fontFamily: FONT,
               cursor: saving ? "wait" : "pointer",
-              opacity: saving ? 0.6 : 1,
-              boxShadow: "0 0 20px var(--gpa-accent-20)",
+              opacity: saving ? 0.75 : 1,
+              boxShadow: saving ? "none" : "0 6px 28px var(--gpa-accent-35),0 2px 8px rgba(0,0,0,.15)",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              transition: "opacity 0.2s, box-shadow 0.2s",
+              letterSpacing: "0.2px",
             }}
           >
             {saving
-              ? ar
-                ? "جاري الحفظ..."
-                : "Saving..."
+              ? <>{ar ? "⏳ جاري الحفظ..." : "⏳ Saving..."}</>
               : step < STEPS.length - 1
-              ? ar
-                ? "التالي →"
-                : "Next →"
-              : ar
-              ? "ابدأ التخطيط 🚀"
-              : "Start Planning 🚀"}
+              ? <>{ar ? "التالي" : "Next"} <span style={{ fontSize: 17, fontWeight: 900 }}>{ar ? "←" : "→"}</span></>
+              : <>{ar ? "🚀 ابدأ التخطيط" : "🚀 Start Planning"}</>}
           </button>
         </div>
+
+        {/* Footer note */}
+        <p style={{ margin: "14px 0 0", fontSize: 10, color: "var(--gpa-text-faintest)", textAlign: "center", fontFamily: FONT, lineHeight: 1.5 }}>
+          🔒 {ar ? "بياناتك تُحفظ محلياً في المتصفح — لا تُرسل لأي خادم" : "Your data is stored locally in this browser — never sent to any server"}
+        </p>
       </div>
     </div>
     </>

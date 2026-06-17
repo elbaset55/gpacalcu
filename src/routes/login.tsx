@@ -320,28 +320,34 @@ function LoginPage() {
           </div>
 
           {/* Stats strip */}
-          <div style={{ display:"flex", gap:10, marginTop:28, animation:"lp-feat 0.5s 0.55s both" }}>
+          <div style={{ display:"flex", gap:8, marginTop:28, animation:"lp-feat 0.5s 0.55s both" }}>
             {[
-              { n: ar ? "٤.٠" : "4.0",  l: ar ? "أعلى معدل" : "Max GPA Scale" },
-              { n: ar ? "١٠+" : "10+",   l: ar ? "نظام تقييم" : "Grade Scales" },
-              { n: ar ? "ذكاء اصطناعي" : "AI",  l: ar ? "مستشار شخصي" : "Powered Advisor" },
+              { n: "4.0", sub: ar ? "أعلى معدل" : "Max GPA Scale", icon: "📈" },
+              { n: "136", sub: ar ? "ساعة للتخرج" : "Credit Hours", icon: "📋" },
+              { n: "AI", sub: ar ? "مستشار ذكي" : "Smart Advisor", icon: "🤖" },
             ].map((s, i) => (
               <div key={i} style={{
                 flex: 1, textAlign: "center",
-                background: "rgba(255,255,255,0.08)",
-                borderRadius: 12, padding: "10px 6px",
-                border: "1px solid rgba(255,255,255,0.12)",
+                background: "rgba(255,255,255,0.07)",
+                borderRadius: 14, padding: "12px 8px",
+                border: "1px solid rgba(255,255,255,0.11)",
+                backdropFilter: "blur(8px)",
               }}>
-                <div style={{ fontSize: ar ? 14 : 18, fontWeight: 900, color: "#fff", fontFamily: ar ? FONT : FONT_EN, lineHeight: 1 }}>{s.n}</div>
-                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.5)", marginTop: 4, fontFamily: ar ? FONT : FONT_EN }}>{s.l}</div>
+                <div style={{ fontSize: 16, marginBottom: 4 }}>{s.icon}</div>
+                <div style={{ fontSize: 17, fontWeight: 900, color: "#fff", fontFamily: "'Sora','Manrope',sans-serif", lineHeight: 1 }}>{s.n}</div>
+                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.48)", marginTop: 4, fontFamily: ar ? FONT : FONT_EN, lineHeight: 1.3 }}>{s.sub}</div>
               </div>
             ))}
           </div>
 
-          {/* Bottom label */}
-          <div style={{ marginTop:20, animation: "lp-feat 0.5s 0.65s both" }}>
-            <p style={{ margin:0, fontSize:11, color:"rgba(255,255,255,0.35)", fontFamily: ar ? FONT : FONT_EN }}>
-              🔒 {t.footer}
+          {/* Divider */}
+          <div style={{ height: 1, background: "rgba(255,255,255,0.08)", margin: "22px 0 16px", animation: "lp-feat 0.5s 0.6s both" }} />
+
+          {/* Bottom trust label */}
+          <div style={{ animation: "lp-feat 0.5s 0.65s both" }}>
+            <p style={{ margin:0, fontSize:11, color:"rgba(255,255,255,0.32)", fontFamily: ar ? FONT : FONT_EN, display: "flex", alignItems: "center", gap: 6 }}>
+              <span>🔒</span>
+              <span>{t.footer}</span>
             </p>
           </div>
         </div>
