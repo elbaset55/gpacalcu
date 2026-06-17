@@ -9,3 +9,4 @@
 - [Termly Course Wizard](termly-course-wizard.md) — CourseWizard.tsx at src/components/gpa/; wizard tab only shows when isBenha=true; CSS vars: only use variants that exist in styles.css (surface-alpha-06/08, danger-15/33/55, accent-15..55)
 - [Termly onboarding overhaul](termly-onboarding.md) — strict validation, Benha dept dropdown from FACULTY_DATA, level/sem required; wizard accepts initialDept/Level/Semester props and skips to step 3
 - [Termly CGPA & wizard features](termly-wizard-cgpa.md) — planned semesters (sem_type=wizard) excluded from CGPA; sticky bar shows X.XX→Y.YY; AI trigger fixed for summer; cgpaBefore/cgpaAfter in prompt
+- [Termly full bylaws coverage](termly-bylaws-coverage.md) — 9/9 programs in seedData: 313 courses, 385 slots, 501 compulsory cr hrs; CS uses "CS xxx" prefix; Geo/Bph/Chm/Phy/Mat/Bot/Mic all have their own prefixes
