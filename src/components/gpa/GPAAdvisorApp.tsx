@@ -262,6 +262,7 @@ function SetupScreen({
   const { theme, setTheme } = useGpaTheme();
   const { lang: globalLang, setLang: setGlobalLang } = useLang();
   const [step, setStep] = useState(0);
+  const [slideDir, setSlideDir] = useState<"fwd" | "bwd">("fwd");
   const [lang, setLang] = useState<string>(globalLang);
   useEffect(() => { setLang(globalLang); }, [globalLang]);
   const [scaleId, setScaleId] = useState("benha");
@@ -353,11 +354,11 @@ function SetupScreen({
 
   const next = () => {
     if (validateStep()) {
-      if (step < STEPS.length - 1) setStep((s) => s + 1);
+      if (step < STEPS.length - 1) { setSlideDir("fwd"); setStep((s) => s + 1); }
       else submit();
     }
   };
-  const back = () => setStep((s) => s - 1);
+  const back = () => { setSlideDir("bwd"); setStep((s) => s - 1); };
 
   const submit = async () => {
     const g = parseFloat(prevGpa), c = parseInt(prevCr), ms = parseFloat(minSemGpa);
@@ -1148,6 +1149,10 @@ function SetupScreen({
           </div>
         </div>
 
+        <style>{`
+          @keyframes gpa-slide-in-right { from { opacity:0; transform:translateX(38px) scale(0.975); } to { opacity:1; transform:translateX(0) scale(1); } }
+          @keyframes gpa-slide-in-left  { from { opacity:0; transform:translateX(-38px) scale(0.975); } to { opacity:1; transform:translateX(0) scale(1); } }
+        `}</style>
         <div
           style={{
             background: "var(--gpa-card)",
@@ -1155,7 +1160,11 @@ function SetupScreen({
             borderRadius: 22,
             overflow: "hidden",
             boxShadow: "var(--gpa-shadow), 0 4px 32px rgba(0,0,0,.06)",
-            animation: "gpa-fade-in-up 0.38s cubic-bezier(0.22,1,0.36,1) both",
+            animation: (() => {
+              const fwd = slideDir === "fwd";
+              const fromRight = ar ? !fwd : fwd;
+              return `${fromRight ? "gpa-slide-in-right" : "gpa-slide-in-left"} 0.35s cubic-bezier(0.22,1,0.36,1) both`;
+            })(),
           }}
           key={step}
         >
@@ -3638,6 +3647,8 @@ const menuItem: React.CSSProperties = {
 ══════════════════════════════════════════════════════════ */
 function GuestBanner({ lang }: { lang: string }) {
   const ar = lang === "ar";
+  const [dismissed, setDismissed] = React.useState(false);
+  if (dismissed) return null;
   return (
     <div
       aria-live="polite"
@@ -3645,39 +3656,55 @@ function GuestBanner({ lang }: { lang: string }) {
         position: "fixed",
         top: 0, left: 0, right: 0,
         zIndex: 9000,
-        background: "rgba(8,11,22,0.94)",
-        backdropFilter: "blur(20px) saturate(1.4)",
-        WebkitBackdropFilter: "blur(20px) saturate(1.4)",
-        borderBottom: "1px solid rgba(79,255,176,0.14)",
-        padding: "7px 20px",
+        background: "linear-gradient(90deg,rgba(8,11,22,0.97) 0%,rgba(14,18,40,0.97) 100%)",
+        backdropFilter: "blur(22px) saturate(1.5)",
+        WebkitBackdropFilter: "blur(22px) saturate(1.5)",
+        borderBottom: "1px solid rgba(79,255,176,0.18)",
+        padding: "9px 20px",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        gap: 14,
+        gap: 12,
         fontFamily: FONT,
-        animation: "gpa-fade-in-up 0.4s cubic-bezier(0.22,1,0.36,1) both",
+        animation: "gpa-slide-in-right 0.45s cubic-bezier(0.22,1,0.36,1) both",
       }}
     >
-      <span style={{ fontSize: 11.5, color: "rgba(200,210,240,0.65)", display: "flex", alignItems: "center", gap: 5 }}>
-        <span>🔓</span>
-        {ar ? "وضع الزائر — البيانات محفوظة في هذا المتصفح فقط" : "Guest mode — data is saved only in this browser"}
+      {/* Left icon */}
+      <span style={{ fontSize: 15, flexShrink: 0 }}>🔓</span>
+
+      {/* Message */}
+      <span style={{ fontSize: 11.5, color: "rgba(200,210,240,0.6)", flexShrink: 1, minWidth: 0 }}>
+        {ar
+          ? "وضع الزائر — سجّل دخولك لحفظ بياناتك بشكل دائم عبر جميع أجهزتك"
+          : "Guest mode — sign in to permanently save your data across all your devices"}
       </span>
+
+      {/* CTA */}
       <a
         href="/login"
         style={{
-          fontSize: 11,
-          fontWeight: 700,
-          color: "var(--gpa-accent)",
+          flexShrink: 0,
+          fontSize: 12,
+          fontWeight: 800,
+          color: "rgba(8,11,22,0.95)",
           textDecoration: "none",
-          border: "1px solid rgba(79,255,176,0.28)",
+          background: "var(--gpa-accent)",
           borderRadius: 20,
-          padding: "2px 11px",
+          padding: "4px 14px",
           letterSpacing: "0.3px",
-          transition: "all 0.2s ease",
+          boxShadow: "0 2px 12px var(--gpa-accent-35)",
+          transition: "opacity 0.2s",
         }}
       >
-        {ar ? "تسجيل الدخول ←" : "Sign in →"}
+        {ar ? "حفظ بياناتي ←" : "Save my data →"}
       </a>
+
+      {/* Dismiss */}
+      <button
+        onClick={() => setDismissed(true)}
+        style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", color: "rgba(200,210,240,0.35)", fontSize: 16, padding: "0 2px", lineHeight: 1 }}
+        title={ar ? "إغلاق" : "Dismiss"}
+      >×</button>
     </div>
   );
 }

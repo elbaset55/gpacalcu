@@ -733,26 +733,39 @@ function LoginPage() {
 
           {/* ── Guest mode ── */}
           <div style={{
-            width:"100%", maxWidth:440, marginTop:12,
+            width:"100%", maxWidth:440, marginTop:16,
             animation:"lp-in 0.55s 0.3s cubic-bezier(0.22,1,0.36,1) both",
           }}>
+            {/* Divider with label */}
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
+              <div style={{ flex:1, height:1, background: isDark ? "rgba(255,255,255,0.07)" : "rgba(15,23,66,0.07)" }} />
+              <span style={{ fontSize:11, color: isDark ? "rgba(200,210,240,0.3)" : "rgba(15,23,66,0.3)", fontFamily: ar ? FONT : FONT_EN, whiteSpace:"nowrap" }}>
+                {ar ? "أو تجرّب بدون حساب" : "or try without an account"}
+              </span>
+              <div style={{ flex:1, height:1, background: isDark ? "rgba(255,255,255,0.07)" : "rgba(15,23,66,0.07)" }} />
+            </div>
+
             <a href="/guest?onboard=1" className="lp-guest-btn" style={{
-              display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-              width:"100%", padding:"11px 16px",
-              background: isDark ? "rgba(255,255,255,0.04)" : "rgba(15,23,66,0.04)",
-              border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,66,0.09)"}`,
-              borderRadius:13, textDecoration:"none",
-              color:MUTED, fontSize:13, fontWeight:600,
+              display:"flex", alignItems:"center", justifyContent:"center", gap:10,
+              width:"100%", padding:"13px 16px",
+              background: isDark ? "rgba(255,255,255,0.05)" : "rgba(15,23,66,0.04)",
+              border: `1.5px dashed ${isDark ? "rgba(255,255,255,0.14)" : "rgba(15,23,66,0.14)"}`,
+              borderRadius:14, textDecoration:"none",
+              color: isDark ? "rgba(200,210,240,0.55)" : "rgba(15,23,66,0.5)",
+              fontSize:13.5, fontWeight:700,
               fontFamily: ar ? FONT : FONT_EN,
               backdropFilter:"blur(12px)", WebkitBackdropFilter:"blur(12px)",
               transition:"all 0.22s ease",
             }}>
-              <span style={{ fontSize:16 }}>👤</span>
-              {t.guest}
+              <span style={{ fontSize:17 }}>👤</span>
+              <span>{t.guest}</span>
+              <span style={{ fontSize:11, color: isDark ? "rgba(200,210,240,0.3)" : "rgba(15,23,66,0.3)", fontWeight:400 }}>
+                — {ar ? "بيانات مؤقتة" : "temporary data"}
+              </span>
             </a>
             <p style={{
-              margin:"6px 0 0", fontSize:11, color: isDark ? "rgba(200,210,240,0.28)" : "rgba(15,23,66,0.28)",
-              fontFamily: ar ? FONT : FONT_EN, textAlign:"center",
+              margin:"7px 0 0", fontSize:11, color: isDark ? "rgba(200,210,240,0.25)" : "rgba(15,23,66,0.25)",
+              fontFamily: ar ? FONT : FONT_EN, textAlign:"center", lineHeight: 1.5,
             }}>
               {t.guestDesc}
             </p>
