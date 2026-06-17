@@ -5,6 +5,33 @@ import tsConfigPaths from "vite-tsconfig-paths";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import type { Plugin } from "vite";
 
+/** Stub pg/pg-native for the browser bundle — they are Node-only */
+function pgBrowserStubPlugin(): Plugin {
+  return {
+    name: "pg-browser-stub",
+    enforce: "pre",
+    resolveId(source, _importer, options) {
+      if ((source === "pg" || source === "pg-native" || source === "pg-pool") && !options?.ssr) {
+        return "\0pg-browser-stub";
+      }
+    },
+    load(id) {
+      if (id === "\0pg-browser-stub") {
+        return `export class Pool {
+  constructor() {}
+  query() { return Promise.resolve({ rows: [], rowCount: 0 }); }
+  connect() { return Promise.resolve({ query: () => Promise.resolve({ rows: [] }), release: () => {} }); }
+  end() { return Promise.resolve(); }
+}
+export const types = { setTypeParser: () => {} };
+export const Client = Pool;
+export default { Pool, types, Client };
+`;
+      }
+    },
+  };
+}
+
 function authRoutesPlugin(): Plugin {
   return {
     name: "termly-auth-routes",
@@ -122,6 +149,7 @@ function authRoutesPlugin(): Plugin {
 
 export default defineConfig({
   plugins: [
+    pgBrowserStubPlugin(),
     authRoutesPlugin(),
     tailwindcss(),
     tsConfigPaths({ projects: ["./tsconfig.json"] }),
