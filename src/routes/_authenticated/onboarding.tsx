@@ -56,8 +56,15 @@ const LEVELS_AR = ["المستوى الأول", "المستوى الثاني", "
 const LEVELS_EN = ["Freshman (L1)", "Sophomore (L2)", "Junior (L3)", "Senior (L4)"];
 
 const DEPT_PALETTE: Record<string, { grad: string; accent: string; glyph: string }> = {
-  biotech:         { grad: "linear-gradient(135deg,#10B981,#059669)", accent: "#34D399", glyph: "🧬" },
-  zoology_ecology: { grad: "linear-gradient(135deg,#F59E0B,#D97706)", accent: "#FBBF24", glyph: "🦎" },
+  biotech:             { grad: "linear-gradient(135deg,#10B981,#059669)", accent: "#34D399", glyph: "🧬" },
+  zoology_ecology:     { grad: "linear-gradient(135deg,#F59E0B,#D97706)", accent: "#FBBF24", glyph: "🦎" },
+  chemistry:           { grad: "linear-gradient(135deg,#8B5CF6,#7C3AED)", accent: "#A78BFA", glyph: "⚗️" },
+  physics:             { grad: "linear-gradient(135deg,#3B82F6,#1D4ED8)", accent: "#60A5FA", glyph: "⚛️" },
+  mathematics:         { grad: "linear-gradient(135deg,#EC4899,#DB2777)", accent: "#F472B6", glyph: "∑" },
+  computer_science:    { grad: "linear-gradient(135deg,#14B8A6,#0F766E)", accent: "#2DD4BF", glyph: "💻" },
+  botany_microbiology: { grad: "linear-gradient(135deg,#22C55E,#15803D)", accent: "#4ADE80", glyph: "🌿" },
+  geology:             { grad: "linear-gradient(135deg,#D97706,#92400E)", accent: "#FBBF24", glyph: "🪨" },
+  biophysics:          { grad: "linear-gradient(135deg,#06B6D4,#0E7490)", accent: "#22D3EE", glyph: "🔬" },
 };
 const defaultPalette = { grad: "linear-gradient(135deg,#6366F1,#8B5CF6)", accent: "#A5B4FC", glyph: "★" };
 const deptPalette = (id: string) => DEPT_PALETTE[id] ?? defaultPalette;

@@ -66,6 +66,7 @@ import {
   normalizeTranscript,
   type ReviewSem,
 } from "@/lib/transcript-normalize";
+import { FACULTY_DATA } from "@/data/seedData";
 
 /* ══════════════════════════════════════════════════════════
    GRADING SYSTEMS
@@ -232,7 +233,32 @@ export type ImportPayload = {
 
 /* Lang + Theme switchers are in PremiumControls.tsx (shared with login) */
 
-function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => void | Promise<void> }) {
+/* ── Dept palette — drives icons + colours in SetupScreen's dept picker ── */
+const SS_DEPT_PALETTE: Record<string, { grad: string; accent: string; glyph: string }> = {
+  biotech:             { grad: "linear-gradient(135deg,#10B981,#059669)", accent: "#34D399", glyph: "🧬" },
+  zoology_ecology:     { grad: "linear-gradient(135deg,#F59E0B,#D97706)", accent: "#FBBF24", glyph: "🦎" },
+  chemistry:           { grad: "linear-gradient(135deg,#8B5CF6,#7C3AED)", accent: "#A78BFA", glyph: "⚗️" },
+  physics:             { grad: "linear-gradient(135deg,#3B82F6,#1D4ED8)", accent: "#60A5FA", glyph: "⚛️" },
+  mathematics:         { grad: "linear-gradient(135deg,#EC4899,#DB2777)", accent: "#F472B6", glyph: "∑" },
+  computer_science:    { grad: "linear-gradient(135deg,#14B8A6,#0F766E)", accent: "#2DD4BF", glyph: "💻" },
+  botany_microbiology: { grad: "linear-gradient(135deg,#22C55E,#15803D)", accent: "#4ADE80", glyph: "🌿" },
+  geology:             { grad: "linear-gradient(135deg,#D97706,#92400E)", accent: "#FBBF24", glyph: "🪨" },
+  biophysics:          { grad: "linear-gradient(135deg,#06B6D4,#0E7490)", accent: "#22D3EE", glyph: "🔬" },
+};
+const ssDeptPalette = (id: string) =>
+  SS_DEPT_PALETTE[id] ?? { grad: "linear-gradient(135deg,#6366F1,#8B5CF6)", accent: "#A5B4FC", glyph: "📚" };
+
+function SetupScreen({
+  onDone,
+  existingProfile = null,
+  onContinue,
+  onStartFresh,
+}: {
+  onDone: (p: Profile, sems?: ReviewSem[]) => void | Promise<void>;
+  existingProfile?: any | null;
+  onContinue?: () => void;
+  onStartFresh?: () => void;
+}) {
   const { theme, setTheme } = useGpaTheme();
   const { lang: globalLang, setLang: setGlobalLang } = useLang();
   const [step, setStep] = useState(0);
@@ -255,6 +281,8 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
   const [pendingSems, setPendingSems] = useState<ReviewSem[]>([]);
   const [reviewData, setReviewData] = useState<{ sems: ReviewSem[]; warnings: string[] } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deptSearch, setDeptSearch] = useState("");
+  const [showWelcomeBack, setShowWelcomeBack] = useState(!!existingProfile);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const analyzeFn = useServerFn(analyzeTranscript);
   const scale = SCALE_SYSTEMS.find((s) => s.id === scaleId)!;
@@ -264,8 +292,8 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
   const dir = ar ? "rtl" : "ltr";
 
   const STEPS = ar
-    ? ["اللغة والنظام", "بيانات الجامعة", "المعدل والساعات", "الفصل والهدف", "مرتبة الشرف"]
-    : ["Language & Scale", "University Info", "GPA & Credits", "Semester & Goal", "Honors Check"];
+    ? ["اللغة والنظام", scale.isBenha ? "البرنامج والمستوى" : "بيانات الجامعة", "المعدل والساعات", "الفصل والهدف", "مرتبة الشرف"]
+    : ["Language & Scale", scale.isBenha ? "Programme & Level" : "University Info", "GPA & Credits", "Semester & Goal", "Honors Check"];
 
   const inp: React.CSSProperties = {
     background: "var(--gpa-card)",
@@ -282,6 +310,9 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
   const lbl: React.CSSProperties = { fontSize: 11, color: "var(--gpa-text-muted-2)", marginBottom: 5, display: "block", letterSpacing: ".5px" };
 
   const validateStep = () => {
+    if (step === 1 && scale.isBenha) {
+      if (!major) { setErr(ar ? "يجب اختيار البرنامج للمتابعة" : "Please select a programme to continue"); return false; }
+    }
     if (step === 1 && !scale.isBenha) {
       const t = parseInt(customTotalReq);
       if (isNaN(t) || t < 60 || t > 300) {
@@ -466,97 +497,121 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
           </div>
         );
       case 1:
+        if (scale.isBenha) {
+          const filteredDepts = FACULTY_DATA.departments.filter((d) => {
+            if (!deptSearch.trim()) return true;
+            const q = deptSearch.toLowerCase();
+            return d.nameAr.includes(q) || d.nameEn.toLowerCase().includes(q) || d.id.includes(q);
+          });
+          return (
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {/* Faculty badge — read-only */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", borderRadius: 12, background: "var(--gpa-surface-alpha-06)", border: "1px solid rgba(34,211,238,0.22)" }}>
+                <span style={{ fontSize: 20 }}>🏛️</span>
+                <div>
+                  <div style={{ fontFamily: FONT, fontSize: 13, fontWeight: 700, color: "var(--gpa-text)" }}>
+                    {ar ? FACULTY_DATA.nameAr : FACULTY_DATA.nameEn}
+                  </div>
+                  <div style={{ fontSize: 10, color: "var(--gpa-accent)", fontFamily: FONT, marginTop: 1 }}>
+                    {ar ? "محدد تلقائياً · لائحة 2021" : "Pre-selected · By-law 2021"}
+                  </div>
+                </div>
+              </div>
+              {/* Search */}
+              <input
+                value={deptSearch}
+                onChange={(e) => setDeptSearch(e.target.value)}
+                placeholder={ar ? "ابحث عن برنامجك..." : "Search programme..."}
+                style={inp}
+              />
+              {/* Dept picker list */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 300, overflowY: "auto" }}>
+                {filteredDepts.map((d) => {
+                  const pal = ssDeptPalette(d.id);
+                  const sel = major === d.id;
+                  return (
+                    <button
+                      key={d.id}
+                      type="button"
+                      onClick={() => { setMajor(d.id); setErr(""); }}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 12,
+                        padding: "11px 13px", borderRadius: 12, width: "100%",
+                        border: sel ? `2px solid ${pal.accent}` : "1px solid var(--gpa-border)",
+                        background: sel ? `linear-gradient(135deg,${pal.accent}16,${pal.accent}06)` : "var(--gpa-surface-alpha-06)",
+                        cursor: "pointer", transition: "all 0.18s",
+                        boxShadow: sel ? `0 0 0 1px ${pal.accent}25, 0 2px 10px rgba(0,0,0,.1)` : "none",
+                      }}
+                    >
+                      <div style={{ width: 36, height: 36, borderRadius: 9, background: pal.grad, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flexShrink: 0 }}>
+                        {pal.glyph}
+                      </div>
+                      <div style={{ flex: 1, textAlign: ar ? "right" : "left", minWidth: 0 }}>
+                        <div style={{ fontFamily: FONT, fontSize: 13, fontWeight: sel ? 800 : 600, color: sel ? pal.accent : "var(--gpa-text)", lineHeight: 1.3 }}>
+                          {ar ? d.nameAr : d.nameEn}
+                        </div>
+                      </div>
+                      {sel && (
+                        <div style={{ width: 20, height: 20, borderRadius: "50%", background: pal.accent, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#000", fontWeight: 900, flexShrink: 0 }}>✓</div>
+                      )}
+                    </button>
+                  );
+                })}
+                {filteredDepts.length === 0 && (
+                  <div style={{ textAlign: "center", padding: "20px", color: "var(--gpa-text-faint)", fontSize: 13 }}>
+                    {ar ? "لا توجد نتائج" : "No results found"}
+                  </div>
+                )}
+              </div>
+              {err && <div style={{ color: "var(--gpa-danger)", fontSize: 12, background: "var(--gpa-danger-15)", padding: "8px 12px", borderRadius: 8 }}>⚠️ {err}</div>}
+              {/* Level picker */}
+              <div>
+                <label style={lbl}>{ar ? "المستوى الدراسي الحالي *" : "Current Academic Year *"}</label>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
+                  {[1, 2, 3, 4].map((lv) => {
+                    const labels = ar ? { 1: "الأولى", 2: "الثانية", 3: "الثالثة", 4: "الرابعة" } as any : { 1: "Year 1", 2: "Year 2", 3: "Year 3", 4: "Year 4" } as any;
+                    const active = currentLevel === lv;
+                    return (
+                      <button key={lv} onClick={() => setCurrentLevel(lv)} style={{ padding: "10px 6px", fontFamily: FONT, background: active ? "var(--gpa-accent-12)" : "var(--gpa-surface-alpha-06)", border: active ? "1px solid var(--gpa-accent-44)" : "1px solid var(--gpa-border)", borderRadius: 10, color: active ? "var(--gpa-accent)" : "var(--gpa-text-faint)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                        {labels[lv]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              {/* 136cr note */}
+              <div style={{ background: "var(--gpa-accent-10)", border: "1px solid #00ff8825", borderRadius: 10, padding: "10px 14px" }}>
+                <div style={{ fontSize: 11, color: "var(--gpa-grade-b-plus)", fontWeight: 700, marginBottom: 3 }}>
+                  📋 {ar ? "ساعات التخرج طبقاً للمادة 5 من اللائحة:" : "Graduation hours per Art.5 of bylaws:"}
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: "var(--gpa-accent)" }}>136 {ar ? "ساعة معتمدة" : "credits"}</div>
+              </div>
+            </div>
+          );
+        }
         return (
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div>
-              <label style={lbl}>
-                {ar ? "اسم الجامعة / الكلية" : "University / Faculty"} (
-                {ar ? "اختياري" : "optional"})
-              </label>
-              <input
-                value={uniName}
-                onChange={(e) => setUniName(e.target.value)}
-                placeholder={
-                  scaleId === "benha" ? "جامعة بنها · كلية العلوم" : "Cairo University · Faculty of Science"
-                }
-                style={inp}
-              />
+              <label style={lbl}>{ar ? "اسم الجامعة / الكلية" : "University / Faculty"} ({ar ? "اختياري" : "optional"})</label>
+              <input value={uniName} onChange={(e) => setUniName(e.target.value)} placeholder="Cairo University · Faculty of Science" style={inp} />
             </div>
             <div>
-              <label style={lbl}>
-                {ar ? "التخصص / القسم" : "Major / Department"} ({ar ? "اختياري" : "optional"})
-              </label>
-              <input
-                value={major}
-                onChange={(e) => setMajor(e.target.value)}
-                placeholder={ar ? "مثال: التقنية الحيوية" : "e.g. Biotechnology"}
-                style={inp}
-              />
+              <label style={lbl}>{ar ? "التخصص / القسم" : "Major / Department"} ({ar ? "اختياري" : "optional"})</label>
+              <input value={major} onChange={(e) => setMajor(e.target.value)} placeholder={ar ? "مثال: علوم الحاسب" : "e.g. Computer Science"} style={inp} />
             </div>
-            {scale.isBenha ? (
-              <div
-                style={{
-                  background: "var(--gpa-accent-10)",
-                  border: "1px solid #00ff8825",
-                  borderRadius: 10,
-                  padding: "12px 14px",
-                }}
-              >
-                <div style={{ fontSize: 12, color: "var(--gpa-grade-b-plus)", fontWeight: 700, marginBottom: 4 }}>
-                  📋 {ar ? "ساعات التخرج طبقاً للمادة 5 من اللائحة:" : "Graduation hours per Art.5 of bylaws:"}
-                </div>
-                <div style={{ fontSize: 24, fontWeight: 900, color: "var(--gpa-accent)" }}>
-                  136 {ar ? "ساعة معتمدة" : "credits"}
-                </div>
-                <div style={{ fontSize: 11, color: "var(--gpa-text-faint)", marginTop: 4 }}>
-                  {ar ? "ثابتة — لا يمكن تغييرها" : "Fixed — cannot be changed"}
-                </div>
-              </div>
-            ) : (
-              <div>
-                <label style={lbl}>
-                  {ar ? "عدد ساعات التخرج المطلوبة في جامعتك *" : "Total graduation credits required *"}
-                </label>
-                <input
-                  type="number"
-                  min="60"
-                  max="300"
-                  value={customTotalReq}
-                  onChange={(e) => {
-                    setCustomTotalReq(e.target.value);
-                    setErr("");
-                  }}
-                  placeholder={ar ? "مثال: 120 أو 132 أو 150" : "e.g. 120, 132, 150"}
-                  style={inp}
-                />
-                {err && <div style={{ marginTop: 6, color: "var(--gpa-danger)", fontSize: 12 }}>⚠️ {err}</div>}
-              </div>
-            )}
-            {/* Current academic level */}
+            <div>
+              <label style={lbl}>{ar ? "عدد ساعات التخرج المطلوبة *" : "Total graduation credits required *"}</label>
+              <input type="number" min="60" max="300" value={customTotalReq} onChange={(e) => { setCustomTotalReq(e.target.value); setErr(""); }} placeholder={ar ? "مثال: 120 أو 132 أو 150" : "e.g. 120, 132, 150"} style={inp} />
+              {err && <div style={{ marginTop: 6, color: "var(--gpa-danger)", fontSize: 12 }}>⚠️ {err}</div>}
+            </div>
             <div>
               <label style={lbl}>{ar ? "المستوى/السنة الدراسية الحالية *" : "Current Academic Year *"}</label>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
                 {[1, 2, 3, 4].map((lv) => {
-                  const labels = ar
-                    ? { 1: "الأولى", 2: "الثانية", 3: "الثالثة", 4: "الرابعة" } as any
-                    : { 1: "Year 1", 2: "Year 2", 3: "Year 3", 4: "Year 4" } as any;
+                  const labels = ar ? { 1: "الأولى", 2: "الثانية", 3: "الثالثة", 4: "الرابعة" } as any : { 1: "Year 1", 2: "Year 2", 3: "Year 3", 4: "Year 4" } as any;
                   const active = currentLevel === lv;
                   return (
-                    <button
-                      key={lv}
-                      onClick={() => setCurrentLevel(lv)}
-                      style={{
-                        padding: "10px 6px",
-                        fontFamily: FONT,
-                        background: active ? "var(--gpa-accent-12)" : "var(--gpa-surface-alpha-06)",
-                        border: active ? "1px solid var(--gpa-accent-44)" : "1px solid var(--gpa-border)",
-                        borderRadius: 10,
-                        color: active ? "var(--gpa-accent)" : "var(--gpa-text-faint)",
-                        fontSize: 12,
-                        fontWeight: 700,
-                        cursor: "pointer",
-                      }}
-                    >
+                    <button key={lv} onClick={() => setCurrentLevel(lv)} style={{ padding: "10px 6px", fontFamily: FONT, background: active ? "var(--gpa-accent-12)" : "var(--gpa-surface-alpha-06)", border: active ? "1px solid var(--gpa-accent-44)" : "1px solid var(--gpa-border)", borderRadius: 10, color: active ? "var(--gpa-accent)" : "var(--gpa-text-faint)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
                       {labels[lv]}
                     </button>
                   );
@@ -798,6 +853,88 @@ function SetupScreen({ onDone }: { onDone: (p: Profile, sems?: ReviewSem[]) => v
         return null;
     }
   };
+
+  /* ── Welcome-back card: shown when returning guest session detected ── */
+  if (showWelcomeBack && existingProfile) {
+    const prevDept = FACULTY_DATA.departments.find((d) => d.id === existingProfile.major);
+    const pal = ssDeptPalette(existingProfile.major ?? "");
+    const gpaNum = Number(existingProfile.prev_gpa ?? 0).toFixed(2);
+    const lvNum  = existingProfile.current_level ?? 1;
+    const lvAr   = (["الأول", "الثاني", "الثالث", "الرابع"] as const)[lvNum - 1] ?? String(lvNum);
+    const semMap: Record<string, string> = {
+      "1": ar ? "الفصل الأول" : "Semester 1",
+      "2": ar ? "الفصل الثاني" : "Semester 2",
+      "s": ar ? "الفصل الصيفي" : "Summer Term",
+    };
+    const semLabel = semMap[existingProfile.semester] ?? existingProfile.semester;
+    const deptName = prevDept ? (ar ? prevDept.nameAr : prevDept.nameEn) : (existingProfile.major || (ar ? "غير محدد" : "Unknown"));
+    return (
+      <div dir={dir} style={{ fontFamily: FONT, background: "var(--gpa-bg)", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, position: "relative", overflow: "hidden" }}>
+        <AppBackground theme={theme} variant="login" />
+        <div style={{ width: "100%", maxWidth: 460, position: "relative", zIndex: 1 }}>
+          {/* Logo + controls */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
+            <Logo height={36} />
+            <PremiumControlsBar lang={globalLang} onLangChange={(l) => { setLang(l); setGlobalLang(l); }} theme={theme} onThemeChange={setTheme} />
+          </div>
+          {/* Card */}
+          <div style={{ background: "var(--gpa-card)", border: `2px solid ${pal.accent}44`, borderRadius: 24, padding: "28px 24px", boxShadow: `0 0 48px ${pal.accent}18, var(--gpa-shadow)`, animation: "gpa-fade-in-up 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
+            {/* Header: icon + greeting */}
+            <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
+              <div style={{ width: 58, height: 58, borderRadius: 16, background: pal.grad, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, flexShrink: 0, boxShadow: `0 6px 20px ${pal.accent}40` }}>
+                {pal.glyph}
+              </div>
+              <div>
+                <div style={{ fontFamily: FONT, fontSize: 20, fontWeight: 900, color: "var(--gpa-text-strong)", lineHeight: 1.2 }}>
+                  {ar ? "مرحباً بعودتك! 👋" : "Welcome Back! 👋"}
+                </div>
+                <div style={{ fontSize: 12, color: "var(--gpa-text-faint)", fontFamily: FONT, marginTop: 4 }}>
+                  {ar ? "وجدنا جلسة محفوظة لك في هذا المتصفح" : "We found a saved session in this browser"}
+                </div>
+              </div>
+            </div>
+            {/* Stats grid */}
+            <div style={{ background: `linear-gradient(135deg,${pal.accent}10,${pal.accent}06)`, border: `1px solid ${pal.accent}22`, borderRadius: 14, padding: "14px 16px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 22 }}>
+              <div>
+                <div style={{ fontSize: 10, color: "var(--gpa-text-faint)", fontFamily: FONT, textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 3 }}>{ar ? "البرنامج" : "Programme"}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: pal.accent, fontFamily: FONT, lineHeight: 1.4 }}>{deptName}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: "var(--gpa-text-faint)", fontFamily: FONT, textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 3 }}>{ar ? "المستوى" : "Level"}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gpa-text-strong)", fontFamily: FONT }}>{ar ? `المستوى ${lvAr}` : `Level ${lvNum}`}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: "var(--gpa-text-faint)", fontFamily: FONT, textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 3 }}>{ar ? "المعدل التراكمي" : "CGPA"}</div>
+                <div style={{ fontSize: 22, fontWeight: 900, color: gpaClr(Number(gpaNum)), fontFamily: "'Sora',monospace" }}>{gpaNum}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: "var(--gpa-text-faint)", fontFamily: FONT, textTransform: "uppercase", letterSpacing: ".5px", marginBottom: 3 }}>{ar ? "الفصل" : "Semester"}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gpa-text-strong)", fontFamily: FONT }}>{semLabel}</div>
+              </div>
+            </div>
+            {/* Action buttons */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <button
+                onClick={() => onContinue?.()}
+                style={{ padding: "15px 20px", borderRadius: 14, border: `1.5px solid ${pal.accent}66`, background: `linear-gradient(135deg,${pal.accent}28,${pal.accent}14)`, color: pal.accent, fontFamily: FONT, fontSize: 15, fontWeight: 800, cursor: "pointer", boxShadow: `0 4px 20px ${pal.accent}22` }}
+              >
+                ⚡ {ar ? "المتابعة من حيث توقفت" : "Continue from where I left off"}
+              </button>
+              <button
+                onClick={() => { setShowWelcomeBack(false); onStartFresh?.(); }}
+                style={{ padding: "13px 20px", borderRadius: 14, background: "transparent", border: "1.5px solid var(--gpa-danger-33)", color: "var(--gpa-danger)", fontFamily: FONT, fontSize: 14, fontWeight: 600, cursor: "pointer" }}
+              >
+                🔄 {ar ? "البدء من جديد" : "Start Fresh"}
+              </button>
+            </div>
+          </div>
+          <p style={{ margin: "12px 0 0", fontSize: 11, color: "var(--gpa-text-faintest)", textAlign: "center", fontFamily: FONT }}>
+            🔒 {ar ? "بياناتك محفوظة في هذا المتصفح فقط — لا تُرسل لأي خادم" : "Data is stored only in this browser — never sent to any server"}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -3403,6 +3540,7 @@ export default function GPAAdvisorApp({ isGuest = false, forceSetup = false }: {
     if (typeof window === "undefined") return { semesters: [], courses: [] };
     try { return JSON.parse(localStorage.getItem("termly_guest_sems") ?? "null") ?? { semesters: [], courses: [] }; } catch { return { semesters: [], courses: [] }; }
   });
+  const [skipSetup, setSkipSetup] = useState(false);
 
   const profileQ = useQuery({
     queryKey: ["profile"],
@@ -3494,7 +3632,7 @@ export default function GPAAdvisorApp({ isGuest = false, forceSetup = false }: {
     );
   }
 
-  const dbProfile = isGuest ? (forceSetup ? null : guestRawProfile) : profileQ.data;
+  const dbProfile = isGuest ? ((forceSetup && !skipSetup) ? null : guestRawProfile) : profileQ.data;
 
   const guestSaveSem = (semData: any) => {
     const semId = crypto.randomUUID();
@@ -3515,6 +3653,14 @@ export default function GPAAdvisorApp({ isGuest = false, forceSetup = false }: {
     // Guest users → inline setup screen (no server account)
     return (
       <SetupScreen
+        existingProfile={forceSetup && !skipSetup ? guestRawProfile : null}
+        onContinue={() => setSkipSetup(true)}
+        onStartFresh={() => {
+          localStorage.removeItem("termly_guest_profile");
+          localStorage.removeItem("termly_guest_sems");
+          setGuestRawProfile(null);
+          setGuestSemsData({ semesters: [], courses: [] });
+        }}
         onDone={async (p, sems) => {
           const rawProfile = { lang: p.lang, scale_id: p.scaleId, is_benha: p.isBenha, total_req: p.totalReq, uni_name: p.uniName, major: p.major, prev_gpa: p.prevGpa, prev_cr: p.prevCr, semester: p.semester, has_failed: p.hasFailed, min_prev_sem_gpa: p.minPrevSemGpa, grad_target: p.gradTarget, current_level: p.currentLevel };
           let newSemsData: { semesters: any[]; courses: any[] } = { semesters: [], courses: [] };
